@@ -4,6 +4,12 @@
 
 [在线查看排行榜](https://joker01-01.github.io/ai-model-leaderboard/)
 
+[![在线网页](https://img.shields.io/badge/在线网页-GitHub%20Pages-111111?style=flat-square&logo=githubpages&logoColor=white)](https://joker01-01.github.io/ai-model-leaderboard/)
+[![Vite 7](https://img.shields.io/badge/Vite-7-111111?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)
+[![React 19](https://img.shields.io/badge/React-19-111111?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript 5.9](https://img.shields.io/badge/TypeScript-5.9-111111?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![静态部署](https://img.shields.io/badge/部署-纯静态-111111?style=flat-square&logo=githubactions&logoColor=white)](https://pages.github.com/)
+
 这是一个静态 React 页面：`main` 分支更新后，GitHub Actions 会自动发布到 GitHub Pages。
 
 ## 这个榜单看什么
