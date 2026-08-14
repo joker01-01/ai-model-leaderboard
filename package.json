@@ -1,0 +1,23 @@
+{
+  "name": "ai-model-almanac",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "模型年鉴 · AI 模型排行榜（编辑加权、口径可调）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.9.0",
+    "vite": "^7.0.0"
+  }
+}
