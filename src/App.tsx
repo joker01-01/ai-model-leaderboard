@@ -91,6 +91,8 @@ function sortEntries(entries: Entry[], mode: RankingMode, sortKey: SortKey): Ent
       const aHas = a.objectiveScore.score !== null;
       const bHas = b.objectiveScore.score !== null;
       if (aHas !== bHas) return aHas ? -1 : 1;
+      const scoreDifference = entryValue(b, mode, sortKey) - entryValue(a, mode, sortKey);
+      return scoreDifference || a.model.name.localeCompare(b.model.name, "zh-Hans-CN");
     }
     return entryValue(b, mode, sortKey) - entryValue(a, mode, sortKey)
       || b.editorialScore - a.editorialScore;
@@ -349,7 +351,12 @@ function Board({ mode, entries, sortKey, expanded, onToggle }: {
     <section className="board" aria-label={`${mode === "objective" ? "公开评测榜" : "编辑推荐榜"}排名`}>
       <div className="board-head" aria-hidden="true"><span>名次</span><span>模型</span><span className="right">{sortLabel}</span><span>{mode === "objective" ? "评测覆盖" : "六项评分"}</span><span className="right">价格带</span><span className="right">发布</span><span /></div>
       {entries.length === 0 && <p className="empty">没有找到符合条件的模型，换个搜索词试试。</p>}
-      <ol className="rows">{rankedEntries.map((entry, index) => <Row key={entry.model.id + "-" + mode + "-" + sortKey} entry={entry} mode={mode} rank={index + 1} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol>
+      <ol className="rows">{rankedEntries.map((entry, index) => {
+        const rank = mode === "objective"
+          ? rankedEntries.findIndex((candidate) => entryValue(candidate, mode, sortKey) === entryValue(entry, mode, sortKey)) + 1
+          : index + 1;
+        return <Row key={entry.model.id + "-" + mode + "-" + sortKey} entry={entry} mode={mode} rank={rank} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />;
+      })}</ol>
       {pendingEntries.length > 0 && <section className="unranked" aria-label="待补公开成绩"><div className="unranked-head"><div><h3>待补公开成绩</h3><p>以下模型暂时没有可核验的同版本智能指数，因此不显示名次或主榜分数。</p></div><span>{pendingEntries.length} 个模型</span></div><ol className="rows rows-unranked">{pendingEntries.map((entry) => <Row key={entry.model.id + "-pending"} entry={entry} mode={mode} rank={null} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol></section>}
     </section>
   );
