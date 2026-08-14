@@ -37,13 +37,6 @@ export const PRESETS: Preset[] = [
   { name: "开源友好", note: "可自部署权重加分", weights: { intelligence: 20, coding: 10, agent: 5, reasoning: 5, value: 20, openness: 40 } },
 ];
 
-export const OBJECTIVE_WEIGHTS: Record<ObjectiveDimKey, number> = {
-  intelligence: 0.3,
-  coding: 0.25,
-  reasoning: 0.25,
-  agent: 0.2,
-};
-
 /** 综合分 = Σ 维度分 × 权重 ÷ 权重总和（按权重总和归一化，自定义口径下同样成立） */
 export function composite(dims: Record<DimKey, number>, w: Weights): number {
   const total = weightsSum(w);
@@ -64,20 +57,18 @@ export interface ObjectiveScore {
 }
 
 /**
- * 客观榜对已观测维度按固定权重重归一化；不足两个维度时不参与排名。
- * 观测值已经是 0–100 的公开指数/百分比，保留固定校准入口，后续可替换单项标尺。
+ * 公开评测主榜只按同版本 Artificial Analysis Intelligence Index 排名。
+ * 其余公开指标用于解释模型表现，但不与主指数混算，避免不同指标和重叠评测重复加权。
  */
 export function objectiveScore(
   dims: Partial<Record<ObjectiveDimKey, number>>,
-  weights: Record<ObjectiveDimKey, number> = OBJECTIVE_WEIGHTS,
 ): ObjectiveScore {
   const availableKeys = OBJECTIVE_DIM_KEYS.filter((k) => typeof dims[k] === "number" && Number.isFinite(dims[k]));
   const available = availableKeys.length;
   const total = OBJECTIVE_DIM_KEYS.length;
   const coverage = available / total;
   const confidence: ObjectiveScore["confidence"] = available === 0 ? "暂无" : coverage >= 0.75 ? "高" : coverage >= 0.5 ? "中" : "低";
-  if (available < 2) return { score: null, coverage, available, total, confidence };
-  const weightTotal = availableKeys.reduce((sum, k) => sum + weights[k], 0);
-  const score = availableKeys.reduce((sum, k) => sum + (dims[k] ?? 0) * weights[k], 0) / weightTotal;
+  const score = dims.intelligence;
+  if (typeof score !== "number" || !Number.isFinite(score)) return { score: null, coverage, available, total, confidence };
   return { score, coverage, available, total, confidence };
 }

@@ -246,7 +246,7 @@ function Champion({ entry, mode, presetLabel, altName, onAltSwitch }: {
   const { model } = entry;
   return (
     <article className={"champion " + (mode === "objective" ? "champion-objective" : "champion-editorial")}>
-      <p className="eyebrow">{mode === "objective" ? "公开评测榜 · 当前第一" : "编辑推荐榜 · 当前第一"}</p>
+      <p className="eyebrow">{mode === "objective" ? "公开评测榜 · 智能指数当前第一" : "编辑推荐榜 · 当前第一"}</p>
       <div className="champion-main">
         <div className="champion-primary">
           <div className="champion-id">
@@ -260,7 +260,7 @@ function Champion({ entry, mode, presetLabel, altName, onAltSwitch }: {
       </div>
       <p className="champion-blurb">「{model.blurb}」</p>
       <p className="champion-alt">{mode === "objective" ? "切到「编辑推荐榜」，当前第一是" : "切到「偏重智能」方案，当前第一是"} <strong>{altName}</strong> <button type="button" className="textlink" onClick={onAltSwitch}>{mode === "objective" ? "查看推荐 →" : "切换试试 →"}</button></p>
-      <p className="champion-note">{mode === "objective" ? `公开数据 ${BENCHMARK_DATE} · 覆盖 ${entry.objectiveScore.available}/${entry.objectiveScore.total} 项 · ${entry.objectiveScore.confidence}可信度` : `当前权重方案：${presetLabel} · 右侧可调`}</p>
+      <p className="champion-note">{mode === "objective" ? `智能指数 ${BENCHMARK_DATE} · 另有 ${entry.objectiveScore.available}/${entry.objectiveScore.total} 项公开明细 · ${entry.objectiveScore.confidence}可信度` : `当前权重方案：${presetLabel} · 右侧可调`}</p>
     </article>
   );
 }
@@ -283,12 +283,12 @@ function ObjectivePanel({ entries }: { entries: Entry[] }) {
   const signalCount = entries.reduce((sum, entry) => sum + entry.objectiveSignalCount, 0);
   return (
     <aside className="objective-panel">
-      <div className="panel-head"><h2 className="panel-title">公开评测数据</h2><p className="panel-note">公开榜单快照 · 版本对不上就不计入</p></div>
-      <div className="objective-summary"><div><strong>{ready}</strong><span>/ {entries.length} 个模型可排名</span></div><div><strong>{high}</strong><span>个模型覆盖至少 3 项</span></div></div>
+      <div className="panel-head"><h2 className="panel-title">公开评测数据</h2><p className="panel-note">主榜按同版本智能指数排名</p></div>
+      <div className="objective-summary"><div><strong>{ready}</strong><span>/ {entries.length} 个模型有同版本智能指数</span></div><div><strong>{high}</strong><span>个模型覆盖至少 3 项明细</span></div></div>
       <div className="objective-source-grid">
         {BENCHMARK_DEFINITIONS.map((definition) => <a className="objective-source" key={definition.id} href={definition.sourceUrl} target="_blank" rel="noopener noreferrer"><span>{definition.shortLabel}</span><strong>{definition.unit === "%" ? "百分比" : "指数"}</strong></a>)}
       </div>
-      <p className="panel-footnote">综合分按四项公开能力计算；已收录 {signalCount} 条数据。缺失数据不按 0 分处理。</p>
+      <p className="panel-footnote">主榜不混算其他指标；已收录 {signalCount} 条公开明细。版本对不上就不计入。</p>
     </aside>
   );
 }
@@ -326,7 +326,7 @@ function Controls({ mode, sortKey, setSortKey, q, setQ, country, setCountry, cou
   return (
     <div className="controls">
       <div className="dims" role="tablist" aria-label={`${mode === "objective" ? "公开评测榜" : "编辑推荐榜"}分类`}>
-        <button type="button" role="tab" aria-selected={sortKey === "composite"} className={"dim" + (sortKey === "composite" ? " is-active" : "")} onClick={() => setSortKey("composite")}>{mode === "objective" ? "综合排名" : "推荐排名"}</button>
+        <button type="button" role="tab" aria-selected={sortKey === "composite"} className={"dim" + (sortKey === "composite" ? " is-active" : "")} onClick={() => setSortKey("composite")}>{mode === "objective" ? "智能指数" : "推荐排名"}</button>
         {keys.map((key) => <button key={key} type="button" role="tab" aria-selected={sortKey === key} className={"dim" + (sortKey === key ? " is-active" : "")} onClick={() => setSortKey(key)}>{mode === "objective" ? OBJECTIVE_DIM_LABELS[key as ObjectiveDimKey] : DIM_LABELS[key as DimKey]}</button>)}
       </div>
       <div className="filters">
@@ -342,7 +342,7 @@ function Controls({ mode, sortKey, setSortKey, q, setQ, country, setCountry, cou
 function Board({ mode, entries, sortKey, expanded, onToggle }: {
   mode: RankingMode; entries: Entry[]; sortKey: SortKey; expanded: string | null; onToggle: (id: string) => void;
 }) {
-  const sortLabel = sortKey === "composite" ? (mode === "objective" ? "综合分" : "推荐分") : mode === "objective" ? OBJECTIVE_DIM_LABELS[sortKey as ObjectiveDimKey] : DIM_LABELS[sortKey as DimKey];
+  const sortLabel = sortKey === "composite" ? (mode === "objective" ? "智能指数" : "推荐分") : mode === "objective" ? OBJECTIVE_DIM_LABELS[sortKey as ObjectiveDimKey] : DIM_LABELS[sortKey as DimKey];
   const rankedEntries = mode === "objective" ? entries.filter((entry) => entry.objectiveScore.score !== null) : entries;
   const pendingEntries = mode === "objective" ? entries.filter((entry) => entry.objectiveScore.score === null) : [];
   return (
@@ -350,7 +350,7 @@ function Board({ mode, entries, sortKey, expanded, onToggle }: {
       <div className="board-head" aria-hidden="true"><span>名次</span><span>模型</span><span className="right">{sortLabel}</span><span>{mode === "objective" ? "评测覆盖" : "六项评分"}</span><span className="right">价格带</span><span className="right">发布</span><span /></div>
       {entries.length === 0 && <p className="empty">没有找到符合条件的模型，换个搜索词试试。</p>}
       <ol className="rows">{rankedEntries.map((entry, index) => <Row key={entry.model.id + "-" + mode + "-" + sortKey} entry={entry} mode={mode} rank={index + 1} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol>
-      {pendingEntries.length > 0 && <section className="unranked" aria-label="待补公开成绩"><div className="unranked-head"><div><h3>待补公开成绩</h3><p>以下模型暂时没有至少两项可核验的同版本公开成绩，因此不显示名次或综合分。</p></div><span>{pendingEntries.length} 个模型</span></div><ol className="rows rows-unranked">{pendingEntries.map((entry) => <Row key={entry.model.id + "-pending"} entry={entry} mode={mode} rank={null} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol></section>}
+      {pendingEntries.length > 0 && <section className="unranked" aria-label="待补公开成绩"><div className="unranked-head"><div><h3>待补公开成绩</h3><p>以下模型暂时没有可核验的同版本智能指数，因此不显示名次或主榜分数。</p></div><span>{pendingEntries.length} 个模型</span></div><ol className="rows rows-unranked">{pendingEntries.map((entry) => <Row key={entry.model.id + "-pending"} entry={entry} mode={mode} rank={null} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol></section>}
     </section>
   );
 }
@@ -395,7 +395,7 @@ function ObjectiveDetail({ entry }: { entry: Entry }) {
     <div className="objective-detail">
       <div className="objective-detail-head"><h4 className="detail-head">公开评测拆分</h4><span className="coverage">覆盖 {entry.objectiveScore.available}/{entry.objectiveScore.total} · {entry.objectiveScore.confidence}可信度</span></div>
       <div className="benchmark-grid">{OBJECTIVE_DIM_KEYS.map((key) => { const observations = observationsFor(entry, key); const value = entry.objectiveDims[key]; return <article className={"benchmark-card" + (value == null ? " is-missing" : "")} key={key}><span className="benchmark-label">{OBJECTIVE_DIM_LABELS[key]}</span><strong>{value == null ? "—" : value.toFixed(1)}</strong><small>{observations.length > 0 ? `${observations.length} 个信号 · 分类均值` : "暂无同版本快照"}</small>{observations.length > 0 && <div className="benchmark-signals">{observations.map(({ definition, observation }) => <span key={definition.id}><b>{definition.shortLabel}</b> {observation.value.toFixed(1)} · {observation.modelVersion} <a href={definition.sourceUrl} target="_blank" rel="noopener noreferrer">来源 ↗</a></span>)}</div>}</article>; })}</div>
-      <p className="detail-note">综合分只使用已有数据；同一类多个成绩取平均，缺失数据不按 0 分处理。使用前可以点击来源查看原始榜单。</p>
+      <p className="detail-note">主榜只按同版本智能指数排名；其他成绩用于补充说明，不混入主榜分数。使用前可以点击来源查看原始榜单。</p>
     </div>
   );
 }
@@ -405,7 +405,7 @@ function Footer() {
   return (
     <footer className="footer">
       <h3 className="footer-title">排行榜说明</h3>
-      <ol className="method"><li>公开评测榜只使用具体版本的公开成绩；没有至少两项成绩的模型会进入“待补公开成绩”区，不显示名次或综合分。</li><li>编辑推荐榜可以按综合智能、编程、工具使用、推理、性价比和开源程度调整偏好。</li><li>价格、上下文和许可证可能变化，使用前请查看模型官网。</li></ol>
+      <ol className="method"><li>公开评测榜只按同版本的 Artificial Analysis Intelligence Index 排名；没有该指数的模型会进入“待补公开成绩”区，不显示名次或主榜分数。</li><li>编程、推理和工具使用等公开成绩只作明细，不与智能指数混算；编辑推荐榜可按综合智能、编程、工具使用、推理、性价比和开源程度调整偏好。</li><li>价格、上下文和许可证可能变化，使用前请查看模型官网。</li></ol>
       <div className="source-links"><span>公开数据来源：</span><a href="https://www.requesty.ai/models/rankings/intelligence" target="_blank" rel="noopener noreferrer">综合智能</a><a href="https://www.requesty.ai/models/rankings/coding" target="_blank" rel="noopener noreferrer">编程</a><a href="https://www.requesty.ai/models/rankings/reasoning" target="_blank" rel="noopener noreferrer">推理</a><a href="https://www.requesty.ai/models/rankings/tool-use" target="_blank" rel="noopener noreferrer">工具使用</a><a href="https://benchlm.ai/benchmarks/swe-bench-pro" target="_blank" rel="noopener noreferrer">SWE-bench Pro</a><a href="https://benchlm.ai/benchmarks/browsecomp" target="_blank" rel="noopener noreferrer">BrowseComp</a></div>
       <p className="colophon">AI 模型排行榜 · 公开数据 {BENCHMARK_DATE} · 编辑资料 {DATA_DATE} · 建议每月查看</p>
     </footer>
