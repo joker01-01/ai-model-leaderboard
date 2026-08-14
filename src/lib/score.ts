@@ -11,6 +11,17 @@ export const DIM_LABELS: Record<DimKey, string> = {
   openness: "开源",
 };
 
+export type ObjectiveDimKey = "intelligence" | "coding" | "reasoning" | "agent";
+
+export const OBJECTIVE_DIM_KEYS: ObjectiveDimKey[] = ["intelligence", "coding", "reasoning", "agent"];
+
+export const OBJECTIVE_DIM_LABELS: Record<ObjectiveDimKey, string> = {
+  intelligence: "综合智能",
+  coding: "编程",
+  reasoning: "推理·数学",
+  agent: "Agent",
+};
+
 export type Weights = Record<DimKey, number>;
 
 // 编辑部默认口径：智能为主、兼顾性价比
@@ -26,6 +37,13 @@ export const PRESETS: Preset[] = [
   { name: "开源友好", note: "可自部署权重加分", weights: { intelligence: 20, coding: 10, agent: 5, reasoning: 5, value: 20, openness: 40 } },
 ];
 
+export const OBJECTIVE_WEIGHTS: Record<ObjectiveDimKey, number> = {
+  intelligence: 0.3,
+  coding: 0.25,
+  reasoning: 0.25,
+  agent: 0.2,
+};
+
 /** 综合分 = Σ 维度分 × 权重 ÷ 权重总和（按权重总和归一化，自定义口径下同样成立） */
 export function composite(dims: Record<DimKey, number>, w: Weights): number {
   const total = weightsSum(w);
@@ -35,4 +53,31 @@ export function composite(dims: Record<DimKey, number>, w: Weights): number {
 
 export function weightsSum(w: Weights): number {
   return DIM_KEYS.reduce((s, k) => s + w[k], 0);
+}
+
+export interface ObjectiveScore {
+  score: number | null;
+  coverage: number;
+  available: number;
+  total: number;
+  confidence: "高" | "中" | "低" | "暂无";
+}
+
+/**
+ * 客观榜对已观测维度按固定权重重归一化；不足两个维度时不参与排名。
+ * 观测值已经是 0–100 的公开指数/百分比，保留固定校准入口，后续可替换单项标尺。
+ */
+export function objectiveScore(
+  dims: Partial<Record<ObjectiveDimKey, number>>,
+  weights: Record<ObjectiveDimKey, number> = OBJECTIVE_WEIGHTS,
+): ObjectiveScore {
+  const availableKeys = OBJECTIVE_DIM_KEYS.filter((k) => typeof dims[k] === "number" && Number.isFinite(dims[k]));
+  const available = availableKeys.length;
+  const total = OBJECTIVE_DIM_KEYS.length;
+  const coverage = available / total;
+  const confidence: ObjectiveScore["confidence"] = available === 0 ? "暂无" : coverage >= 0.75 ? "高" : coverage >= 0.5 ? "中" : "低";
+  if (available < 2) return { score: null, coverage, available, total, confidence };
+  const weightTotal = availableKeys.reduce((sum, k) => sum + weights[k], 0);
+  const score = availableKeys.reduce((sum, k) => sum + (dims[k] ?? 0) * weights[k], 0) / weightTotal;
+  return { score, coverage, available, total, confidence };
 }
