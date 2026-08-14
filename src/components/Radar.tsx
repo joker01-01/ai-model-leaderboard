@@ -24,8 +24,8 @@ export default function Radar({ dims, size = 190, highlight = null }: RadarProps
     const ang = ((-90 + i * 60) * Math.PI) / 180;
     const cos = Math.cos(ang);
     return {
-      x: cx + (r + 22) * cos,
-      y: cy + (r + 22) * Math.sin(ang) + 3,
+      x: cx + (r + 18) * cos,
+      y: cy + (r + 18) * Math.sin(ang) + 3,
       anchor: Math.abs(cos) < 0.3 ? "middle" : cos > 0 ? "start" : "end",
     };
   };
