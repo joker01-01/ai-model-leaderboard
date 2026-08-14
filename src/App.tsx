@@ -147,7 +147,7 @@ export default function App() {
     [entries],
   );
   const pureChampion = useMemo(() => {
-    const pure = PRESETS.find((item) => item.name === "纯智力")!;
+    const pure = PRESETS.find((item) => item.name === "只看智能")!;
     return [...MODELS]
       .map((model) => ({ model, score: composite(model.dims, pure.weights) }))
       .sort((a, b) => b.score - a.score)[0];
@@ -185,7 +185,7 @@ export default function App() {
   };
   const reset = () => applyPreset(PRESETS[0]);
   const altName = mode === "objective" ? editorialChampion.model.name : pureChampion.model.name;
-  const onAltSwitch = mode === "objective" ? () => changeMode("editorial") : () => applyPreset(PRESETS.find((item) => item.name === "纯智力")!);
+  const onAltSwitch = mode === "objective" ? () => changeMode("editorial") : () => applyPreset(PRESETS.find((item) => item.name === "只看智能")!);
 
   return (
     <div className="page">
@@ -206,17 +206,19 @@ export default function App() {
   );
 }
 
-/* ---------- 报头 ---------- */
+/* ---------- 顶部 ---------- */
 function Masthead() {
   return (
     <header className="masthead">
-      <div className="masthead-logo" aria-hidden="true">AI</div>
+      <div className="masthead-logo" aria-hidden="true"><span>AI</span><small>LAB / 06</small></div>
       <div className="masthead-center">
-        <h1 className="masthead-title">AI 模型矩阵</h1>
-        <p className="masthead-sub">MODEL MATRIX · 主流大模型战力榜</p>
+        <p className="masthead-kicker">公开评测与编辑推荐</p>
+        <h1 className="masthead-title">AI 模型排行榜</h1>
+        <p className="masthead-sub">能力、价格与版本信息一页看懂</p>
       </div>
       <div className="masthead-side">
-        <span className="sys-status"><i className="dot" aria-hidden="true" />静态快照</span>
+        <span className="masthead-side-label">数据状态</span>
+        <span className="sys-status"><i className="dot" aria-hidden="true" />数据快照</span>
         <span className="stamp">DATA {DATA_DATE}</span>
       </div>
     </header>
@@ -225,12 +227,12 @@ function Masthead() {
 
 function ModeSwitch({ mode, onChange }: { mode: RankingMode; onChange: (mode: RankingMode) => void }) {
   return (
-    <nav className="mode-switch" aria-label="选择榜单口径">
-      <span className="mode-kicker">RANKING MODE</span>
+    <nav className="mode-switch" aria-label="选择排行榜">
+      <span className="mode-kicker">选择排行榜</span>
       <button type="button" className={"mode-button" + (mode === "objective" ? " is-active" : "")} aria-pressed={mode === "objective"}
-        onClick={() => onChange("objective")}><strong>客观能力榜</strong><small>benchmark 快照</small></button>
+        onClick={() => onChange("objective")}><strong>公开评测榜</strong><small>按公开成绩排名</small></button>
       <button type="button" className={"mode-button" + (mode === "editorial" ? " is-active is-editorial" : "")} aria-pressed={mode === "editorial"}
-        onClick={() => onChange("editorial")}><strong>编辑推荐榜</strong><small>可调权重口径</small></button>
+        onClick={() => onChange("editorial")}><strong>编辑推荐榜</strong><small>按你的偏好调整</small></button>
     </nav>
   );
 }
@@ -244,26 +246,28 @@ function Champion({ entry, mode, presetLabel, altName, onAltSwitch }: {
   const { model } = entry;
   return (
     <article className={"champion " + (mode === "objective" ? "champion-objective" : "champion-editorial")}>
-      <p className="eyebrow">{mode === "objective" ? "客观能力榜 · 当前领先" : "编辑推荐榜 · 当前领先"}</p>
+      <p className="eyebrow">{mode === "objective" ? "公开评测榜 · 当前第一" : "编辑推荐榜 · 当前第一"}</p>
       <div className="champion-main">
-        <div className="champion-id">
-          <h2 className="champion-name">{model.name}</h2>
-          <p className="champion-maker">{model.flag} {model.maker} · {model.country}</p>
-          <ul className="chips">{model.badges.map((badge) => <li key={badge} className="chip">{badge}</li>)}</ul>
+        <div className="champion-primary">
+          <div className="champion-id">
+            <h2 className="champion-name">{model.name}</h2>
+            <p className="champion-maker">{model.flag} {model.maker} · {model.country}</p>
+            <ul className="chips">{model.badges.map((badge) => <li key={badge} className="chip">{badge}</li>)}</ul>
+          </div>
+          <div className="champion-score"><span className="champion-num">{display.toFixed(1)}</span><span className="champion-denom">/ 100</span></div>
         </div>
-        <div className="champion-score"><span className="champion-num">{display.toFixed(1)}</span><span className="champion-denom">/ 100</span></div>
         {mode === "objective" ? <ObjectiveBars entry={entry} compact /> : <div className="champion-radar"><Radar dims={model.dims} size={180} /></div>}
       </div>
       <p className="champion-blurb">「{model.blurb}」</p>
-      <p className="champion-alt">{mode === "objective" ? "切到「编辑推荐榜」，当前默认榜首是" : "切到「纯智力」权重方案，榜首是"} <strong>{altName}</strong> <button type="button" className="textlink" onClick={onAltSwitch}>{mode === "objective" ? "查看推荐 →" : "切换试试 →"}</button></p>
-      <p className="champion-note">{mode === "objective" ? `客观快照 ${BENCHMARK_DATE} · 数据覆盖 ${entry.objectiveScore.available}/${entry.objectiveScore.total} 项 · ${entry.objectiveScore.confidence}置信度` : `当前权重方案：${presetLabel} · 右侧可调`}</p>
+      <p className="champion-alt">{mode === "objective" ? "切到「编辑推荐榜」，当前第一是" : "切到「偏重智能」方案，当前第一是"} <strong>{altName}</strong> <button type="button" className="textlink" onClick={onAltSwitch}>{mode === "objective" ? "查看推荐 →" : "切换试试 →"}</button></p>
+      <p className="champion-note">{mode === "objective" ? `公开数据 ${BENCHMARK_DATE} · 覆盖 ${entry.objectiveScore.available}/${entry.objectiveScore.total} 项 · ${entry.objectiveScore.confidence}可信度` : `当前权重方案：${presetLabel} · 右侧可调`}</p>
     </article>
   );
 }
 
 function ObjectiveBars({ entry, compact = false }: { entry: Entry; compact?: boolean }) {
   return (
-    <div className={"objective-bars" + (compact ? " is-compact" : "")} role="img" aria-label="客观能力四维得分">
+    <div className={"objective-bars" + (compact ? " is-compact" : "")} role="img" aria-label="四项能力得分">
       {OBJECTIVE_DIM_KEYS.map((key) => {
         const value = entry.objectiveDims[key];
         return <div className="objective-bar" key={key}><span>{OBJECTIVE_DIM_LABELS[key]}</span><i><b style={{ width: (value ?? 0) + "%" }} /></i><em>{value == null ? "—" : value.toFixed(1)}</em></div>;
@@ -272,24 +276,24 @@ function ObjectiveBars({ entry, compact = false }: { entry: Entry; compact?: boo
   );
 }
 
-/* ---------- 客观榜说明 ---------- */
+/* ---------- 公开评测说明 ---------- */
 function ObjectivePanel({ entries }: { entries: Entry[] }) {
   const ready = entries.filter((entry) => entry.objectiveScore.score !== null).length;
   const high = entries.filter((entry) => entry.objectiveScore.confidence === "高").length;
   const signalCount = entries.reduce((sum, entry) => sum + entry.objectiveSignalCount, 0);
   return (
     <aside className="objective-panel">
-      <div className="panel-head"><h2 className="panel-title">客观能力口径</h2><p className="panel-note">公开聚合榜快照 · 第二信号逐步接入</p></div>
-      <div className="objective-summary"><div><strong>{ready}</strong><span>/ {entries.length} 模型可排名</span></div><div><strong>{high}</strong><span>个模型覆盖 ≥ 3/4 指标</span></div></div>
+      <div className="panel-head"><h2 className="panel-title">公开评测数据</h2><p className="panel-note">公开榜单快照 · 版本对不上就不计入</p></div>
+      <div className="objective-summary"><div><strong>{ready}</strong><span>/ {entries.length} 个模型可排名</span></div><div><strong>{high}</strong><span>个模型覆盖至少 3 项</span></div></div>
       <div className="objective-source-grid">
         {BENCHMARK_DEFINITIONS.map((definition) => <a className="objective-source" key={definition.id} href={definition.sourceUrl} target="_blank" rel="noopener noreferrer"><span>{definition.shortLabel}</span><strong>{definition.unit === "%" ? "百分比" : "指数"}</strong></a>)}
       </div>
-      <p className="panel-footnote">综合分按四项固定权重计算；当前已收录 {signalCount} 条信号。一个维度有多个信号时取简单平均，缺失数据不按 0 分处理。</p>
+      <p className="panel-footnote">综合分按四项公开能力计算；已收录 {signalCount} 条数据。缺失数据不按 0 分处理。</p>
     </aside>
   );
 }
 
-/* ---------- 编辑口径 / 权重面板 ---------- */
+/* ---------- 编辑推荐设置 ---------- */
 function WeightPanel({ weights, preset, onPreset, onWeight, onReset }: {
   weights: Weights; preset: string;
   onPreset: (preset: Preset) => void; onWeight: (key: DimKey, value: number) => void; onReset: () => void;
@@ -297,7 +301,7 @@ function WeightPanel({ weights, preset, onPreset, onWeight, onReset }: {
   const total = DIM_KEYS.reduce((sum, key) => sum + weights[key], 0);
   return (
     <aside className="weights">
-      <div className="panel-head"><h2 className="panel-title">编辑权重</h2><p className="panel-note">推荐分 = 已选维度加权平均 · 最终占比自动归一化</p></div>
+      <div className="panel-head"><h2 className="panel-title">编辑推荐设置</h2><p className="panel-note">拖动滑块，看看不同偏好下谁排第一</p></div>
       <div className="presets">{PRESETS.map((item) => <button key={item.name} type="button" className={"preset" + (preset === item.name ? " is-active" : "")} onClick={() => onPreset(item)}><span className="preset-name">{item.name}</span><span className="preset-note">{item.note}</span></button>)}</div>
       <div className="sliders">
         {DIM_KEYS.map((key) => {
@@ -305,7 +309,7 @@ function WeightPanel({ weights, preset, onPreset, onWeight, onReset }: {
           return <label key={key} className="slider"><span className="slider-label">{DIM_LABELS[key]}</span><input aria-label={`${DIM_LABELS[key]}原始权重`} type="range" min={0} max={60} step={1} value={weights[key]} onChange={(event) => onWeight(key, Number(event.target.value))} /><span className="slider-val">{normalized}%</span></label>;
         })}
       </div>
-      <div className={"weight-total" + (total === 0 ? " is-warning" : "")}>{total === 0 ? "至少保留一个非零权重" : `当前总权重 ${total} · 显示为最终占比`}</div>
+      <div className={"weight-total" + (total === 0 ? " is-warning" : "")}>{total === 0 ? "至少保留一个权重" : `当前权重 ${total} · 已按比例显示`}</div>
       <button type="button" className="textlink reset" onClick={onReset}>恢复默认权重</button>
     </aside>
   );
@@ -321,8 +325,8 @@ function Controls({ mode, sortKey, setSortKey, q, setQ, country, setCountry, cou
   const keys = mode === "objective" ? OBJECTIVE_DIM_KEYS : DIM_KEYS;
   return (
     <div className="controls">
-      <div className="dims" role="tablist" aria-label={`${mode === "objective" ? "客观能力榜" : "编辑推荐榜"}维度`}>
-        <button type="button" role="tab" aria-selected={sortKey === "composite"} className={"dim" + (sortKey === "composite" ? " is-active" : "")} onClick={() => setSortKey("composite")}>{mode === "objective" ? "能力总榜" : "推荐总榜"}</button>
+      <div className="dims" role="tablist" aria-label={`${mode === "objective" ? "公开评测榜" : "编辑推荐榜"}分类`}>
+        <button type="button" role="tab" aria-selected={sortKey === "composite"} className={"dim" + (sortKey === "composite" ? " is-active" : "")} onClick={() => setSortKey("composite")}>{mode === "objective" ? "综合排名" : "推荐排名"}</button>
         {keys.map((key) => <button key={key} type="button" role="tab" aria-selected={sortKey === key} className={"dim" + (sortKey === key ? " is-active" : "")} onClick={() => setSortKey(key)}>{mode === "objective" ? OBJECTIVE_DIM_LABELS[key as ObjectiveDimKey] : DIM_LABELS[key as DimKey]}</button>)}
       </div>
       <div className="filters">
@@ -338,30 +342,33 @@ function Controls({ mode, sortKey, setSortKey, q, setQ, country, setCountry, cou
 function Board({ mode, entries, sortKey, expanded, onToggle }: {
   mode: RankingMode; entries: Entry[]; sortKey: SortKey; expanded: string | null; onToggle: (id: string) => void;
 }) {
-  const sortLabel = sortKey === "composite" ? (mode === "objective" ? "能力分" : "推荐分") : mode === "objective" ? OBJECTIVE_DIM_LABELS[sortKey as ObjectiveDimKey] : DIM_LABELS[sortKey as DimKey];
+  const sortLabel = sortKey === "composite" ? (mode === "objective" ? "综合分" : "推荐分") : mode === "objective" ? OBJECTIVE_DIM_LABELS[sortKey as ObjectiveDimKey] : DIM_LABELS[sortKey as DimKey];
+  const rankedEntries = mode === "objective" ? entries.filter((entry) => entry.objectiveScore.score !== null) : entries;
+  const pendingEntries = mode === "objective" ? entries.filter((entry) => entry.objectiveScore.score === null) : [];
   return (
-    <section className="board" aria-label={`${mode === "objective" ? "客观能力榜" : "编辑推荐榜"}模型排名`}>
-      <div className="board-head" aria-hidden="true"><span>名次</span><span>模型</span><span className="right">{sortLabel}</span><span>{mode === "objective" ? "覆盖 / 四维" : "六维速览"}</span><span className="right">价格带</span><span className="right">发布</span><span /></div>
-      {entries.length === 0 && <p className="empty">没有符合条件的模型，换个条件试试。</p>}
-      <ol className="rows">{entries.map((entry, index) => <Row key={entry.model.id + "-" + mode + "-" + sortKey} entry={entry} mode={mode} rank={index + 1} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol>
+    <section className="board" aria-label={`${mode === "objective" ? "公开评测榜" : "编辑推荐榜"}排名`}>
+      <div className="board-head" aria-hidden="true"><span>名次</span><span>模型</span><span className="right">{sortLabel}</span><span>{mode === "objective" ? "评测覆盖" : "六项评分"}</span><span className="right">价格带</span><span className="right">发布</span><span /></div>
+      {entries.length === 0 && <p className="empty">没有找到符合条件的模型，换个搜索词试试。</p>}
+      <ol className="rows">{rankedEntries.map((entry, index) => <Row key={entry.model.id + "-" + mode + "-" + sortKey} entry={entry} mode={mode} rank={index + 1} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol>
+      {pendingEntries.length > 0 && <section className="unranked" aria-label="待补公开成绩"><div className="unranked-head"><div><h3>待补公开成绩</h3><p>以下模型暂时没有至少两项可核验的同版本公开成绩，因此不显示名次或综合分。</p></div><span>{pendingEntries.length} 个模型</span></div><ol className="rows rows-unranked">{pendingEntries.map((entry) => <Row key={entry.model.id + "-pending"} entry={entry} mode={mode} rank={null} sortKey={sortKey} expanded={expanded === entry.model.id} onToggle={() => onToggle(entry.model.id)} />)}</ol></section>}
     </section>
   );
 }
 
 function Row({ entry, mode, rank, sortKey, expanded, onToggle }: {
-  entry: Entry; mode: RankingMode; rank: number; sortKey: SortKey; expanded: boolean; onToggle: () => void;
+  entry: Entry; mode: RankingMode; rank: number | null; sortKey: SortKey; expanded: boolean; onToggle: () => void;
 }) {
   const { model } = entry;
   const dimScore = entryValue(entry, mode, sortKey);
   const hasScore = Number.isFinite(dimScore);
   const bars = mode === "objective" ? OBJECTIVE_DIM_KEYS : DIM_KEYS;
   return (
-    <li className={"row" + (expanded ? " is-expanded" : "") + (!hasScore ? " is-pending" : "")} style={{ animationDelay: Math.min(rank * 34, 680) + "ms" }}>
+    <li className={"row" + (expanded ? " is-expanded" : "") + (!hasScore ? " is-pending" : "") + (rank === null ? " is-unranked" : "")} style={rank === null ? undefined : { animationDelay: Math.min(rank * 34, 680) + "ms" }}>
       <div className="row-main">
-        <span className={"rank" + (rank === 1 ? " rank-1" : rank <= 3 ? " rank-top" : "")}>{String(rank).padStart(2, "0")}</span>
+        <span className={"rank" + (rank === 1 ? " rank-1" : rank !== null && rank <= 3 ? " rank-top" : "")}>{rank === null ? "—" : String(rank).padStart(2, "0")}</span>
         <div className="who"><p className="who-name">{model.name}</p><p className="who-maker">{model.flag} {model.maker} · {model.country}</p><ul className="chips">{model.badges.map((badge) => <li key={badge} className="chip">{badge}</li>)}</ul></div>
         <div className={"score" + (!hasScore ? " score-pending" : "")}><span className="score-num">{hasScore ? dimScore.toFixed(1) : "待补"}</span><span className="score-bar"><i style={{ width: (hasScore ? Math.max(0, Math.min(100, dimScore)) : 0) + "%" }} /></span></div>
-        <div className="spark" role="img" aria-label={mode === "objective" ? "客观四维得分" : "编辑六维得分"}>{bars.map((key) => { const value = mode === "objective" ? entry.objectiveDims[key as ObjectiveDimKey] : model.dims[key as DimKey]; return <span key={key} title={(mode === "objective" ? OBJECTIVE_DIM_LABELS[key as ObjectiveDimKey] : DIM_LABELS[key as DimKey]) + " " + (value ?? "待补")} className={"spark-bar" + (sortKey === key ? " is-active" : "")} style={{ height: Math.max(8, value ?? 8) + "%" }} />; })}</div>
+        <div className="spark" role="img" aria-label={mode === "objective" ? "四项能力得分" : "六项评分"}>{bars.map((key) => { const value = mode === "objective" ? entry.objectiveDims[key as ObjectiveDimKey] : model.dims[key as DimKey]; return <span key={key} title={(mode === "objective" ? OBJECTIVE_DIM_LABELS[key as ObjectiveDimKey] : DIM_LABELS[key as DimKey]) + " " + (value ?? "待补")} className={"spark-bar" + (sortKey === key ? " is-active" : "")} style={{ height: Math.max(8, value ?? 8) + "%" }} />; })}</div>
         <div className="meta"><span className={"tier tier-" + model.priceTier}>{model.priceTier}</span></div><div className="meta release">{model.release}</div>
         <button type="button" className="toggle" aria-expanded={expanded} onClick={onToggle} aria-label={expanded ? `收起${model.name}详情` : `展开${model.name}详情`}><span className="chev">▾</span></button>
       </div>
@@ -375,10 +382,10 @@ function Detail({ entry, mode, sortKey }: { entry: Entry; mode: RankingMode; sor
   return (
     <div className="detail">
       {mode === "objective" && <ObjectiveDetail entry={entry} />}
-      {mode === "editorial" && <div className="detail-cols"><div className="detail-radar"><Radar dims={model.dims} size={210} highlight={sortKey === "composite" ? null : sortKey as DimKey} /><p className="detail-radar-cap">六维雷达 · 编辑评分 0–100</p></div><div><h4 className="detail-head">强项</h4><ul>{model.strengths.map((strength) => <li key={strength}>+ {strength}</li>)}</ul></div><div><h4 className="detail-head">短板</h4><ul>{model.weaknesses.map((weakness) => <li key={weakness}>− {weakness}</li>)}</ul></div></div>}
-      <p className="detail-blurb">{mode === "objective" ? "编辑摘要：" : ""}{model.blurb}</p>
+      {mode === "editorial" && <div className="detail-cols"><div className="detail-radar"><Radar dims={model.dims} size={210} highlight={sortKey === "composite" ? null : sortKey as DimKey} /><p className="detail-radar-cap">六项评分 · 0–100</p></div><div><h4 className="detail-head">强项</h4><ul>{model.strengths.map((strength) => <li key={strength}>+ {strength}</li>)}</ul></div><div><h4 className="detail-head">短板</h4><ul>{model.weaknesses.map((weakness) => <li key={weakness}>− {weakness}</li>)}</ul></div></div>}
+      <p className="detail-blurb">{mode === "objective" ? "补充说明：" : ""}{model.blurb}</p>
       <dl className="detail-meta"><div><dt>上下文</dt><dd>{model.ctx ?? "以官网为准"}</dd></div><div><dt>许可</dt><dd>{model.license}</dd></div><div><dt>价格</dt><dd>{model.priceNote}</dd></div></dl>
-      <p className="detail-sources">编辑资料：{model.sources.map((source, index) => <span key={source.url}><sup>{index + 1}</sup><a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}</a>{index < model.sources.length - 1 ? "，" : ""}</span>)}</p>
+      <p className="detail-sources">参考来源：{model.sources.map((source, index) => <span key={source.url}><sup>{index + 1}</sup><a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}</a>{index < model.sources.length - 1 ? "，" : ""}</span>)}</p>
     </div>
   );
 }
@@ -386,9 +393,9 @@ function Detail({ entry, mode, sortKey }: { entry: Entry; mode: RankingMode; sor
 function ObjectiveDetail({ entry }: { entry: Entry }) {
   return (
     <div className="objective-detail">
-      <div className="objective-detail-head"><h4 className="detail-head">客观数据拆解</h4><span className="coverage">覆盖 {entry.objectiveScore.available}/{entry.objectiveScore.total} · {entry.objectiveScore.confidence}置信度</span></div>
+      <div className="objective-detail-head"><h4 className="detail-head">公开评测拆分</h4><span className="coverage">覆盖 {entry.objectiveScore.available}/{entry.objectiveScore.total} · {entry.objectiveScore.confidence}可信度</span></div>
       <div className="benchmark-grid">{OBJECTIVE_DIM_KEYS.map((key) => { const observations = observationsFor(entry, key); const value = entry.objectiveDims[key]; return <article className={"benchmark-card" + (value == null ? " is-missing" : "")} key={key}><span className="benchmark-label">{OBJECTIVE_DIM_LABELS[key]}</span><strong>{value == null ? "—" : value.toFixed(1)}</strong><small>{observations.length > 0 ? `${observations.length} 个信号 · 分类均值` : "暂无同版本快照"}</small>{observations.length > 0 && <div className="benchmark-signals">{observations.map(({ definition, observation }) => <span key={definition.id}><b>{definition.shortLabel}</b> {observation.value.toFixed(1)} · {observation.modelVersion} <a href={definition.sourceUrl} target="_blank" rel="noopener noreferrer">来源 ↗</a></span>)}</div>}</article>; })}</div>
-      <p className="detail-note">客观分只使用已观测指标并按固定权重重归一化；信号先按声明的固定 0–100 量表校准，同一维度多个信号取简单平均，缺失数据不按 0 分处理。当前来源仍以公开聚合榜为主，后续应继续替换为原始 benchmark 记录。</p>
+      <p className="detail-note">综合分只使用已有数据；同一类多个成绩取平均，缺失数据不按 0 分处理。使用前可以点击来源查看原始榜单。</p>
     </div>
   );
 }
@@ -397,10 +404,10 @@ function ObjectiveDetail({ entry }: { entry: Entry }) {
 function Footer() {
   return (
     <footer className="footer">
-      <h3 className="footer-title">方法论与免责声明</h3>
-      <ol className="method"><li>客观能力榜只展示具体模型版本的公开快照，当前覆盖综合智能、编程、推理·数学和 Agent 四项；缺失数据不会补成 0 分，并会显示覆盖率。</li><li>编辑推荐榜保留性价比和开源两个价值维度。综合分 = Σ 维度分 × 权重 ÷ 权重总和，滑块显示归一化后的最终占比。</li><li>公开榜单、价格、上下文和许可证可能滞后。客观数据当前来自公开聚合榜快照，最终使用前应回到原始 benchmark 和厂商官网核验。</li></ol>
-      <div className="source-links"><span>客观数据入口：</span><a href="https://www.requesty.ai/models/rankings/intelligence" target="_blank" rel="noopener noreferrer">Intelligence Index</a><a href="https://www.requesty.ai/models/rankings/coding" target="_blank" rel="noopener noreferrer">Coding Index</a><a href="https://www.requesty.ai/models/rankings/reasoning" target="_blank" rel="noopener noreferrer">GPQA Diamond</a><a href="https://www.requesty.ai/models/rankings/tool-use" target="_blank" rel="noopener noreferrer">τ²-Bench</a><a href="https://benchlm.ai/benchmarks/swe-bench-pro" target="_blank" rel="noopener noreferrer">SWE-bench Pro</a><a href="https://benchlm.ai/benchmarks/browsecomp" target="_blank" rel="noopener noreferrer">BrowseComp</a></div>
-      <p className="colophon">AI 模型矩阵 · 客观快照 {BENCHMARK_DATE} · 编辑资料 {DATA_DATE} · 建议每月复核</p>
+      <h3 className="footer-title">排行榜说明</h3>
+      <ol className="method"><li>公开评测榜只使用具体版本的公开成绩；没有至少两项成绩的模型会进入“待补公开成绩”区，不显示名次或综合分。</li><li>编辑推荐榜可以按综合智能、编程、工具使用、推理、性价比和开源程度调整偏好。</li><li>价格、上下文和许可证可能变化，使用前请查看模型官网。</li></ol>
+      <div className="source-links"><span>公开数据来源：</span><a href="https://www.requesty.ai/models/rankings/intelligence" target="_blank" rel="noopener noreferrer">综合智能</a><a href="https://www.requesty.ai/models/rankings/coding" target="_blank" rel="noopener noreferrer">编程</a><a href="https://www.requesty.ai/models/rankings/reasoning" target="_blank" rel="noopener noreferrer">推理</a><a href="https://www.requesty.ai/models/rankings/tool-use" target="_blank" rel="noopener noreferrer">工具使用</a><a href="https://benchlm.ai/benchmarks/swe-bench-pro" target="_blank" rel="noopener noreferrer">SWE-bench Pro</a><a href="https://benchlm.ai/benchmarks/browsecomp" target="_blank" rel="noopener noreferrer">BrowseComp</a></div>
+      <p className="colophon">AI 模型排行榜 · 公开数据 {BENCHMARK_DATE} · 编辑资料 {DATA_DATE} · 建议每月查看</p>
     </footer>
   );
 }

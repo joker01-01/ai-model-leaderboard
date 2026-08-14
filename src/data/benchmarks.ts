@@ -167,6 +167,15 @@ export const OBJECTIVE_SNAPSHOT: Record<string, ObjectiveProfile> = {
       "gpqa-diamond": observation("gpqa-diamond", 94.5, "gemini-3.7-flash@eu"),
     },
   },
+  "qwen-3-5": {
+    modelId: "qwen-3-5",
+    observations: {
+      "aa-intelligence": observation("aa-intelligence", 34.3, "qwen/qwen3.5-397b-a17b"),
+      "aa-coding": observation("aa-coding", 48.2, "qwen/qwen3.5-397b-a17b"),
+      "gpqa-diamond": observation("gpqa-diamond", 89.3, "qwen/qwen3.5-397b-a17b"),
+      "tau2-bench": observation("tau2-bench", 95.6, "qwen/qwen3.5-397b-a17b"),
+    },
+  },
   "claude-sonnet-4-6": {
     modelId: "claude-sonnet-4-6",
     observations: {

@@ -51,8 +51,8 @@ export default function Radar({ dims, size = 190, highlight = null }: RadarProps
         <polygon
           key={lv}
           points={ringPoints(lv / 100)}
-          fill={lv === 100 ? "rgba(56,225,255,0.035)" : "none"}
-          stroke="rgba(56,225,255,0.14)"
+          fill={lv === 100 ? "rgba(255,255,255,0.035)" : "none"}
+          stroke="rgba(255,255,255,0.14)"
           strokeWidth="1"
         />
       ))}
@@ -65,7 +65,7 @@ export default function Radar({ dims, size = 190, highlight = null }: RadarProps
             y1={cy}
             x2={x}
             y2={y}
-            stroke={highlight === k ? "rgba(255,61,129,0.9)" : "rgba(56,225,255,0.18)"}
+            stroke={highlight === k ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.18)"}
             strokeWidth={highlight === k ? 1.6 : 1}
           />
         );
@@ -73,8 +73,8 @@ export default function Radar({ dims, size = 190, highlight = null }: RadarProps
       <polygon
         className="radar-value"
         points={valuePoints}
-        fill="rgba(56,225,255,0.22)"
-        stroke="#35E0FF"
+        fill="rgba(255,255,255,0.16)"
+        stroke="#FFFFFF"
         strokeWidth="1.6"
         strokeLinejoin="round"
         filter="url(#radar-glow)"

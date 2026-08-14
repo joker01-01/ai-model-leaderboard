@@ -5,7 +5,7 @@ export const DIM_KEYS: DimKey[] = ["intelligence", "coding", "agent", "reasoning
 export const DIM_LABELS: Record<DimKey, string> = {
   intelligence: "综合智能",
   coding: "编程",
-  agent: "Agent",
+  agent: "工具使用",
   reasoning: "推理·数学",
   value: "性价比",
   openness: "开源",
@@ -19,7 +19,7 @@ export const OBJECTIVE_DIM_LABELS: Record<ObjectiveDimKey, string> = {
   intelligence: "综合智能",
   coding: "编程",
   reasoning: "推理·数学",
-  agent: "Agent",
+  agent: "工具使用",
 };
 
 export type Weights = Record<DimKey, number>;
@@ -30,8 +30,8 @@ export const DEFAULT_WEIGHTS: Weights = { intelligence: 31, coding: 21, agent: 1
 export interface Preset { name: string; note: string; weights: Weights }
 
 export const PRESETS: Preset[] = [
-  { name: "综合（含性价比）", note: "编辑部默认", weights: DEFAULT_WEIGHTS },
-  { name: "纯智力", note: "不看价格，只看智能表现", weights: { intelligence: 40, coding: 25, agent: 15, reasoning: 20, value: 0, openness: 0 } },
+  { name: "综合（含性价比）", note: "默认设置", weights: DEFAULT_WEIGHTS },
+  { name: "只看智能", note: "不看价格，只看智能表现", weights: { intelligence: 40, coding: 25, agent: 15, reasoning: 20, value: 0, openness: 0 } },
   { name: "编程优先", note: "开发者视角", weights: { intelligence: 20, coding: 40, agent: 15, reasoning: 15, value: 5, openness: 5 } },
   { name: "性价比优先", note: "每一分钱买到多少智能", weights: { intelligence: 25, coding: 15, agent: 5, reasoning: 5, value: 45, openness: 5 } },
   { name: "开源友好", note: "可自部署权重加分", weights: { intelligence: 20, coding: 10, agent: 5, reasoning: 5, value: 20, openness: 40 } },
