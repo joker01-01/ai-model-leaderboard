@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { asyncBufferFromUrl, parquetReadObjects } from "hyparquet";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dryRun = process.argv.includes("--check");
@@ -39,13 +40,6 @@ const trackedModels = [
   { modelId: "mistral-large-3", aaSlugs: ["mistral-large-3"], arenaNames: ["mistral-large-3", "Mistral Large 3"] },
 ];
 
-function normalise(value) {
-  return String(value ?? "")
-    .normalize("NFKC")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "");
-}
-
 async function fetchJson(url, options = {}) {
   let lastError;
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -76,30 +70,22 @@ function metric(value, row, kind) {
   };
 }
 
-function sqlLiteral(value) {
-  return `'${String(value).replaceAll("'", "''")}'`;
-}
-
 async function arenaRows(config, names) {
-  // Arena 的 latest split 仍可能有数千条分类记录。先让官方数据服务端按精确模型名筛选，
-  // 且只取每个 Arena 的 overall 行；这样每个已跟踪模型最多一条，避免下载整表或触发限流。
-  const base = "https://datasets-server.huggingface.co/filter";
-  const aliases = [...new Set(names)];
-  const rows = [];
-  // Dataset Viewer 对很长的 OR 表达式会偶发 500。每批 8 个名称，三类 Arena 共 15 次以内的请求。
-  for (let start = 0; start < aliases.length; start += 8) {
-    const nameFilter = aliases.slice(start, start + 8).map((name) => `"model_name" = ${sqlLiteral(name)}`).join(" OR ");
-    const where = `"category" = 'overall' AND (${nameFilter})`;
-    const params = new URLSearchParams({ dataset: "lmarena-ai/leaderboard-dataset", config, split: "latest", where, offset: "0", length: "100" });
-    const page = await fetchJson(`${base}?${params}`);
-    if (Array.isArray(page.rows)) rows.push(...page.rows.map((item) => item.row ?? item));
-  }
-  return rows;
+  // 直接读取 Arena 官方发布的 latest Parquet 文件，避开 Dataset Viewer 的不稳定筛选服务。
+  // latest 每个 Arena 只有一个小文件；只解码需要的列，再以精确别名筛选。
+  const url = `https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset/resolve/main/${config}/latest-00000-of-00001.parquet?download=true`;
+  const file = await asyncBufferFromUrl({ url });
+  const rows = await parquetReadObjects({
+    file,
+    columns: ["model_name", "rating", "rating_lower", "rating_upper", "vote_count", "score", "score_ci_lower", "score_ci_upper", "observation_count", "rank", "category", "leaderboard_publish_date"],
+  });
+  const aliases = new Set(names);
+  return rows.filter((row) => String(row.category ?? "").toLowerCase() === "overall" && aliases.has(String(row.model_name)));
 }
 
 function findArenaMatch(rows, names) {
-  const aliases = new Set(names.map(normalise));
-  const matches = rows.filter((row) => aliases.has(normalise(row.model_name)));
+  const aliases = new Set(names);
+  const matches = rows.filter((row) => aliases.has(String(row.model_name)));
   const overall = matches.filter((row) => String(row.category ?? "").toLowerCase() === "overall");
   const eligible = overall.length > 0 ? overall : matches;
   if (eligible.length !== 1) return { match: null, count: eligible.length };
@@ -150,8 +136,8 @@ async function syncArena() {
 }
 
 function findAaMatch(models, entry) {
-  const aliases = new Set(entry.aaSlugs.map(normalise));
-  const matches = models.filter((model) => aliases.has(normalise(model.slug)));
+  const aliases = new Set(entry.aaSlugs);
+  const matches = models.filter((model) => aliases.has(String(model.slug)));
   if (matches.length !== 1) return { match: null, count: matches.length };
   return { match: matches[0], count: 1 };
 }
