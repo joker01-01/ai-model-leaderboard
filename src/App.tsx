@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { DimKey, Model } from "./data/models";
-import { DATA_DATE, MODELS } from "./data/models";
+import { MODELS } from "./data/models";
 import {
   BENCHMARK_DATE,
   BENCHMARK_DEFINITIONS,
@@ -215,14 +215,14 @@ function Masthead() {
     <header className="masthead">
       <div className="masthead-logo" aria-hidden="true"><span>AI</span><small>LAB / 06</small></div>
       <div className="masthead-center">
-        <p className="masthead-kicker">公开评测与编辑推荐</p>
+        <p className="masthead-kicker">公开评测 · 编辑推荐 · 具体版本</p>
         <h1 className="masthead-title">AI 模型排行榜</h1>
-        <p className="masthead-sub">能力、价格与版本信息一页看懂</p>
+        <p className="masthead-sub">先看公开成绩，再按你的使用偏好选择</p>
       </div>
       <div className="masthead-side">
         <span className="masthead-side-label">数据状态</span>
-        <span className="sys-status"><i className="dot" aria-hidden="true" />数据快照</span>
-        <span className="stamp">DATA {DATA_DATE}</span>
+        <span className="sys-status"><i className="dot" aria-hidden="true" />官方数据已同步</span>
+        <span className="stamp">AA {BENCHMARK_DATE}</span>
       </div>
     </header>
   );
@@ -283,15 +283,14 @@ function ObjectiveBars({ entry, compact = false }: { entry: Entry; compact?: boo
 function ObjectivePanel({ entries }: { entries: Entry[] }) {
   const ready = entries.filter((entry) => entry.objectiveScore.score !== null).length;
   const high = entries.filter((entry) => entry.objectiveScore.confidence === "高").length;
-  const signalCount = entries.reduce((sum, entry) => sum + entry.objectiveSignalCount, 0);
   return (
     <aside className="objective-panel">
-      <div className="panel-head"><h2 className="panel-title">公开评测数据</h2><p className="panel-note">主榜按同版本智能指数排名</p></div>
+      <div className="panel-head"><h2 className="panel-title">公开评测数据</h2><p className="panel-note">主榜只看 AA 同版本智能指数</p></div>
       <div className="objective-summary"><div><strong>{ready}</strong><span>/ {entries.length} 个模型有同版本智能指数</span></div><div><strong>{high}</strong><span>个模型覆盖至少 3 项明细</span></div></div>
       <div className="objective-source-grid">
         {BENCHMARK_DEFINITIONS.map((definition) => <a className="objective-source" key={definition.id} href={definition.sourceUrl} target="_blank" rel="noopener noreferrer"><span>{definition.shortLabel}</span><strong>{definition.unit === "%" ? "百分比" : "指数"}</strong></a>)}
       </div>
-      <p className="panel-footnote">主榜不混算其他指标；已收录 {signalCount} 条公开明细。版本对不上就不计入。</p>
+      <p className="panel-footnote">AA 自动更新主指数；Arena 仅在详情作用户偏好参考。版本对不上就不计入。</p>
     </aside>
   );
 }
@@ -421,9 +420,9 @@ function Footer() {
   return (
     <footer className="footer">
       <h3 className="footer-title">排行榜说明</h3>
-      <ol className="method"><li>公开评测榜只按同版本的 Artificial Analysis Intelligence Index 排名；没有该指数的模型会进入“待补公开成绩”区，不显示名次或主榜分数。</li><li>编程、推理和工具使用等公开成绩只作明细，不与智能指数混算；编辑推荐榜可按综合智能、编程、工具使用、推理、性价比和开源程度调整偏好。</li><li>价格、上下文和许可证可能变化，使用前请查看模型官网。</li></ol>
+      <ol className="method"><li>公开评测榜只按同版本的 Artificial Analysis Intelligence Index 排名；没有该指数的模型会进入“待补公开成绩”区，不显示名次或主榜分数。</li><li>编程、推理和工具使用等公开成绩只作明细，不与智能指数混算；编辑推荐榜可按综合智能、编程、工具使用、推理、性价比和开源程度调整偏好。</li><li>Arena 是用户盲测对战参考，只在模型详情展示，不参与主榜名次。</li><li>数据每天同步一次，生成审核 PR 后才会合并发布；价格、上下文和许可证仍请以模型官网为准。</li></ol>
       <div className="source-links"><span>公开数据来源：</span><a href="https://artificialanalysis.ai/data-api/docs" target="_blank" rel="noopener noreferrer">综合智能 / 编程</a><a href="https://artificialanalysis.ai/" target="_blank" rel="noopener noreferrer">推理</a><a href="https://benchlm.ai/benchmarks/swe-bench-pro" target="_blank" rel="noopener noreferrer">SWE-bench Pro</a><a href="https://benchlm.ai/benchmarks/browsecomp" target="_blank" rel="noopener noreferrer">BrowseComp</a><a href="https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset" target="_blank" rel="noopener noreferrer">Arena 用户对战</a></div>
-      <p className="colophon">AI 模型排行榜 · 公开数据 {BENCHMARK_DATE} · 编辑资料 {DATA_DATE} · 建议每月查看</p>
+      <p className="colophon">AI 模型排行榜 · AA 主榜 {BENCHMARK_DATE} · Arena 仅作参考 · 每日同步，审核后发布</p>
     </footer>
   );
 }

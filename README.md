@@ -1,6 +1,6 @@
 # AI 模型排行榜
 
-> 用可核验的公开成绩和清晰的编辑维度，查看主流 AI 模型的具体版本该怎么选。
+> 主榜只看同版本公开成绩；编辑推荐榜再按你的使用偏好选择。数据每天同步，审核后发布。
 
 [在线查看排行榜](https://joker01-01.github.io/ai-model-leaderboard/)
 
@@ -11,6 +11,8 @@
 [![静态部署](https://img.shields.io/badge/部署-纯静态-green?style=flat-square)](https://pages.github.com/)
 
 这是一个静态 React 页面：`main` 分支更新后，GitHub Actions 会自动发布到 GitHub Pages。
+
+数据很简单：主榜使用 Artificial Analysis 的同版本 Intelligence Index；Arena 只在模型详情中展示用户盲测对战参考，不参与名次。每天北京时间 01:20 会生成数据审核 PR，确认无误后合并发布。
 
 ## 这个榜单看什么
 
