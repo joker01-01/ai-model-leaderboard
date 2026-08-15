@@ -24,6 +24,10 @@ export const OBJECTIVE_DIM_LABELS: Record<ObjectiveDimKey, string> = {
 
 export type Weights = Record<DimKey, number>;
 
+/** 编辑推荐候选线：偏好前五 + 最新同版本公开智能指数前三。 */
+export const EDITORIAL_CANDIDATE_COUNT = 5;
+export const OBJECTIVE_CANDIDATE_COUNT = 3;
+
 // 编辑部默认口径：智能为主、兼顾性价比
 export const DEFAULT_WEIGHTS: Weights = { intelligence: 31, coding: 21, agent: 15, reasoning: 16, value: 14, openness: 3 };
 
