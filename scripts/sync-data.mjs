@@ -66,13 +66,21 @@ function metric(value, row, kind) {
   };
 }
 
-async function arenaRows(config) {
-  const base = "https://datasets-server.huggingface.co/rows";
+function sqlLiteral(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+async function arenaRows(config, names) {
+  // Arena 的 latest split 仍可能有数千条分类记录。先让官方数据服务端按精确模型名筛选，
+  // 避免下载整表、更避免触发公共接口限流。
+  const base = "https://datasets-server.huggingface.co/filter";
+  const aliases = [...new Set(names)];
+  const where = aliases.map((name) => `"model_name" = ${sqlLiteral(name)}`).join(" OR ");
   const rows = [];
   let offset = 0;
   let total = Number.POSITIVE_INFINITY;
   while (offset < total) {
-    const params = new URLSearchParams({ dataset: "lmarena-ai/leaderboard-dataset", config, split: "latest", offset: String(offset), length: "100" });
+    const params = new URLSearchParams({ dataset: "lmarena-ai/leaderboard-dataset", config, split: "latest", where, offset: String(offset), length: "100" });
     const page = await fetchJson(`${base}?${params}`);
     const pageRows = Array.isArray(page.rows) ? page.rows.map((item) => item.row ?? item) : [];
     rows.push(...pageRows);
@@ -98,7 +106,8 @@ async function syncArena() {
     ["webdev", "webdev"],
     ["agent", "agent"],
   ];
-  const allRows = await Promise.all(configs.map(async ([kind, config]) => [kind, await arenaRows(config)]));
+  const arenaNames = trackedModels.flatMap((model) => model.arenaNames);
+  const allRows = await Promise.all(configs.map(async ([kind, config]) => [kind, await arenaRows(config, arenaNames)]));
   const models = {};
   const matched = [];
   const unmatched = [];
