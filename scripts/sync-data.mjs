@@ -72,23 +72,14 @@ function sqlLiteral(value) {
 
 async function arenaRows(config, names) {
   // Arena 的 latest split 仍可能有数千条分类记录。先让官方数据服务端按精确模型名筛选，
-  // 避免下载整表、更避免触发公共接口限流。
+  // 且只取每个 Arena 的 overall 行；这样每个已跟踪模型最多一条，避免下载整表或触发限流。
   const base = "https://datasets-server.huggingface.co/filter";
   const aliases = [...new Set(names)];
-  const where = aliases.map((name) => `"model_name" = ${sqlLiteral(name)}`).join(" OR ");
-  const rows = [];
-  let offset = 0;
-  let total = Number.POSITIVE_INFINITY;
-  while (offset < total) {
-    const params = new URLSearchParams({ dataset: "lmarena-ai/leaderboard-dataset", config, split: "latest", where, offset: String(offset), length: "100" });
-    const page = await fetchJson(`${base}?${params}`);
-    const pageRows = Array.isArray(page.rows) ? page.rows.map((item) => item.row ?? item) : [];
-    rows.push(...pageRows);
-    total = Number(page.num_rows_total ?? rows.length);
-    if (pageRows.length === 0) break;
-    offset += pageRows.length;
-  }
-  return rows;
+  const nameFilter = aliases.map((name) => `"model_name" = ${sqlLiteral(name)}`).join(" OR ");
+  const where = `"category" = 'overall' AND (${nameFilter})`;
+  const params = new URLSearchParams({ dataset: "lmarena-ai/leaderboard-dataset", config, split: "latest", where, offset: "0", length: "100" });
+  const page = await fetchJson(`${base}?${params}`);
+  return Array.isArray(page.rows) ? page.rows.map((item) => item.row ?? item) : [];
 }
 
 function findArenaMatch(rows, names) {
