@@ -145,10 +145,27 @@ function findAaMatch(models, entry) {
 async function syncArtificialAnalysis() {
   const key = process.env.AA_API_KEY;
   if (!key) return { skipped: true, report: { matched: [], unmatched: trackedModels.map((model) => model.modelId), ambiguous: [] } };
-  // 当前免费 API 的正式入口。接口分页字段升级时，未识别的分页信息会安全地停在首屏，
-  // 而不是按名称猜测未拉取到的模型。
-  const payload = await fetchJson("https://artificialanalysis.ai/api/v2/language/models/free", { headers: { "x-api-key": key } });
-  const rows = Array.isArray(payload.data) ? payload.data : [];
+  // 当前免费 API 的正式入口。必须遍历分页，不能把第一页 200 条误当成完整模型目录。
+  const rows = [];
+  const seenPages = new Set();
+  for (let page = 1; page <= 50; page += 1) {
+    const url = new URL("https://artificialanalysis.ai/api/v2/language/models/free");
+    url.searchParams.set("page", String(page));
+    const payload = await fetchJson(url, { headers: { "x-api-key": key } });
+    const batch = Array.isArray(payload.data) ? payload.data : [];
+    const pageSignature = batch.map((model) => String(model.id ?? model.slug)).join("|");
+    if (batch.length === 0 || seenPages.has(pageSignature)) break;
+    seenPages.add(pageSignature);
+    rows.push(...batch);
+
+    const pagination = payload.pagination ?? {};
+    const totalPages = Number(pagination.total_pages ?? pagination.totalPages);
+    const nextPage = pagination.next_page ?? pagination.nextPage;
+    if (Number.isFinite(totalPages) && page >= totalPages) break;
+    if (nextPage === null || nextPage === false) break;
+    // 官方未返回分页元数据时，仅在满页的情况下继续；避免因未知响应无限请求。
+    if (!Number.isFinite(totalPages) && nextPage === undefined && batch.length < 200) break;
+  }
   const models = {};
   const matched = [];
   const unmatched = [];
