@@ -14,6 +14,7 @@ export interface Model {
   ctx: string | null;
   priceTier: "极高" | "高" | "中" | "低" | "自部署";
   priceNote: string;
+  /** 是否已经公开模型权重；API 可调用不代表权重开放。 */
   open: boolean; license: string;
   badges: string[];
   blurb: string;
@@ -28,13 +29,14 @@ export const MODELS: Model[] = [
     maker: "深度求索", makerEn: "DeepSeek", country: "中国", flag: "🇨🇳",
     release: "2026-08-13", ctx: "1M", priceTier: "低",
     priceNote: "价格约为顶级闭源旗舰的 1/80（据公开报道）",
-    open: false, license: "闭源 API（V4 基座开源）",
-    badges: ["GA 2026-08-13", "百万上下文"],
+    open: true, license: "MIT",
+    badges: ["MIT 开源", "GA 2026-08-13", "百万上下文"],
     blurb: "官方 GA 首周即在多项榜单反超硅谷旗舰；以约 1/80 的价格提供第一梯队智能。",
-    strengths: ["性价比断层第一", "编程/推理第一梯队", "百万上下文"],
-    weaknesses: ["工具调用生态较薄", "API 版闭源"],
+    strengths: ["性价比断层第一", "编程/推理第一梯队", "MIT 开放权重"],
+    weaknesses: ["工具调用生态较薄", "本地部署硬件门槛高"],
     sources: [
-      { label: "DeepSeek 官方发布", url: "https://api-docs.deepseek.com/news/news260813/" },
+      { label: "DeepSeek 官方 V4 发布（开放权重）", url: "https://api-docs.deepseek.com/news/news260424/" },
+      { label: "DeepSeek 官方 GA 发布", url: "https://api-docs.deepseek.com/news/news260813/" },
       { label: "V4 Pro 反超 Claude 报道", url: "https://www.ofweek.com/ai/2026-08/ART-201718-8120-30698350.html" },
     ],
   },
@@ -157,14 +159,14 @@ export const MODELS: Model[] = [
     name: "GLM-5.3",
     maker: "智谱", makerEn: "Z.ai (Zhipu)", country: "中国", flag: "🇨🇳",
     release: "2026-08-14", ctx: null, priceTier: "低",
-    priceNote: "开源权重，API 平价",
-    open: true, license: "开源（许可以官方为准）",
-    badges: ["开源", "700B", "编程强"],
-    blurb: "700B 开源编程旗舰，直接对标 Anthropic Fable 5；自称「编程最强开源模型」。",
-    strengths: ["开源阵营编程标杆", "700B 大参数"],
-    weaknesses: ["生态小于 Qwen/Llama", "综合智能中上游"],
+    priceNote: "API 平价，权重待公开",
+    open: false, license: "权重待公开",
+    badges: ["权重待发布", "700B", "编程强"],
+    blurb: "700B 编程旗舰，直接对标 Anthropic Fable 5；当前可通过 API 使用，但公开权重仍待发布。",
+    strengths: ["编程能力突出", "700B 参数规模"],
+    weaknesses: ["公开权重尚未发布", "生态小于 Qwen/Llama"],
     sources: [
-      { label: "GLM-5.3 发布报道", url: "https://www.ithome.com/0/989/689.htm" },
+      { label: "GLM-5.3 发布报道（权重延迟）", url: "https://www.ithome.com/0/989/689.htm" },
       { label: "GLM-5.3 对标 Fable 5（700B）", url: "https://www.edgen.tech/zh/news/post/zais-glm-53-targets-anthropics-fable-5-with-700b-parameter-coding-push" },
     ],
   },
@@ -207,15 +209,15 @@ export const MODELS: Model[] = [
     name: "Llama 5",
     maker: "Meta", makerEn: "Meta", country: "美国", flag: "🇺🇸",
     release: "2026-04", ctx: null, priceTier: "自部署",
-    priceNote: "权重开放，自部署",
-    open: true, license: "Llama 社区许可",
-    badges: ["开源"],
-    blurb: "Meta 开源旗舰，西方开源生态的基石，自部署首选之一。",
-    strengths: ["西方开源生态核心", "自部署自由"],
-    weaknesses: ["中文与编程稍逊", "许可非 Apache"],
+    priceNote: "具体版本与部署信息待官方确认",
+    open: false, license: "官方权重/许可证待核",
+    badges: ["条目待核"],
+    blurb: "Llama 5 条目目前缺少 Meta 官方权重与许可证发布依据，暂不把它计入已开放模型。",
+    strengths: ["Llama 生态关注度高", "具体版本待官方确认"],
+    weaknesses: ["权重/许可证未核实", "暂不计入开放模型"],
     sources: [
-      { label: "Llama 5 开源发布", url: "https://shiporskip.io/news/meta-llama-5-open-source-release-april-2026-zuckerberg" },
-      { label: "Llama 5 参数与定价", url: "https://www.swfte.com/ai/models/meta-llama-5" },
+      { label: "Meta Llama 官方入口", url: "https://ai.meta.com/llama/get-started/" },
+      { label: "Meta Llama 官方模型仓库", url: "https://github.com/meta-llama/llama-models" },
     ],
   },
   {
