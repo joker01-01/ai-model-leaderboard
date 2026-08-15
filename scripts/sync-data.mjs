@@ -47,9 +47,19 @@ function normalise(value) {
 }
 
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, { headers: { accept: "application/json", ...(options.headers ?? {}) } });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
-  return response.json();
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await fetch(url, { headers: { accept: "application/json", ...(options.headers ?? {}) } });
+      if (response.ok) return response.json();
+      lastError = new Error(`${response.status} ${response.statusText}: ${url}`);
+      if (![429, 500, 502, 503, 504].includes(response.status)) throw lastError;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt < 2) await new Promise((resolveDelay) => setTimeout(resolveDelay, 800 * (attempt + 1)));
+  }
+  throw lastError;
 }
 
 function metric(value, row, kind) {
@@ -75,11 +85,16 @@ async function arenaRows(config, names) {
   // 且只取每个 Arena 的 overall 行；这样每个已跟踪模型最多一条，避免下载整表或触发限流。
   const base = "https://datasets-server.huggingface.co/filter";
   const aliases = [...new Set(names)];
-  const nameFilter = aliases.map((name) => `"model_name" = ${sqlLiteral(name)}`).join(" OR ");
-  const where = `"category" = 'overall' AND (${nameFilter})`;
-  const params = new URLSearchParams({ dataset: "lmarena-ai/leaderboard-dataset", config, split: "latest", where, offset: "0", length: "100" });
-  const page = await fetchJson(`${base}?${params}`);
-  return Array.isArray(page.rows) ? page.rows.map((item) => item.row ?? item) : [];
+  const rows = [];
+  // Dataset Viewer 对很长的 OR 表达式会偶发 500。每批 8 个名称，三类 Arena 共 15 次以内的请求。
+  for (let start = 0; start < aliases.length; start += 8) {
+    const nameFilter = aliases.slice(start, start + 8).map((name) => `"model_name" = ${sqlLiteral(name)}`).join(" OR ");
+    const where = `"category" = 'overall' AND (${nameFilter})`;
+    const params = new URLSearchParams({ dataset: "lmarena-ai/leaderboard-dataset", config, split: "latest", where, offset: "0", length: "100" });
+    const page = await fetchJson(`${base}?${params}`);
+    if (Array.isArray(page.rows)) rows.push(...page.rows.map((item) => item.row ?? item));
+  }
+  return rows;
 }
 
 function findArenaMatch(rows, names) {
