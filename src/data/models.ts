@@ -1,5 +1,4 @@
-// 模型数据（编辑评估，数据截至 2026-08-14）
-// 分数为编辑部基于公开榜单（Artificial Analysis / LMArena / Ramp SWE-Bench 及官方发布）的 0–100 评估值，非官方口径。
+// 模型资料与来源（资料截至 2026-08-14）。编辑榜基础分在 src/lib/editorial.ts 中按固定规则计算。
 // 每个模型附来源链接，详情见页面脚注。
 
 export type DimKey = "intelligence" | "coding" | "agent" | "reasoning" | "value" | "openness";
@@ -19,7 +18,6 @@ export interface Model {
   badges: string[];
   blurb: string;
   strengths: string[]; weaknesses: string[];
-  dims: Record<DimKey, number>;
   sources: ModelSource[];
 }
 
@@ -35,7 +33,6 @@ export const MODELS: Model[] = [
     blurb: "官方 GA 首周即在多项榜单反超硅谷旗舰；以约 1/80 的价格提供第一梯队智能。",
     strengths: ["性价比断层第一", "编程/推理第一梯队", "百万上下文"],
     weaknesses: ["工具调用生态较薄", "API 版闭源"],
-    dims: { intelligence: 90, coding: 94, agent: 90, reasoning: 92, value: 95, openness: 25 },
     sources: [
       { label: "DeepSeek 官方发布", url: "https://api-docs.deepseek.com/news/news260813/" },
       { label: "V4 Pro 反超 Claude 报道", url: "https://www.ofweek.com/ai/2026-08/ART-201718-8120-30698350.html" },
@@ -52,7 +49,6 @@ export const MODELS: Model[] = [
     blurb: "当前综合智能标杆，Artificial Analysis 综合榜 #1，各维度无短板；价格亦属顶配。",
     strengths: ["综合智能/推理顶级", "长上下文稳定"],
     weaknesses: ["API 价格极高", "闭源"],
-    dims: { intelligence: 97, coding: 96, agent: 93, reasoning: 96, value: 42, openness: 10 },
     sources: [
       { label: "AA：Claude Opus 4.8 分析", url: "https://artificialanalysis.ai/articles/claude-opus-4-8-analysis-and-benchmarks" },
       { label: "Opus 4.8 登顶 ScienceQA 快报", url: "https://www.hongshan.com/article/claude-opus-4-8%e7%99%bb%e9%a1%b6scienceqa%ef%bd%9cxbench-%e5%bf%ab%e6%8a%a5/" },
@@ -69,7 +65,6 @@ export const MODELS: Model[] = [
     blurb: "OpenAI GPT-5.6 家族新旗舰，与 Grok 4.6 并列 AA 全球第三；全维度无短板的智能天花板。",
     strengths: ["AA 全球前三", "旗舰级全维度"],
     weaknesses: ["价格高", "闭源"],
-    dims: { intelligence: 95, coding: 93, agent: 92, reasoning: 94, value: 55, openness: 10 },
     sources: [
       { label: "OpenAI 发布 GPT-5.6 Sol 旗舰", url: "https://qazinform.com/news/openai-unveils-gpt-56-with-new-flagship-sol-model-b4226a" },
       { label: "V4 Pro vs GPT-5.6 Sol 对比", url: "https://benchlm.ai/compare/deepseek-v4-pro-0813-vs-gpt-5-6-sol" },
@@ -87,7 +82,6 @@ export const MODELS: Model[] = [
     blurb: "ChatGPT 免费用户默认模型：旗舰级智能的平民入口，生态最大。",
     strengths: ["免费档可及", "生态与多模态整合"],
     weaknesses: ["上限略逊 Sol 旗舰", "闭源"],
-    dims: { intelligence: 93, coding: 91, agent: 91, reasoning: 92, value: 65, openness: 10 },
     sources: [
       { label: "ChatGPT 默认模型升级报道", url: "https://www.ithome.com/0/986/776.htm" },
       { label: "ChatGPT Luna 免费开放", url: "https://in.mashable.com/tech/112623/openai-rolls-out-chatgpt-luna-to-free-users-sam-altman-says-ai-should-be-for-all" },
@@ -104,7 +98,6 @@ export const MODELS: Model[] = [
     blurb: "低延迟 + 强编程 + 免费生态，2026 年 8 月最活跃的「平民旗舰」。",
     strengths: ["编程/工具使用强", "低延迟、低价格"],
     weaknesses: ["深层推理弱于 Pro 系", "闭源"],
-    dims: { intelligence: 93, coding: 94, agent: 93, reasoning: 90, value: 82, openness: 15 },
     sources: [
       { label: "Gemini 3.7 Flash 模型卡", url: "https://deepmind.google/models/model-cards/gemini-3-7-flash/" },
       { label: "Google 发布 Gemini 3.7 Flash", url: "https://www.thehindu.com/sci-tech/technology/google-unveils-gemini-37-flash-ai-model-for-coding-agent-workflows/article71343995.ece" },
@@ -121,7 +114,6 @@ export const MODELS: Model[] = [
     blurb: "工具调用能力突出的开源旗舰，国内生态最全；权重开源、可商用。",
     strengths: ["Apache 开源可商用", "工具调用能力与生态"],
     weaknesses: ["单点智能未登顶", "大参数自部署门槛高"],
-    dims: { intelligence: 86, coding: 89, agent: 88, reasoning: 85, value: 92, openness: 94 },
     sources: [
       { label: "Qwen3.5-397B-A17B 公开评测", url: "https://www.requesty.ai/models/novita/qwen-qwen3.5-397b-a17b" },
       { label: "Reuters：阿里发布 Qwen 3.5", url: "https://www.reuters.com/world/china/alibaba-unveils-new-qwen35-model-agentic-ai-era-2026-02-16/" },
@@ -139,7 +131,6 @@ export const MODELS: Model[] = [
     blurb: "百万上下文 + MIT 开源 + 免费商用：开源阵营的性价比之王。",
     strengths: ["MIT 开源可商用", "百万上下文", "免 API 费自部署"],
     weaknesses: ["自部署有硬件门槛", "综合智能略逊旗舰"],
-    dims: { intelligence: 86, coding: 88, agent: 82, reasoning: 87, value: 95, openness: 96 },
     sources: [
       { label: "V4 预览版上线并开源", url: "https://www.ithome.com/0/942/955.htm" },
       { label: "V4 Flash 开源报道（MIT）", url: "https://www.opensourceforu.com/2026/08/deepseek-open-sources-production-deepseek-v4-flash-under-mit-licence/" },
@@ -156,7 +147,6 @@ export const MODELS: Model[] = [
     blurb: "中端价位、旗舰级编程，开发者群体的性价比之选。",
     strengths: ["编程能力大幅提升", "同价位升级不加价"],
     weaknesses: ["综合智能非顶配", "闭源"],
-    dims: { intelligence: 89, coding: 93, agent: 87, reasoning: 87, value: 78, openness: 10 },
     sources: [
       { label: "Anthropic：Sonnet 4.6 发布", url: "https://www.anthropic.com/news/claude-sonnet-4-6" },
       { label: "Sonnet 4.6 编程能力评测", url: "https://www.infoworld.com/article/4133578/claude-sonnet-4-6-improves-coding-skills.html" },
@@ -173,7 +163,6 @@ export const MODELS: Model[] = [
     blurb: "700B 开源编程旗舰，直接对标 Anthropic Fable 5；自称「编程最强开源模型」。",
     strengths: ["开源阵营编程标杆", "700B 大参数"],
     weaknesses: ["生态小于 Qwen/Llama", "综合智能中上游"],
-    dims: { intelligence: 84, coding: 88, agent: 82, reasoning: 83, value: 90, openness: 92 },
     sources: [
       { label: "GLM-5.3 发布报道", url: "https://www.ithome.com/0/989/689.htm" },
       { label: "GLM-5.3 对标 Fable 5（700B）", url: "https://www.edgen.tech/zh/news/post/zais-glm-53-targets-anthropics-fable-5-with-700b-parameter-coding-push" },
@@ -190,7 +179,6 @@ export const MODELS: Model[] = [
     blurb: "追平 GPT-5.6 Sol、反超 Kimi K3，跃居 AA 全球第三——马斯克阵营的翻身之作。",
     strengths: ["AA 全球前三（与 Sol 并列）", "长时任务执行"],
     weaknesses: ["生态较小", "价格中等偏高"],
-    dims: { intelligence: 92, coding: 89, agent: 92, reasoning: 89, value: 70, openness: 15 },
     sources: [
       { label: "VentureBeat：Grok 4.6 全球第三", url: "https://venturebeat.com/technology/spacexai-debuts-grok-4-6-overtaking-kimi-k3s-performance-and-matching-gpt-5-6-sol-for-worlds-third-best-on-artificial-analysis" },
       { label: "Grok 4.6 解析", url: "https://apidog.com/blog/what-is-grok-4-6/" },
@@ -207,7 +195,6 @@ export const MODELS: Model[] = [
     blurb: "一度登顶 AA 全球第三，被 Grok 4.6 追平后仍稳居第一梯队；中文与长文本扎实。",
     strengths: ["曾居 AA 全球第三", "中文/长文本", "推理扎实"],
     weaknesses: ["国际生态弱", "开源程度有限"],
-    dims: { intelligence: 90, coding: 88, agent: 87, reasoning: 89, value: 80, openness: 20 },
     sources: [
       { label: "Grok 4.6 反超 Kimi K3 报道", url: "https://venturebeat.com/technology/spacexai-debuts-grok-4-6-overtaking-kimi-k3s-performance-and-matching-gpt-5-6-sol-for-worlds-third-best-on-artificial-analysis" },
       { label: "Kimi K3 评论（Japan Times）", url: "https://www.japantimes.co.jp/commentary/2026/08/06/world/moonshots-kimi-k3-orbit/" },
@@ -224,7 +211,6 @@ export const MODELS: Model[] = [
     blurb: "Meta 开源旗舰，西方开源生态的基石，自部署首选之一。",
     strengths: ["西方开源生态核心", "自部署自由"],
     weaknesses: ["中文与编程稍逊", "许可非 Apache"],
-    dims: { intelligence: 84, coding: 83, agent: 80, reasoning: 82, value: 88, openness: 96 },
     sources: [
       { label: "Llama 5 开源发布", url: "https://shiporskip.io/news/meta-llama-5-open-source-release-april-2026-zuckerberg" },
       { label: "Llama 5 参数与定价", url: "https://www.swfte.com/ai/models/meta-llama-5" },
@@ -241,7 +227,6 @@ export const MODELS: Model[] = [
     blurb: "Google 生态旗舰，推理与多模态底子厚。",
     strengths: ["推理/多模态", "Google 生态整合"],
     weaknesses: ["编程口碑稍逊", "闭源"],
-    dims: { intelligence: 90, coding: 89, agent: 88, reasoning: 91, value: 62, openness: 15 },
     sources: [
       { label: "Gemini 3.1 Pro 上线", url: "https://cloud.google.com/blog/products/ai-machine-learning/gemini-3-1-pro-on-gemini-cli-gemini-enterprise-and-vertex-ai" },
       { label: "Gemini 3.1 Pro 百科", url: "https://baike.baidu.com/item/gemini-3.1-pro-pr/67430016" },
@@ -258,7 +243,6 @@ export const MODELS: Model[] = [
     blurb: "1M 上下文 + 原生多模态，长文档与多模态场景表现突出。",
     strengths: ["百万上下文", "原生多模态"],
     weaknesses: ["推理/数学中游", "闭源 API"],
-    dims: { intelligence: 85, coding: 85, agent: 84, reasoning: 82, value: 80, openness: 30 },
     sources: [
       { label: "MiniMax M3 发布", url: "https://m.ithome.com/html/957956.htm" },
       { label: "M3 能力报道", url: "https://www.c114.net.cn/ainews/86229.html" },
@@ -275,7 +259,6 @@ export const MODELS: Model[] = [
     blurb: "开源低价闪速版：百万上下文普惠，极低成本接入首选。",
     strengths: ["极低成本", "百万上下文 + MIT 开源"],
     weaknesses: ["绝对智能有限", "深度推理弱"],
-    dims: { intelligence: 78, coding: 82, agent: 74, reasoning: 76, value: 100, openness: 95 },
     sources: [
       { label: "V4 Flash 正式版上线", url: "https://www.news.cn/tech/20260804/c338fe24f8354721a0e03f80f17b47b0/c.html" },
       { label: "V4 Flash 开源（MIT）", url: "https://www.opensourceforu.com/2026/08/deepseek-open-sources-production-deepseek-v4-flash-under-mit-licence/" },
@@ -292,7 +275,6 @@ export const MODELS: Model[] = [
     blurb: "Anthropic 新旗舰线：Ramp SWE-Bench 87.5% 登顶，叙事创意同为第一梯队。",
     strengths: ["Ramp SWE-Bench 87.5% 第一", "创意叙事顶级"],
     weaknesses: ["价格高", "工具调用能力中游"],
-    dims: { intelligence: 94, coding: 95, agent: 86, reasoning: 90, value: 50, openness: 10 },
     sources: [
       { label: "Ramp SWE-Bench：Fable 5 登顶", url: "https://www.kucoin.com/zh-hant/news/flash/ramp-swe-bench-benchmark-claude-fable-5-tops-with-87-5-success-rate" },
       { label: "AA：Fable 5 登顶 Mythos 指数", url: "https://artificialanalysis.ai/articles/claude-fable-5-mythos-intelligence-index" },
@@ -309,7 +291,6 @@ export const MODELS: Model[] = [
     blurb: "SpaceXAI 多模型协同版，擅长多模型协作与视频工作流。",
     strengths: ["多智能体协同", "视频工作流"],
     weaknesses: ["单模型智能中游", "生态小"],
-    dims: { intelligence: 82, coding: 80, agent: 87, reasoning: 79, value: 68, openness: 15 },
     sources: [
       { label: "Grok 4.20 文档", url: "https://docs.oracle.com/en-us/iaas/Content/generative-ai/xai-grok-4-20.htm" },
     ],
@@ -325,7 +306,6 @@ export const MODELS: Model[] = [
     blurb: "韩国 Dokpamo 开源旗舰：AAII 47 分韩国第一，进入全球前十圈。",
     strengths: ["AAII 47 分", "开源权重"],
     weaknesses: ["距前沿仍有差距", "生态较小"],
-    dims: { intelligence: 82, coding: 84, agent: 80, reasoning: 80, value: 78, openness: 88 },
     sources: [
       { label: "Motif 3 全球评测报道", url: "https://www.edaily.co.kr/News/Read?newsId=04057366645546992&mediaCodeNo=257" },
       { label: "Motif 3 AAII 47 分开源", url: "https://www.edaily.co.kr/News/Read?newsId=04303366645546992&mediaCodeNo=257" },
@@ -342,7 +322,6 @@ export const MODELS: Model[] = [
     blurb: "字节生产力旗舰，落地场景与多模态生态强。",
     strengths: ["落地产品力", "多模态生态"],
     weaknesses: ["纯基准不突出", "闭源"],
-    dims: { intelligence: 83, coding: 82, agent: 84, reasoning: 80, value: 85, openness: 15 },
     sources: [
       { label: "豆包 2.1 Pro 发布", url: "https://www.mycaijing.com/article/detail/570721?source_id=40" },
     ],
@@ -358,7 +337,6 @@ export const MODELS: Model[] = [
     blurb: "欧洲开源代表，权重开放、合规友好，多语言稳健。",
     strengths: ["欧洲合规生态", "开源稳健"],
     weaknesses: ["性能落后第一梯队", "更新节奏慢"],
-    dims: { intelligence: 79, coding: 81, agent: 76, reasoning: 78, value: 74, openness: 82 },
     sources: [
       { label: "Mistral Large 3 对比页", url: "https://llm-stats.com/models/compare/ministral-3-14b-instruct-2512-vs-mistral-large-3-2509" },
     ],

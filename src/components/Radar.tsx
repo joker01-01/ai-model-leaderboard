@@ -2,7 +2,7 @@ import type { DimKey } from "../data/models";
 import { DIM_KEYS, DIM_LABELS } from "../lib/score";
 
 interface RadarProps {
-  dims: Record<DimKey, number>;
+  dims: Partial<Record<DimKey, number>>;
   size?: number;
   highlight?: DimKey | null;
 }
@@ -19,7 +19,7 @@ export default function Radar({ dims, size = 190, highlight = null }: RadarProps
     return [cx + r * scale * Math.cos(ang), cy + r * scale * Math.sin(ang)];
   };
   const ringPoints = (scale: number) => DIM_KEYS.map((_, i) => pt(i, scale).join(",")).join(" ");
-  const valuePoints = DIM_KEYS.map((k, i) => pt(i, dims[k] / 100).join(",")).join(" ");
+  const valuePoints = DIM_KEYS.map((k, i) => pt(i, (dims[k] ?? 0) / 100).join(",")).join(" ");
   const labelPos = (i: number): { x: number; y: number; anchor: "middle" | "start" | "end" } => {
     const ang = ((-90 + i * 60) * Math.PI) / 180;
     const cos = Math.cos(ang);
@@ -83,7 +83,7 @@ export default function Radar({ dims, size = 190, highlight = null }: RadarProps
         const p = labelPos(i);
         return (
           <text key={k} x={p.x} y={p.y} textAnchor={p.anchor} className="radar-label">
-            {DIM_LABELS[k] + " " + dims[k]}
+            {DIM_LABELS[k] + " " + (dims[k] == null ? "待补" : dims[k])}
           </text>
         );
       })}

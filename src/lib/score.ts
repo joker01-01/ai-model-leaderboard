@@ -44,6 +44,17 @@ export function composite(dims: Record<DimKey, number>, w: Weights): number {
   return DIM_KEYS.reduce((sum, k) => sum + dims[k] * w[k], 0) / total;
 }
 
+/**
+ * 允许公开数据不完整时按已有维度归一化计算；没有任何可用维度则不出分。
+ * 编辑榜另有“同版本 AA 智能指数”准入条件，避免只有元数据的模型被硬排进来。
+ */
+export function compositePartial(dims: Partial<Record<DimKey, number>>, w: Weights): number | null {
+  const availableKeys = DIM_KEYS.filter((key) => typeof dims[key] === "number" && Number.isFinite(dims[key]));
+  const total = availableKeys.reduce((sum, key) => sum + w[key], 0);
+  if (total === 0) return null;
+  return availableKeys.reduce((sum, key) => sum + (dims[key] as number) * w[key], 0) / total;
+}
+
 export function weightsSum(w: Weights): number {
   return DIM_KEYS.reduce((s, k) => s + w[k], 0);
 }

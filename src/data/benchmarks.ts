@@ -243,9 +243,15 @@ const STATIC_OBJECTIVE_SNAPSHOT: Record<string, ObjectiveProfile> = {
   },
 };
 
-/** 自动同步只覆盖 AA 的主指数与编程指数；其余明细仍保留已核验的静态快照。 */
+/** 自动同步覆盖 AA 的主指数与编程指数；其余明细仍保留已核验的静态快照。 */
+const OBJECTIVE_MODEL_IDS = new Set([
+  ...Object.keys(STATIC_OBJECTIVE_SNAPSHOT),
+  ...Object.keys(AA_SNAPSHOT.models),
+]);
+
 export const OBJECTIVE_SNAPSHOT: Record<string, ObjectiveProfile> = Object.fromEntries(
-  Object.entries(STATIC_OBJECTIVE_SNAPSHOT).map(([modelId, profile]) => {
+  [...OBJECTIVE_MODEL_IDS].map((modelId) => {
+    const profile = STATIC_OBJECTIVE_SNAPSHOT[modelId] ?? { modelId, observations: {} };
     const synced = AA_SNAPSHOT.models[modelId];
     if (!synced) return [modelId, profile];
     const observations = { ...profile.observations };
