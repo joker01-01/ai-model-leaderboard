@@ -67,9 +67,9 @@ function evidenceFor(
 }
 
 function opennessScore(model: Model): number {
-  if (!model.open) return model.license.includes("基座开源") ? 25 : 0;
-  if (/Apache|MIT/i.test(model.license)) return 100;
-  return 85;
+  // 开放程度是二值事实：开放权重为 100，未开放权重为 0。
+  // 许可证类型不再在这个维度里做半连续加减，具体许可证仍在模型详情展示。
+  return model.open ? 100 : 0;
 }
 
 /**

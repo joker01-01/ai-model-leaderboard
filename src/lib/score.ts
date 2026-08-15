@@ -24,8 +24,8 @@ export const OBJECTIVE_DIM_LABELS: Record<ObjectiveDimKey, string> = {
 
 export type Weights = Record<DimKey, number>;
 
-// 编辑部默认口径：智能为主、兼顾性价比
-export const DEFAULT_WEIGHTS: Weights = { intelligence: 31, coding: 21, agent: 15, reasoning: 16, value: 14, openness: 3 };
+// 编辑部默认口径：智能为主、兼顾性价比；开放状态只作为 2% 的二值加权项
+export const DEFAULT_WEIGHTS: Weights = { intelligence: 32, coding: 21, agent: 15, reasoning: 16, value: 14, openness: 2 };
 
 export interface Preset { name: string; note: string; weights: Weights }
 
