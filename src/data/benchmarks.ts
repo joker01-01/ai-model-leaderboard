@@ -1,4 +1,5 @@
 import type { ObjectiveDimKey } from "../lib/score";
+import { AA_SNAPSHOT } from "./generated/aaSnapshot";
 
 export type BenchmarkId =
   | "aa-intelligence"
@@ -41,8 +42,8 @@ export const BENCHMARK_DEFINITIONS: BenchmarkDefinition[] = [
     label: "Artificial Analysis Intelligence Index",
     shortLabel: "智能指数",
     unit: "index",
-    sourceLabel: "Artificial Analysis（公开汇总）",
-    sourceUrl: "https://www.requesty.ai/models/rankings/intelligence",
+    sourceLabel: "Artificial Analysis（官方 API 快照）",
+    sourceUrl: "https://artificialanalysis.ai/data-api/docs",
     sourceTier: "聚合榜",
     calibration: STANDARD_CALIBRATION,
   },
@@ -52,8 +53,8 @@ export const BENCHMARK_DEFINITIONS: BenchmarkDefinition[] = [
     label: "Artificial Analysis Coding Index",
     shortLabel: "编程指数",
     unit: "index",
-    sourceLabel: "Artificial Analysis（公开汇总）",
-    sourceUrl: "https://www.requesty.ai/models/rankings/coding",
+    sourceLabel: "Artificial Analysis（官方 API 快照）",
+    sourceUrl: "https://artificialanalysis.ai/data-api/docs",
     sourceTier: "聚合榜",
     calibration: STANDARD_CALIBRATION,
   },
@@ -64,7 +65,7 @@ export const BENCHMARK_DEFINITIONS: BenchmarkDefinition[] = [
     shortLabel: "GPQA",
     unit: "%",
     sourceLabel: "Artificial Analysis / GPQA Diamond（公开汇总）",
-    sourceUrl: "https://www.requesty.ai/models/rankings/reasoning",
+    sourceUrl: "https://artificialanalysis.ai/",
     sourceTier: "聚合榜",
     calibration: STANDARD_CALIBRATION,
   },
@@ -117,7 +118,7 @@ function observation(
  * 静态快照。只收录页面上能对应到同一具体版本的结果；版本不一致时宁可留空。
  * 数值是公开聚合榜的快照，不等同于厂商官方成绩；同一分类允许保留多个信号。
  */
-export const OBJECTIVE_SNAPSHOT: Record<string, ObjectiveProfile> = {
+const STATIC_OBJECTIVE_SNAPSHOT: Record<string, ObjectiveProfile> = {
   "deepseek-v4-pro": {
     modelId: "deepseek-v4-pro",
     observations: {
@@ -242,7 +243,33 @@ export const OBJECTIVE_SNAPSHOT: Record<string, ObjectiveProfile> = {
   },
 };
 
-export const BENCHMARK_DATE = observedAt;
+/** 自动同步只覆盖 AA 的主指数与编程指数；其余明细仍保留已核验的静态快照。 */
+export const OBJECTIVE_SNAPSHOT: Record<string, ObjectiveProfile> = Object.fromEntries(
+  Object.entries(STATIC_OBJECTIVE_SNAPSHOT).map(([modelId, profile]) => {
+    const synced = AA_SNAPSHOT.models[modelId];
+    if (!synced) return [modelId, profile];
+    const observations = { ...profile.observations };
+    if (synced.intelligence) {
+      observations["aa-intelligence"] = {
+        benchmarkId: "aa-intelligence",
+        value: synced.intelligence.value,
+        modelVersion: synced.intelligence.modelVersion,
+        observedAt: synced.intelligence.observedAt,
+      };
+    }
+    if (synced.coding) {
+      observations["aa-coding"] = {
+        benchmarkId: "aa-coding",
+        value: synced.coding.value,
+        modelVersion: synced.coding.modelVersion,
+        observedAt: synced.coding.observedAt,
+      };
+    }
+    return [modelId, { ...profile, observations }];
+  }),
+);
+
+export const BENCHMARK_DATE = AA_SNAPSHOT.generatedAt?.slice(0, 10) ?? observedAt;
 
 /** 固定校准入口：不读取当前榜单的最小值、最大值或百分位。 */
 export function calibrateBenchmarkValue(definition: BenchmarkDefinition, value: number): number {

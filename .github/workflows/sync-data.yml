@@ -1,0 +1,44 @@
+name: Refresh leaderboard data
+
+on:
+  schedule:
+    # 每天北京时间 01:20；避免与整点高峰重叠。
+    - cron: "20 17 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: leaderboard-data-sync
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Fetch official snapshots
+        run: npm run sync:data
+        env:
+          # 未配置时仍会更新 Arena；AA 主指数会保持上一次已核验快照。
+          AA_API_KEY: ${{ secrets.AA_API_KEY }}
+      - name: Verify generated data builds
+        run: npm run build
+      - name: Open data review pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/refresh-leaderboard-data
+          delete-branch: true
+          commit-message: "chore: refresh official leaderboard snapshots"
+          title: "chore: refresh official leaderboard snapshots"
+          body: |
+            这是定时同步生成的数据更新，请在合并前检查：
+            - `data/sync-report.json` 中的匹配、缺失和歧义
+            - AA 仅更新精确版本匹配的 Intelligence / Coding 指数
+            - Arena 只作详情中的用户偏好参考，不改变主榜名次

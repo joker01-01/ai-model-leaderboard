@@ -58,6 +58,9 @@
 
 - `src/data/models.ts`：模型资料与编辑推荐维度
 - `src/data/benchmarks.ts`：公开评测快照、模型版本与来源
+- `src/data/generated/aaSnapshot.ts`：Artificial Analysis 官方 API 自动快照（首次同步前为空）
+- `src/data/generated/arenaSnapshot.ts`：Arena 官方数据集的用户对战参考（不参与主榜）
+- `data/sync-report.json`：每次同步的精确匹配、缺失和歧义报告
 
 维护公开数据时，请遵循以下规则：
 
@@ -66,6 +69,23 @@
 3. 主榜只使用同版本 Artificial Analysis Intelligence Index；其他 benchmark 只作明细，不混合加权。
 4. 不能确认版本一致时，宁可留在“待补公开成绩”区。
 5. 不把编辑分数、不同版本成绩或未核验的媒体说法混进公开榜。
+
+## 自动同步与人工审核
+
+`.github/workflows/sync-data.yml` 每天北京时间 01:20 拉取两份官方数据，并创建或更新一个数据审核 PR；它**不会直接发布到网站**。只有人工检查 `data/sync-report.json` 后合并，`main` 分支才会触发 GitHub Pages 部署。
+
+- Artificial Analysis：使用官方 Data API 的免费 LLM 入口，需要将密钥保存为仓库 Actions Secret `AA_API_KEY`，绝不写入前端或仓库文件。
+- Arena：读取官方 Hugging Face `lmarena-ai/leaderboard-dataset` 的 `latest` 快照，无需密钥。它反映盲测用户偏好，详情中只作参考，绝不改变公开评测榜名次。
+- 映射：脚本只接受精确的 AA slug 或 Arena 模型名。名称相似、版本不明或匹配多个条目的模型一律不更新，并写入报告等待补充映射。
+
+本地手动更新：
+
+```bash
+# PowerShell
+$env:AA_API_KEY = "你的 Artificial Analysis API key" # 可选；不填时只同步 Arena
+npm run sync:data
+npm run build
+```
 
 ## 本地运行
 
@@ -87,6 +107,9 @@ src/
   styles.css            # 黑白界面与响应式样式
 .github/workflows/
   deploy.yml            # GitHub Pages 自动部署
+  sync-data.yml         # 每日同步并创建审核 PR
+scripts/
+  sync-data.mjs         # 官方数据拉取、严格映射与报告生成
 ```
 
 ## 免责声明

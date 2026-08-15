@@ -10,6 +10,7 @@ import {
   type BenchmarkId,
   type BenchmarkObservation,
 } from "./data/benchmarks";
+import { ARENA_SNAPSHOT, type ArenaMetric } from "./data/generated/arenaSnapshot";
 import type { ObjectiveDimKey, Preset, Weights } from "./lib/score";
 import {
   composite,
@@ -402,9 +403,17 @@ function ObjectiveDetail({ entry }: { entry: Entry }) {
     <div className="objective-detail">
       <div className="objective-detail-head"><h4 className="detail-head">公开评测拆分</h4><span className="coverage">覆盖 {entry.objectiveScore.available}/{entry.objectiveScore.total} · {entry.objectiveScore.confidence}可信度</span></div>
       <div className="benchmark-grid">{OBJECTIVE_DIM_KEYS.map((key) => { const observations = observationsFor(entry, key); const value = entry.objectiveDims[key]; return <article className={"benchmark-card" + (value == null ? " is-missing" : "")} key={key}><span className="benchmark-label">{OBJECTIVE_DIM_LABELS[key]}</span><strong>{value == null ? "—" : value.toFixed(1)}</strong><small>{observations.length > 0 ? `${observations.length} 个信号 · 分类均值` : "暂无同版本快照"}</small>{observations.length > 0 && <div className="benchmark-signals">{observations.map(({ definition, observation }) => <span key={definition.id}><b>{definition.shortLabel}</b> {observation.value.toFixed(1)} · {observation.modelVersion} <a href={definition.sourceUrl} target="_blank" rel="noopener noreferrer">来源 ↗</a></span>)}</div>}</article>; })}</div>
+      <ArenaDetail modelId={entry.model.id} />
       <p className="detail-note">主榜只按同版本智能指数排名；其他成绩用于补充说明，不混入主榜分数。使用前可以点击来源查看原始榜单。</p>
     </div>
   );
+}
+
+function ArenaDetail({ modelId }: { modelId: string }) {
+  const profile = ARENA_SNAPSHOT.models[modelId];
+  if (!profile || Object.keys(profile).length === 0) return null;
+  const labels: Record<keyof typeof profile, string> = { text: "文本偏好", webdev: "代码对战", agent: "Agent 对战" };
+  return <section className="arena-detail" aria-label="Arena 用户对战参考"><div className="objective-detail-head"><h4 className="detail-head">Arena 用户对战参考</h4><a className="coverage" href={ARENA_SNAPSHOT.sourceUrl} target="_blank" rel="noopener noreferrer">查看原始数据 ↗</a></div><div className="benchmark-grid">{(Object.entries(profile) as Array<[keyof typeof profile, ArenaMetric]>).map(([key, metric]) => <article className="benchmark-card" key={key}><span className="benchmark-label">{labels[key]}</span><strong>{metric.value.toFixed(0)}</strong><small>第 {metric.rank ?? "—"} 名 · {metric.category}</small><div className="benchmark-signals"><span><b>{metric.observations ?? "—"}</b> 次{key === "agent" ? "观测" : "对战"} · {metric.modelVersion}</span><span>{metric.observedAt}{metric.lower != null && metric.upper != null ? ` · 区间 ${metric.lower.toFixed(0)}–${metric.upper.toFixed(0)}` : ""}</span></div></article>)}</div><p className="detail-note">Arena 衡量用户在盲测对战中的偏好，量纲不同，仅作参考，不参与本站公开评测榜名次。</p></section>;
 }
 
 /* ---------- 页脚 ---------- */
@@ -413,7 +422,7 @@ function Footer() {
     <footer className="footer">
       <h3 className="footer-title">排行榜说明</h3>
       <ol className="method"><li>公开评测榜只按同版本的 Artificial Analysis Intelligence Index 排名；没有该指数的模型会进入“待补公开成绩”区，不显示名次或主榜分数。</li><li>编程、推理和工具使用等公开成绩只作明细，不与智能指数混算；编辑推荐榜可按综合智能、编程、工具使用、推理、性价比和开源程度调整偏好。</li><li>价格、上下文和许可证可能变化，使用前请查看模型官网。</li></ol>
-      <div className="source-links"><span>公开数据来源：</span><a href="https://www.requesty.ai/models/rankings/intelligence" target="_blank" rel="noopener noreferrer">综合智能</a><a href="https://www.requesty.ai/models/rankings/coding" target="_blank" rel="noopener noreferrer">编程</a><a href="https://www.requesty.ai/models/rankings/reasoning" target="_blank" rel="noopener noreferrer">推理</a><a href="https://www.requesty.ai/models/rankings/tool-use" target="_blank" rel="noopener noreferrer">工具使用</a><a href="https://benchlm.ai/benchmarks/swe-bench-pro" target="_blank" rel="noopener noreferrer">SWE-bench Pro</a><a href="https://benchlm.ai/benchmarks/browsecomp" target="_blank" rel="noopener noreferrer">BrowseComp</a></div>
+      <div className="source-links"><span>公开数据来源：</span><a href="https://artificialanalysis.ai/data-api/docs" target="_blank" rel="noopener noreferrer">综合智能 / 编程</a><a href="https://artificialanalysis.ai/" target="_blank" rel="noopener noreferrer">推理</a><a href="https://benchlm.ai/benchmarks/swe-bench-pro" target="_blank" rel="noopener noreferrer">SWE-bench Pro</a><a href="https://benchlm.ai/benchmarks/browsecomp" target="_blank" rel="noopener noreferrer">BrowseComp</a><a href="https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset" target="_blank" rel="noopener noreferrer">Arena 用户对战</a></div>
       <p className="colophon">AI 模型排行榜 · 公开数据 {BENCHMARK_DATE} · 编辑资料 {DATA_DATE} · 建议每月查看</p>
     </footer>
   );
