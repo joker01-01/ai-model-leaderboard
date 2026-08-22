@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: leaderboard-data-sync
@@ -17,11 +16,13 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
       - name: Install dependencies
         run: npm ci || npm install
       - name: Fetch official snapshots
@@ -31,16 +32,14 @@ jobs:
           AA_API_KEY: ${{ secrets.AA_API_KEY }}
       - name: Verify generated data builds
         run: npm run build
-      - name: Open data review pull request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: chore/refresh-leaderboard-data
-          delete-branch: true
-          commit-message: "chore: refresh official leaderboard snapshots"
-          title: "chore: refresh official leaderboard snapshots"
-          body: |
-            这是定时同步生成的数据更新，请在合并前检查：
-            - `data/sync-report.json` 中的匹配、缺失和歧义
-            - AA 仅更新精确版本匹配的 Intelligence / Coding 指数
-            - Arena 只作详情中的用户偏好参考，不改变主榜名次
+      - name: Commit and push data updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/generated data/sync-report.json
+          if git diff --cached --quiet; then
+            echo "No data changes; skip push."
+          else
+            git commit -m "chore: refresh official leaderboard snapshots"
+            git push origin HEAD:main
+          fi
