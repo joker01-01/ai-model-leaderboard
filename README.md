@@ -1,6 +1,6 @@
 # AI 模型排行榜
 
-> 主榜只看同版本公开成绩；编辑推荐榜再按你的使用偏好选择。数据每天同步，审核后发布。
+> 主榜只看同版本公开成绩；编辑推荐榜再按你的使用偏好选择。数据每天自动同步并发布。
 
 [在线查看排行榜](https://joker01-01.github.io/ai-model-leaderboard/)
 
@@ -12,7 +12,7 @@
 
 `main` 分支更新后，GitHub Actions 会自动发布到 GitHub Pages。
 
-主榜使用 Artificial Analysis 的同版本 Intelligence Index；Arena 只在模型详情中展示用户盲测对战参考，不参与名次。每天北京时间 01:20 会生成数据审核 PR，确认无误后合并发布。
+主榜使用 Artificial Analysis 的同版本 Intelligence Index；Arena 只在模型详情中展示用户盲测对战参考，不参与名次。每天北京时间 01:20 自动拉取数据，构建校验通过后自动提交到 `main` 并发布，全程无需人工。
 
 ## 这个榜单看什么
 
@@ -73,13 +73,14 @@
 4. 不能确认版本一致时，宁可留在“待补公开成绩”区。
 5. 不把编辑分数、不同版本成绩或未核验的媒体说法混进公开榜。
 
-## 自动同步与人工审核
+## 自动同步与发布
 
-`.github/workflows/sync-data.yml` 每天北京时间 01:20 拉取两份官方数据，并创建或更新一个数据审核 PR；它**不会直接发布到网站**。只有人工检查 `data/sync-report.json` 后合并，`main` 分支才会触发 GitHub Pages 部署。
+`.github/workflows/sync-data.yml` 每天北京时间 01:20 拉取两份官方数据，`npm run build` 校验通过后自动提交到 `main` 并触发 GitHub Pages 部署；数据无变化时跳过提交。同步工作流用 `GITHUB_TOKEN` 推送不会触发 `on: push`，因此部署由 `workflow_run` 在同步成功后接续执行。
 
 - Artificial Analysis：使用官方 Data API 的免费 LLM 入口，需要将密钥保存为仓库 Actions Secret `AA_API_KEY`，绝不写入前端或仓库文件。
 - Arena：读取官方 Hugging Face `lmarena-ai/leaderboard-dataset` 的 `latest` 快照，无需密钥。它反映盲测用户偏好，详情中只作参考，绝不改变公开评测榜名次。
 - 映射：脚本只接受精确的 AA slug 或 Arena 模型名。名称相似、版本不明或匹配多个条目的模型一律不更新，并写入报告等待补充映射。
+- 安全阀：构建校验失败时不会推送，网站保持上一次的完好版本；每次同步的完整匹配情况见 `data/sync-report.json`。
 
 本地手动更新：
 
@@ -105,12 +106,13 @@ src/
   data/models.ts        # 20 个模型版本与编辑资料
   data/benchmarks.ts    # 同版本公开成绩与来源
   lib/score.ts          # 公开榜和编辑榜的评分规则
-  components/Radar.tsx  # 编辑榜六维图
-  App.tsx               # 榜单、筛选、详情与交互
+  lib/entries.ts        # 榜单条目构建、排序与取值
+  components/           # 界面组件（榜单、控制条、面板、雷达图等）
+  App.tsx               # 页面状态与组装
   styles.css            # 黑白界面与响应式样式
 .github/workflows/
   deploy.yml            # GitHub Pages 自动部署
-  sync-data.yml         # 每日同步并创建审核 PR
+  sync-data.yml         # 每日自动同步并发布
 scripts/
   sync-data.mjs         # 官方数据拉取、严格映射与报告生成
 ```

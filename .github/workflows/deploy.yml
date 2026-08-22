@@ -3,6 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  workflow_run:
+    # GITHUB_TOKEN 的推送不会触发 on:push，因此同步工作流完成后由此接续部署
+    workflows: ["Refresh leaderboard data"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -16,12 +20,16 @@ concurrency:
 
 jobs:
   build:
+    # workflow_run 触发时仅在同步成功后部署
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
       - run: npm ci || npm install
       - run: npm run build
       - uses: actions/configure-pages@v5
