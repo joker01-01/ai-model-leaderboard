@@ -1,12 +1,20 @@
+<p>
+  <a href="#english"><kbd>&nbsp;English&nbsp;</kbd></a>
+  &nbsp;
+  <a href="#zhong-wen"><kbd>&nbsp;中文&nbsp;</kbd></a>
+</p>
+
+<a id="english"></a>
+
 # AI Model Leaderboard
 
 AI model evaluation platform with automated data sync and human-in-the-loop verification.
 
-主榜只看**同版本**公开成绩；编辑推荐榜再按使用偏好选择。数据每天同步，**审核后才发布**。
+The public board only ranks **same-version** official scores. An editorial board then re-ranks by your weights. Data syncs daily and **publishes only after human review**.
 
 **Live:** [https://joker01-01.github.io/ai-model-leaderboard/](https://joker01-01.github.io/ai-model-leaderboard/)
 
-`中文 / English` · React 19 · TypeScript · Vite 7 · GitHub Actions · GitHub Pages
+React 19 · TypeScript · Vite 7 · GitHub Actions · GitHub Pages
 
 ## Why this exists
 
@@ -118,3 +126,66 @@ When maintaining public data:
 ## Disclaimer
 
 The public board is a traceable public snapshot. The editorial board is a weighted helper, not a substitute for a benchmark. Versions, prices, context windows, and licenses change quickly.
+
+---
+
+<a id="zhong-wen"></a>
+
+# 中文
+
+<p>
+  <a href="#english"><kbd>&nbsp;English&nbsp;</kbd></a>
+  &nbsp;
+  <a href="#zhong-wen"><kbd>&nbsp;中文&nbsp;</kbd></a>
+</p>
+
+# AI 模型排行榜
+
+带自动数据同步和人工审核发布的模型评测平台。
+
+主榜只看**同版本**公开成绩；编辑推荐榜再按使用偏好选择。数据每天同步，**审核后才发布**。
+
+**在线：** [https://joker01-01.github.io/ai-model-leaderboard/](https://joker01-01.github.io/ai-model-leaderboard/)
+
+## 为什么做这个
+
+公开「排行榜」经常把不同版本、用户投票和编辑口味混在一起。这里拆开两件事：
+
+1. **这个具体版本的官方分数是多少**
+2. **按你的偏好，更该选哪个**
+
+版本对不上，不会用兄弟型号、系列名或手工分去填。
+
+## 它做什么
+
+收录 20 个具体模型版本，两个入口：
+
+- **公开评测榜：** 按同版本 Artificial Analysis Intelligence Index 排名。
+- **编辑推荐榜：** 按你调的权重重排（综合智能、编程、工具使用、推理·数学、性价比、开源权重）。
+
+没有同版本智能指数的模型留在「待补公开成绩」，不给名次。
+
+## 架构
+
+官方数据源 → 同步脚本 → 精确版本匹配 → 校验报告 → GitHub PR → 人工审核 → `main` → GitHub Pages。
+
+- Artificial Analysis 官方 Data API（Actions Secret `AA_API_KEY`，不进前端）
+- Arena 官方 Hugging Face `latest` 快照：只在详情里作用户偏好参考，不改主榜
+
+## 工程亮点
+
+- **只接受精确映射。** 名称相似、版本不明、匹配到多条，一律不更新，写入 `data/sync-report.json`。
+- **人工门后才发布。** 每天北京时间 01:20 同步并开/更新审核 PR，**不会直接部署**。合并 `main` 才走 Pages。
+- **主榜不混合口径。** 编程 / GPQA / 工具使用等只作明细。
+- **Arena 不是名次。**
+- 生成快照不要手改：`src/data/generated/aaSnapshot.ts`、`arenaSnapshot.ts`。
+
+`package.json` 里没有单测脚本。可靠性写在匹配策略、同步报告和审核 PR 里。
+
+## 本地运行
+
+与英文 [Getting started](#getting-started) 相同。
+
+## 数据原则
+
+录入公开成绩前先确认具体版本；保留 benchmark、观测日期和可访问来源。不能确认版本就放进待补区。不要把编辑分、其他版本或未核验说法混进公开榜。
