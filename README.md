@@ -1,48 +1,45 @@
-<p>
-  <a href="#english"><kbd>&nbsp;English&nbsp;</kbd></a>
-  &nbsp;
-  <a href="#zhong-wen"><kbd>&nbsp;中文&nbsp;</kbd></a>
-</p>
-
-<a id="english"></a>
-
 # AI Model Leaderboard
 
-AI model evaluation platform with automated data sync and human-in-the-loop verification.
+> **What should a system do when the data doesn't line up?**
 
-The public board only ranks **same-version** official scores. An editorial board then re-ranks by your weights. Data syncs daily and **publishes only after human review**.
+This project is an AI model evaluation platform built around one rule: **if the version cannot be verified, don't pretend the score belongs there.**
 
-**Live:** [https://joker01-01.github.io/ai-model-leaderboard/](https://joker01-01.github.io/ai-model-leaderboard/)
+The public board ranks same-version scores from Artificial Analysis. A separate editorial board can re-rank by user-adjustable preferences. Data sync runs automatically, but publication still waits for human review.
 
-React 19 · TypeScript · Vite 7 · GitHub Actions · GitHub Pages
+**Live:** https://joker01-01.github.io/ai-model-leaderboard/
 
-## Why this exists
+`React 19` · `TypeScript` · `Vite 7` · `GitHub Actions` · `GitHub Pages`
 
-Public model “leaderboards” mix versions, user polls, and editorial taste. This project separates:
+## Why I built it
 
-1. **What the official score says for this exact version**
-2. **What you might pick given your weights**
+Model leaderboards often collapse several different things into one number: different model versions, blind user preference, benchmark scores, and editorial judgment.
 
-Unmatched versions are not filled in with a sibling model, a series name, or a handmade score.
+That creates a simple reliability problem:
+
+**when two names look similar, is “close enough” good enough?**
+
+Here, the answer is no.
+
+A missing or ambiguous match stays unresolved. I would rather leave a score blank than make one look more certain than it is.
 
 ## What it does
 
-The catalog tracks 20 specific model versions and two entry points:
+The project currently tracks 20 concrete model versions and exposes two different views:
 
-- **Public eval board** — rank by same-version Artificial Analysis Intelligence Index.
-- **Editorial board** — re-rank with user-adjustable weights (intelligence, coding, tool use, reasoning/math, price, open-weights).
+- **Public evaluation board** — ranks by same-version Artificial Analysis Intelligence Index.
+- **Editorial board** — re-ranks by configurable preferences such as intelligence, coding, tool use, reasoning/math, price, and open weights.
 
-Models without a same-version Intelligence Index stay in a “pending public score” section. They are not ranked.
+Arena data is shown as user-preference reference in model details. It does not determine the public ranking.
 
-## Architecture
+## The publish pipeline
 
 ```mermaid
 flowchart LR
-  src[Official sources]
+  src[Data sources]
   sync[Sync script]
-  match[Version matching]
+  match[Exact version matching]
   report[Validation report]
-  pr[GitHub PR]
+  pr[Review PR]
   human[Human review]
   main[main]
   pages[GitHub Pages]
@@ -52,35 +49,34 @@ flowchart LR
 
 Sources:
 
-- **Artificial Analysis** official Data API (Actions secret `AA_API_KEY`; never in the frontend)
-- **Arena** official Hugging Face `lmarena-ai/leaderboard-dataset` `latest` snapshot — user-preference reference in the detail pane only, never the public ranking
+- **Artificial Analysis Data API** — benchmark source for the public board.
+- **LMArena leaderboard dataset** — blind-preference reference in the detail view.
 
-## Engineering highlights
+The sync workflow runs daily at 01:20 Beijing time. It updates generated snapshots and opens or updates a review PR. It does **not** publish directly. Merging into `main` triggers the Pages deployment workflow.
 
-- **Exact version matching.** Scripts accept only exact AA slugs / Arena names. Similar names, unknown versions, or multiple hits are left unmatched and written to `data/sync-report.json`.
-- **Human-in-the-loop publish.** `.github/workflows/sync-data.yml` runs daily (Beijing 01:20), builds the site, and opens/updates a review PR. It does **not** deploy. Merging `main` triggers Pages via `deploy.yml`.
-- **No mixed headline score.** Coding / GPQA / tool-use / SWE-Pro / BrowseComp appear as detail metrics. They are not re-weighted into the public rank.
-- **Arena is reference, not rank.** Blind-test preference stays in the model detail view.
-- **Generated snapshots.** `src/data/generated/aaSnapshot.ts` and `arenaSnapshot.ts` are produced by `scripts/sync-data.mjs`; do not edit them by hand.
+## Reliability rules
 
-There is no unit-test script in `package.json`. Reliability is encoded in matching policy, the sync report, and the review PR — not in an automated test suite.
+- **Exact version matching only.** Similar names, unknown versions, or multiple hits remain unmatched.
+- **Ambiguity becomes data, not a guess.** Missing and ambiguous cases are written to `data/sync-report.json`.
+- **Public rank and editorial preference stay separate.** Editorial weights never rewrite the public benchmark rank.
+- **Arena is reference, not rank.** User preference does not get mixed into the headline public score.
+- **Generated snapshots are generated.** `src/data/generated/aaSnapshot.ts` and `arenaSnapshot.ts` should not be edited by hand.
+- **Human review stays in the loop.** Automated sync prepares a change; a person decides whether it is publishable.
 
-## Demo
+## Project structure
 
-Open the live site: [AI 模型排行榜](https://joker01-01.github.io/ai-model-leaderboard/)
-
-`main` updates publish through GitHub Actions → GitHub Pages.
-
-## Tech stack
-
-| Area | Choice |
+| Area | Key files |
 | --- | --- |
-| UI | React 19, TypeScript 5.9, Vite 7, static CSS |
-| Data | `src/data/models.ts`, `benchmarks.ts`, generated snapshots |
-| Sync | Node `scripts/sync-data.mjs`, hyparquet for Arena parquet |
-| CI/CD | `sync-data.yml` (review PR), `deploy.yml` (Pages) |
+| Model metadata | `src/data/models.ts` |
+| Public benchmark mapping | `src/data/benchmarks.ts` |
+| Editorial scoring | `src/lib/editorial.ts` |
+| AA generated snapshot | `src/data/generated/aaSnapshot.ts` |
+| Arena generated snapshot | `src/data/generated/arenaSnapshot.ts` |
+| Sync / matching report | `data/sync-report.json` |
+| Sync workflow | `.github/workflows/sync-data.yml` |
+| Deploy workflow | `.github/workflows/deploy.yml` |
 
-## Getting started
+## Run it locally
 
 ```bash
 npm install
@@ -90,102 +86,67 @@ npm run build
 
 Manual sync:
 
-```bash
-# PowerShell
-$env:AA_API_KEY = "your Artificial Analysis API key" # optional; without it only Arena syncs
+```powershell
+$env:AA_API_KEY = "your Artificial Analysis API key"
 npm run sync:data
 npm run build
 ```
 
-## Data rules
+Without `AA_API_KEY`, the sync keeps the previous verified Artificial Analysis snapshot and can still process the Arena side.
 
-Files:
+## What is not automated yet
 
-- `src/data/models.ts` — model metadata, price, license, sources
-- `src/lib/editorial.ts` — editorial score rules
-- `src/data/benchmarks.ts` — public eval snapshot and version mapping
-- `src/data/generated/aaSnapshot.ts` — AA official API snapshot
-- `src/data/generated/arenaSnapshot.ts` — Arena reference snapshot
-- `data/sync-report.json` — exact match / missing / ambiguous report
+There is currently no unit-test script in `package.json` for scoring or matching. Reliability is enforced by matching policy, the generated sync report, the review PR, and the separation between sync and deploy.
 
-When maintaining public data:
+That is also the clearest engineering gap in the current version. The next useful addition would be focused tests for:
 
-1. Confirm the concrete model version before recording a score.
-2. Keep benchmark name, observation date, and a reachable source URL.
-3. Public rank uses same-version AA Intelligence Index only.
-4. If the version cannot be confirmed, leave it in “pending”.
-5. Do not mix editorial scores, other versions, or unverified media claims into the public board.
+- exact version → match
+- similar name → reject
+- unknown version → reject
+- multiple candidates → ambiguous
+- missing public score → pending
+- editorial score never changes public rank
 
 ## Limitations
 
-- Catalog size is 20 pinned versions, not the whole market.
-- AA sync needs `AA_API_KEY` in Actions secrets; without it the previous verified AA snapshot is kept.
-- No automated test suite for scoring or matching.
-- Scores are public snapshots, not vendor-official conclusions. Recheck vendor pages before using a model.
+- The catalog is a curated set of 20 pinned versions, not the entire model market.
+- Scores are snapshots from selected public benchmark sources, not vendor-official conclusions.
+- Model versions, prices, context windows, and licenses change quickly.
+- Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
+- Automated scoring/matching tests are still missing.
 
-## Disclaimer
+## Data principle
 
-The public board is a traceable public snapshot. The editorial board is a weighted helper, not a substitute for a benchmark. Versions, prices, context windows, and licenses change quickly.
+Before recording a public score:
 
----
+1. Confirm the exact model version.
+2. Keep the benchmark name, observation date, and source URL.
+3. Use the same-version Artificial Analysis Intelligence Index for the public rank.
+4. If the version cannot be confirmed, leave it pending.
+5. Never mix editorial scores, sibling versions, or unverified claims into the public board.
 
-<a id="zhong-wen"></a>
+<details>
+<summary><strong>中文说明</strong></summary>
 
-# 中文
+<br>
 
-<p>
-  <a href="#english"><kbd>&nbsp;English&nbsp;</kbd></a>
-  &nbsp;
-  <a href="#zhong-wen"><kbd>&nbsp;中文&nbsp;</kbd></a>
-</p>
+> **数据对不上时，一个系统应该怎么办？**
 
-# AI 模型排行榜
+这个项目围绕一个很简单的规则：**版本不能确认，就不要假装这个分数属于它。**
 
-带自动数据同步和人工审核发布的模型评测平台。
+公开榜按同版本 Artificial Analysis Intelligence Index 排名；编辑推荐榜再根据用户偏好重排。数据每天自动同步，但不会自动发布，先生成审核 PR，人工确认后才进入 `main` 并部署到 GitHub Pages。
 
-主榜只看**同版本**公开成绩；编辑推荐榜再按使用偏好选择。数据每天同步，**审核后才发布**。
+我更愿意留一个空白，也不愿意让一个分数看起来比它实际更确定。
 
-**在线：** [https://joker01-01.github.io/ai-model-leaderboard/](https://joker01-01.github.io/ai-model-leaderboard/)
+核心可靠性规则：
 
-## 为什么做这个
+- 只接受精确版本匹配。
+- 相似名称、未知版本、多条候选都保持未匹配。
+- 缺失和歧义写入 `data/sync-report.json`，不偷偷补值。
+- Arena 只作用户偏好参考，不参与公开名次。
+- 编辑权重和公开榜分开。
+- 自动同步之后仍保留人工审核门。
 
-公开「排行榜」经常把不同版本、用户投票和编辑口味混在一起。这里拆开两件事：
+当前最大的工程短板也明确保留：`package.json` 里还没有 scoring / matching 的自动测试。后续最值得补的是精确匹配、模糊拒绝、歧义处理和 public/editorial 隔离测试。
 
-1. **这个具体版本的官方分数是多少**
-2. **按你的偏好，更该选哪个**
-
-版本对不上，不会用兄弟型号、系列名或手工分去填。
-
-## 它做什么
-
-收录 20 个具体模型版本，两个入口：
-
-- **公开评测榜：** 按同版本 Artificial Analysis Intelligence Index 排名。
-- **编辑推荐榜：** 按你调的权重重排（综合智能、编程、工具使用、推理·数学、性价比、开源权重）。
-
-没有同版本智能指数的模型留在「待补公开成绩」，不给名次。
-
-## 架构
-
-官方数据源 → 同步脚本 → 精确版本匹配 → 校验报告 → GitHub PR → 人工审核 → `main` → GitHub Pages。
-
-- Artificial Analysis 官方 Data API（Actions Secret `AA_API_KEY`，不进前端）
-- Arena 官方 Hugging Face `latest` 快照：只在详情里作用户偏好参考，不改主榜
-
-## 工程亮点
-
-- **只接受精确映射。** 名称相似、版本不明、匹配到多条，一律不更新，写入 `data/sync-report.json`。
-- **人工门后才发布。** 每天北京时间 01:20 同步并开/更新审核 PR，**不会直接部署**。合并 `main` 才走 Pages。
-- **主榜不混合口径。** 编程 / GPQA / 工具使用等只作明细。
-- **Arena 不是名次。**
-- 生成快照不要手改：`src/data/generated/aaSnapshot.ts`、`arenaSnapshot.ts`。
-
-`package.json` 里没有单测脚本。可靠性写在匹配策略、同步报告和审核 PR 里。
-
-## 本地运行
-
-与英文 [Getting started](#getting-started) 相同。
-
-## 数据原则
-
-录入公开成绩前先确认具体版本；保留 benchmark、观测日期和可访问来源。不能确认版本就放进待补区。不要把编辑分、其他版本或未核验说法混进公开榜。
+</details>
