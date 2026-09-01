@@ -1,5 +1,12 @@
 # AI Model Leaderboard
 
+[![Stack: React 19](https://img.shields.io/badge/Stack-React%2019-149ECA?style=flat-square)](https://react.dev/)
+[![Language: TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square)](https://www.typescriptlang.org/)
+[![Build: Vite 7](https://img.shields.io/badge/Build-Vite%207-646CFF?style=flat-square)](https://vite.dev/)
+[![Deploy: GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-222222?style=flat-square)](https://joker01-01.github.io/ai-model-leaderboard/)
+[![Data: Exact Version Match](https://img.shields.io/badge/Data-Exact%20Version%20Match-0A7E8C?style=flat-square)](#reliability-rules)
+[![Review: Human in the Loop](https://img.shields.io/badge/Review-Human%20in%20the%20Loop-2EA44F?style=flat-square)](#the-publish-pipeline)
+
 > **What should a system do when the data doesn't line up?**
 
 This project is an AI model evaluation platform built around one rule: **if the version cannot be verified, don't pretend the score belongs there.**
