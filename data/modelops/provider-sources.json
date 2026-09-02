@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "modelId": "claude-opus-4-8",
+      "providerModelId": "claude-opus-4-8",
+      "providerId": "anthropic",
+      "kind": "model_card",
+      "title": "Introducing Claude Opus 4.8",
+      "url": "https://www.anthropic.com/news/claude-opus-4-8",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "claude-sonnet-4-6",
+      "providerModelId": "claude-sonnet-4-6",
+      "providerId": "anthropic",
+      "kind": "api_docs",
+      "title": "Claude Sonnet 4.6 model overview",
+      "url": "https://platform.claude.com/docs/en/models/sonnet-4-6/overview",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "providerModelId": "DeepSeek-V4-Flash-0731",
+      "providerId": "deepseek",
+      "kind": "license",
+      "title": "DeepSeek V4 Flash official weights",
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "providerModelId": "DeepSeek-V4-Flash-0731",
+      "providerId": "deepseek",
+      "kind": "pricing",
+      "title": "DeepSeek API pricing",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "providerModelId": "DeepSeek-V4-Pro-0813",
+      "providerId": "deepseek",
+      "kind": "license",
+      "title": "DeepSeek V4 Pro official weights",
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "providerModelId": "DeepSeek-V4-Pro-0813",
+      "providerId": "deepseek",
+      "kind": "pricing",
+      "title": "DeepSeek API pricing",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "glm-5-3",
+      "providerModelId": "ZHIPU/GLM-5.3",
+      "providerId": "alibaba-cloud-model-studio",
+      "kind": "pricing",
+      "title": "ZHIPU/GLM-5.3 pricing for China (Beijing)",
+      "url": "https://help.aliyun.com/en/model-studio/glm-5-3-by-zhipu",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "glm-5-3",
+      "providerModelId": "ZHIPU/GLM-5.3",
+      "providerId": "alibaba-cloud-model-studio",
+      "kind": "pricing",
+      "title": "ZHIPU/GLM-5.3 pricing for Singapore",
+      "url": "https://www.alibabacloud.com/help/tc/model-studio/glm-5-3-by-zhipu",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "providerModelId": "gpt-5.6-luna",
+      "providerId": "openai",
+      "kind": "api_docs",
+      "title": "GPT-5.6 Luna model documentation",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "providerModelId": "gpt-5.6-sol",
+      "providerId": "openai",
+      "kind": "api_docs",
+      "title": "GPT-5.6 Sol model documentation",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "qwen-3-5",
+      "providerModelId": "Qwen3.5-397B-A17B",
+      "providerId": "qwen",
+      "kind": "license",
+      "title": "Qwen3.5-397B-A17B official weights",
+      "url": "https://huggingface.co/Qwen/Qwen3.5-397B-A17B",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "kind": "pricing",
+      "title": "Alibaba Cloud Model Studio Qwen pricing",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "observedAt": "2026-09-02"
+    }
+  ]
+}

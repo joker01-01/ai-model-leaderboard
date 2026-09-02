@@ -1,0 +1,1899 @@
+{
+  "schemaVersion": 1,
+  "benchmarkDate": "2026-08-15",
+  "benchmarkDefinitions": [
+    {
+      "id": "aa-coding",
+      "dim": "coding",
+      "label": "Artificial Analysis Coding Index",
+      "shortLabel": "编程指数",
+      "unit": "index",
+      "sourceLabel": "Artificial Analysis（官方 API 快照）",
+      "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+      "sourceTier": "聚合榜",
+      "calibration": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "aa-intelligence",
+      "dim": "intelligence",
+      "label": "Artificial Analysis Intelligence Index",
+      "shortLabel": "智能指数",
+      "unit": "index",
+      "sourceLabel": "Artificial Analysis（官方 API 快照）",
+      "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+      "sourceTier": "聚合榜",
+      "calibration": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "browsecomp",
+      "dim": "agent",
+      "label": "BrowseComp",
+      "shortLabel": "BrowseComp",
+      "unit": "%",
+      "sourceLabel": "BenchLM（公开汇总）",
+      "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+      "sourceTier": "聚合榜",
+      "calibration": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "gpqa-diamond",
+      "dim": "reasoning",
+      "label": "GPQA Diamond",
+      "shortLabel": "GPQA",
+      "unit": "%",
+      "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+      "sourceUrl": "https://artificialanalysis.ai/",
+      "sourceTier": "聚合榜",
+      "calibration": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "swe-bench-pro",
+      "dim": "coding",
+      "label": "SWE-bench Pro",
+      "shortLabel": "SWE-Pro",
+      "unit": "%",
+      "sourceLabel": "BenchLM（公开汇总）",
+      "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+      "sourceTier": "聚合榜",
+      "calibration": {
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "id": "tau2-bench",
+      "dim": "agent",
+      "label": "τ²-Bench Tool Use",
+      "shortLabel": "工具调用",
+      "unit": "%",
+      "sourceLabel": "Artificial Analysis / τ²-Bench（公开汇总）",
+      "sourceUrl": "https://www.requesty.ai/models/rankings/tool-use",
+      "sourceTier": "聚合榜",
+      "calibration": {
+        "min": 0,
+        "max": 100
+      }
+    }
+  ],
+  "benchmarkObservations": [
+    {
+      "modelId": "claude-fable-5",
+      "benchmarkId": "aa-coding",
+      "value": 76.5,
+      "modelVersion": "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-fable-5",
+      "benchmarkId": "aa-intelligence",
+      "value": 62.1,
+      "modelVersion": "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-fable-5",
+      "benchmarkId": "gpqa-diamond",
+      "value": 92.6,
+      "modelVersion": "claude-fable-5",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-fable-5",
+      "benchmarkId": "swe-bench-pro",
+      "value": 80,
+      "modelVersion": "claude-fable-5",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "swe-bench-pro",
+        "dim": "coding",
+        "label": "SWE-bench Pro",
+        "shortLabel": "SWE-Pro",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-fable-5",
+      "benchmarkId": "tau2-bench",
+      "value": 98.5,
+      "modelVersion": "claude-fable-5",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "tau2-bench",
+        "dim": "agent",
+        "label": "τ²-Bench Tool Use",
+        "shortLabel": "工具调用",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / τ²-Bench（公开汇总）",
+        "sourceUrl": "https://www.requesty.ai/models/rankings/tool-use",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-opus-4-8",
+      "benchmarkId": "aa-coding",
+      "value": 74.3,
+      "modelVersion": "Claude Opus 4.8 (Adaptive Reasoning, Max Effort)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-opus-4-8",
+      "benchmarkId": "aa-intelligence",
+      "value": 57.3,
+      "modelVersion": "Claude Opus 4.8 (Adaptive Reasoning, Max Effort)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-opus-4-8",
+      "benchmarkId": "browsecomp",
+      "value": 84.3,
+      "modelVersion": "claude-opus-4-8",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "browsecomp",
+        "dim": "agent",
+        "label": "BrowseComp",
+        "shortLabel": "BrowseComp",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-opus-4-8",
+      "benchmarkId": "gpqa-diamond",
+      "value": 92,
+      "modelVersion": "claude-opus-4-8",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-opus-4-8",
+      "benchmarkId": "swe-bench-pro",
+      "value": 69.2,
+      "modelVersion": "claude-opus-4-8",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "swe-bench-pro",
+        "dim": "coding",
+        "label": "SWE-bench Pro",
+        "shortLabel": "SWE-Pro",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-opus-4-8",
+      "benchmarkId": "tau2-bench",
+      "value": 94.4,
+      "modelVersion": "claude-opus-4-8",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "tau2-bench",
+        "dim": "agent",
+        "label": "τ²-Bench Tool Use",
+        "shortLabel": "工具调用",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / τ²-Bench（公开汇总）",
+        "sourceUrl": "https://www.requesty.ai/models/rankings/tool-use",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-sonnet-4-6",
+      "benchmarkId": "aa-coding",
+      "value": 63,
+      "modelVersion": "claude-sonnet-4-6",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-sonnet-4-6",
+      "benchmarkId": "aa-intelligence",
+      "value": 36.8,
+      "modelVersion": "Claude Sonnet 4.6 (Non-reasoning, High Effort)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "claude-sonnet-4-6",
+      "benchmarkId": "gpqa-diamond",
+      "value": 91.1,
+      "modelVersion": "claude-sonnet-4-6",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "benchmarkId": "aa-coding",
+      "value": 69.1,
+      "modelVersion": "deepseek-v4-flash-0731",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "benchmarkId": "aa-intelligence",
+      "value": 51.8,
+      "modelVersion": "deepseek-v4-flash-0731",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "benchmarkId": "browsecomp",
+      "value": 73.2,
+      "modelVersion": "deepseek-v4-flash-0731",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "browsecomp",
+        "dim": "agent",
+        "label": "BrowseComp",
+        "shortLabel": "BrowseComp",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "benchmarkId": "gpqa-diamond",
+      "value": 90.8,
+      "modelVersion": "deepseek-v4-flash-0731",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "benchmarkId": "swe-bench-pro",
+      "value": 52.6,
+      "modelVersion": "deepseek-v4-flash-0731",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "swe-bench-pro",
+        "dim": "coding",
+        "label": "SWE-bench Pro",
+        "shortLabel": "SWE-Pro",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "benchmarkId": "aa-coding",
+      "value": 68.8,
+      "modelVersion": "deepseek-v4-pro-0813",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "benchmarkId": "aa-intelligence",
+      "value": 53.2,
+      "modelVersion": "deepseek-v4-pro-0813",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "benchmarkId": "browsecomp",
+      "value": 83.4,
+      "modelVersion": "deepseek-v4-pro-0813",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "browsecomp",
+        "dim": "agent",
+        "label": "BrowseComp",
+        "shortLabel": "BrowseComp",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "benchmarkId": "gpqa-diamond",
+      "value": 92.8,
+      "modelVersion": "deepseek-v4-pro-0813",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "benchmarkId": "swe-bench-pro",
+      "value": 52.1,
+      "modelVersion": "deepseek-v4-pro-0813",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "swe-bench-pro",
+        "dim": "coding",
+        "label": "SWE-bench Pro",
+        "shortLabel": "SWE-Pro",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gemini-3-1-pro",
+      "benchmarkId": "aa-coding",
+      "value": 68.8,
+      "modelVersion": "Gemini 3.1 Pro Preview",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gemini-3-1-pro",
+      "benchmarkId": "aa-intelligence",
+      "value": 47.7,
+      "modelVersion": "Gemini 3.1 Pro Preview",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gemini-3-1-pro",
+      "benchmarkId": "gpqa-diamond",
+      "value": 94.1,
+      "modelVersion": "gemini-3.1-pro-preview",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gemini-3-1-pro",
+      "benchmarkId": "tau2-bench",
+      "value": 95.6,
+      "modelVersion": "gemini-3.1-pro-preview",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "tau2-bench",
+        "dim": "agent",
+        "label": "τ²-Bench Tool Use",
+        "shortLabel": "工具调用",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / τ²-Bench（公开汇总）",
+        "sourceUrl": "https://www.requesty.ai/models/rankings/tool-use",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gemini-3-7-flash",
+      "benchmarkId": "aa-coding",
+      "value": 76.1,
+      "modelVersion": "Gemini 3.7 Flash (high)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gemini-3-7-flash",
+      "benchmarkId": "aa-intelligence",
+      "value": 56,
+      "modelVersion": "Gemini 3.7 Flash (high)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gemini-3-7-flash",
+      "benchmarkId": "gpqa-diamond",
+      "value": 94.5,
+      "modelVersion": "gemini-3.7-flash@eu",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "benchmarkId": "aa-coding",
+      "value": 71.4,
+      "modelVersion": "GPT-5.6 Luna (max)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "benchmarkId": "aa-intelligence",
+      "value": 52.3,
+      "modelVersion": "GPT-5.6 Luna (max)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "benchmarkId": "browsecomp",
+      "value": 83.3,
+      "modelVersion": "gpt-5.6-luna",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "browsecomp",
+        "dim": "agent",
+        "label": "BrowseComp",
+        "shortLabel": "BrowseComp",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "benchmarkId": "gpqa-diamond",
+      "value": 91.1,
+      "modelVersion": "gpt-5.6-luna",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "benchmarkId": "swe-bench-pro",
+      "value": 62.7,
+      "modelVersion": "gpt-5.6-luna",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "swe-bench-pro",
+        "dim": "coding",
+        "label": "SWE-bench Pro",
+        "shortLabel": "SWE-Pro",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "benchmarkId": "aa-coding",
+      "value": 77.4,
+      "modelVersion": "GPT-5.6 Sol (max)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "benchmarkId": "aa-intelligence",
+      "value": 60.9,
+      "modelVersion": "GPT-5.6 Sol (max)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "benchmarkId": "browsecomp",
+      "value": 92.2,
+      "modelVersion": "gpt-5.6-sol",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "browsecomp",
+        "dim": "agent",
+        "label": "BrowseComp",
+        "shortLabel": "BrowseComp",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "benchmarkId": "gpqa-diamond",
+      "value": 94.1,
+      "modelVersion": "gpt-5.6-sol",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "benchmarkId": "swe-bench-pro",
+      "value": 64.6,
+      "modelVersion": "gpt-5.6-sol",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "swe-bench-pro",
+        "dim": "coding",
+        "label": "SWE-bench Pro",
+        "shortLabel": "SWE-Pro",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "grok-4-20",
+      "benchmarkId": "aa-intelligence",
+      "value": 38,
+      "modelVersion": "Grok 4.20 0309 v2 (Reasoning)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "grok-4-6",
+      "benchmarkId": "aa-coding",
+      "value": 76.8,
+      "modelVersion": "Grok 4.6 (high)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "grok-4-6",
+      "benchmarkId": "aa-intelligence",
+      "value": 60.9,
+      "modelVersion": "Grok 4.6 (high)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "grok-4-6",
+      "benchmarkId": "gpqa-diamond",
+      "value": 94.9,
+      "modelVersion": "grok-4.6",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "kimi-k3",
+      "benchmarkId": "aa-coding",
+      "value": 76.2,
+      "modelVersion": "Kimi K3 (max)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "kimi-k3",
+      "benchmarkId": "aa-intelligence",
+      "value": 59.7,
+      "modelVersion": "Kimi K3 (max)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "kimi-k3",
+      "benchmarkId": "browsecomp",
+      "value": 91.2,
+      "modelVersion": "kimi-k3",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "browsecomp",
+        "dim": "agent",
+        "label": "BrowseComp",
+        "shortLabel": "BrowseComp",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "kimi-k3",
+      "benchmarkId": "gpqa-diamond",
+      "value": 93.5,
+      "modelVersion": "kimi-k3",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "minimax-m3",
+      "benchmarkId": "aa-coding",
+      "value": 58.6,
+      "modelVersion": "MiniMax-M3",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "minimax-m3",
+      "benchmarkId": "aa-intelligence",
+      "value": 45.4,
+      "modelVersion": "MiniMax-M3",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "minimax-m3",
+      "benchmarkId": "browsecomp",
+      "value": 83.5,
+      "modelVersion": "minimax-m3",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "browsecomp",
+        "dim": "agent",
+        "label": "BrowseComp",
+        "shortLabel": "BrowseComp",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/browsecomp",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "minimax-m3",
+      "benchmarkId": "gpqa-diamond",
+      "value": 92.9,
+      "modelVersion": "minimax-m3",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "minimax-m3",
+      "benchmarkId": "swe-bench-pro",
+      "value": 59,
+      "modelVersion": "minimax-m3",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "swe-bench-pro",
+        "dim": "coding",
+        "label": "SWE-bench Pro",
+        "shortLabel": "SWE-Pro",
+        "unit": "%",
+        "sourceLabel": "BenchLM（公开汇总）",
+        "sourceUrl": "https://benchlm.ai/benchmarks/swe-bench-pro",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "mistral-large-3",
+      "benchmarkId": "aa-coding",
+      "value": 20.1,
+      "modelVersion": "Mistral Large 3",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "mistral-large-3",
+      "benchmarkId": "aa-intelligence",
+      "value": 15.9,
+      "modelVersion": "Mistral Large 3",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "motif-3",
+      "benchmarkId": "aa-coding",
+      "value": 63.5,
+      "modelVersion": "Motif 3",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "motif-3",
+      "benchmarkId": "aa-intelligence",
+      "value": 47.4,
+      "modelVersion": "Motif 3",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "qwen-3-5",
+      "benchmarkId": "aa-coding",
+      "value": 48.2,
+      "modelVersion": "Qwen3.5 397B A17B (Reasoning)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-coding",
+        "dim": "coding",
+        "label": "Artificial Analysis Coding Index",
+        "shortLabel": "编程指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "qwen-3-5",
+      "benchmarkId": "aa-intelligence",
+      "value": 34.3,
+      "modelVersion": "Qwen3.5 397B A17B (Reasoning)",
+      "observedAt": "2026-08-15",
+      "definition": {
+        "id": "aa-intelligence",
+        "dim": "intelligence",
+        "label": "Artificial Analysis Intelligence Index",
+        "shortLabel": "智能指数",
+        "unit": "index",
+        "sourceLabel": "Artificial Analysis（官方 API 快照）",
+        "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "qwen-3-5",
+      "benchmarkId": "gpqa-diamond",
+      "value": 89.3,
+      "modelVersion": "qwen/qwen3.5-397b-a17b",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "gpqa-diamond",
+        "dim": "reasoning",
+        "label": "GPQA Diamond",
+        "shortLabel": "GPQA",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / GPQA Diamond（公开汇总）",
+        "sourceUrl": "https://artificialanalysis.ai/",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "modelId": "qwen-3-5",
+      "benchmarkId": "tau2-bench",
+      "value": 95.6,
+      "modelVersion": "qwen/qwen3.5-397b-a17b",
+      "observedAt": "2026-08-14",
+      "definition": {
+        "id": "tau2-bench",
+        "dim": "agent",
+        "label": "τ²-Bench Tool Use",
+        "shortLabel": "工具调用",
+        "unit": "%",
+        "sourceLabel": "Artificial Analysis / τ²-Bench（公开汇总）",
+        "sourceUrl": "https://www.requesty.ai/models/rankings/tool-use",
+        "sourceTier": "聚合榜",
+        "calibration": {
+          "min": 0,
+          "max": 100
+        }
+      }
+    }
+  ],
+  "arena": {
+    "generatedAt": "2026-08-15T03:50:22.702Z",
+    "sourceUrl": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
+    "observations": [
+      {
+        "modelId": "claude-fable-5",
+        "dimension": "text",
+        "value": 1506.6310643625845,
+        "rank": null,
+        "lower": 1501.2038502055082,
+        "upper": 1512.058278519661,
+        "observations": 21439,
+        "category": "overall",
+        "observedAt": "2026-08-12",
+        "modelVersion": "claude-fable-5"
+      },
+      {
+        "modelId": "claude-fable-5",
+        "dimension": "webdev",
+        "value": 1626.9493872808907,
+        "rank": null,
+        "lower": 1618.4898969645096,
+        "upper": 1635.4088775972716,
+        "observations": null,
+        "category": "overall",
+        "observedAt": "2026-08-14",
+        "modelVersion": "claude-fable-5"
+      },
+      {
+        "modelId": "claude-opus-4-8",
+        "dimension": "agent",
+        "value": 0.021237417314482008,
+        "rank": null,
+        "lower": -0.00595799472430001,
+        "upper": 0.048432829353264026,
+        "observations": 1392959,
+        "category": "overall",
+        "observedAt": "2026-08-13",
+        "modelVersion": "Claude Opus 4.8"
+      },
+      {
+        "modelId": "claude-opus-4-8",
+        "dimension": "text",
+        "value": 1473.5885585184208,
+        "rank": null,
+        "lower": 1468.9998954372352,
+        "upper": 1478.1772215996061,
+        "observations": 41219,
+        "category": "overall",
+        "observedAt": "2026-08-12",
+        "modelVersion": "claude-opus-4-8"
+      },
+      {
+        "modelId": "claude-opus-4-8",
+        "dimension": "webdev",
+        "value": 1538.9551291784912,
+        "rank": null,
+        "lower": 1531.7325716353755,
+        "upper": 1546.177686721607,
+        "observations": null,
+        "category": "overall",
+        "observedAt": "2026-08-14",
+        "modelVersion": "claude-opus-4-8"
+      },
+      {
+        "modelId": "claude-sonnet-4-6",
+        "dimension": "agent",
+        "value": 0.0311659666938185,
+        "rank": null,
+        "lower": 0.017166872202375866,
+        "upper": 0.04516506118526113,
+        "observations": 1250934,
+        "category": "overall",
+        "observedAt": "2026-08-13",
+        "modelVersion": "Claude Sonnet 4.6"
+      },
+      {
+        "modelId": "claude-sonnet-4-6",
+        "dimension": "text",
+        "value": 1472.055420303124,
+        "rank": null,
+        "lower": 1468.4365020750502,
+        "upper": 1475.6743385311977,
+        "observations": 66602,
+        "category": "overall",
+        "observedAt": "2026-08-12",
+        "modelVersion": "claude-sonnet-4-6"
+      },
+      {
+        "modelId": "claude-sonnet-4-6",
+        "dimension": "webdev",
+        "value": 1523.6787757438246,
+        "rank": null,
+        "lower": 1518.1685879745507,
+        "upper": 1529.1889635130988,
+        "observations": null,
+        "category": "overall",
+        "observedAt": "2026-08-14",
+        "modelVersion": "claude-sonnet-4-6"
+      },
+      {
+        "modelId": "deepseek-v4-flash",
+        "dimension": "agent",
+        "value": -0.021950938609330475,
+        "rank": null,
+        "lower": -0.030959141742423597,
+        "upper": -0.012942735476237352,
+        "observations": 1188280,
+        "category": "overall",
+        "observedAt": "2026-08-13",
+        "modelVersion": "DeepSeek V4 Flash"
+      },
+      {
+        "modelId": "deepseek-v4-pro",
+        "dimension": "agent",
+        "value": 0.0013587590747476115,
+        "rank": null,
+        "lower": -0.007413446391530614,
+        "upper": 0.010130964541025838,
+        "observations": 1389020,
+        "category": "overall",
+        "observedAt": "2026-08-13",
+        "modelVersion": "DeepSeek V4 Pro"
+      },
+      {
+        "modelId": "gemini-3-1-pro",
+        "dimension": "text",
+        "value": 1486.2449879778885,
+        "rank": null,
+        "lower": 1482.907653091225,
+        "upper": 1489.582322864552,
+        "observations": 94989,
+        "category": "overall",
+        "observedAt": "2026-08-12",
+        "modelVersion": "gemini-3.1-pro-preview"
+      },
+      {
+        "modelId": "gemini-3-1-pro",
+        "dimension": "webdev",
+        "value": 1446.7871487156465,
+        "rank": null,
+        "lower": 1441.4178936932922,
+        "upper": 1452.1564037380008,
+        "observations": null,
+        "category": "overall",
+        "observedAt": "2026-08-14",
+        "modelVersion": "gemini-3.1-pro-preview"
+      },
+      {
+        "modelId": "minimax-m3",
+        "dimension": "text",
+        "value": 1443.418549674021,
+        "rank": null,
+        "lower": 1438.7521617678021,
+        "upper": 1448.08493758024,
+        "observations": 37180,
+        "category": "overall",
+        "observedAt": "2026-08-12",
+        "modelVersion": "minimax-m3"
+      },
+      {
+        "modelId": "minimax-m3",
+        "dimension": "webdev",
+        "value": 1489.7577057450906,
+        "rank": null,
+        "lower": 1482.6072138265074,
+        "upper": 1496.9081976636737,
+        "observations": null,
+        "category": "overall",
+        "observedAt": "2026-08-14",
+        "modelVersion": "minimax-m3"
+      },
+      {
+        "modelId": "mistral-large-3",
+        "dimension": "text",
+        "value": 1414.7978753532723,
+        "rank": null,
+        "lower": 1411.6250655726208,
+        "upper": 1417.970685133924,
+        "observations": 59196,
+        "category": "overall",
+        "observedAt": "2026-08-12",
+        "modelVersion": "mistral-large-3"
+      },
+      {
+        "modelId": "mistral-large-3",
+        "dimension": "webdev",
+        "value": 1230.1349177630286,
+        "rank": null,
+        "lower": 1204.3114140527946,
+        "upper": 1255.958421473263,
+        "observations": null,
+        "category": "overall",
+        "observedAt": "2026-08-14",
+        "modelVersion": "mistral-large-3"
+      },
+      {
+        "modelId": "qwen-3-5",
+        "dimension": "text",
+        "value": 1441.9739144664302,
+        "rank": null,
+        "lower": 1438.4677729898387,
+        "upper": 1445.4800559430216,
+        "observations": 66641,
+        "category": "overall",
+        "observedAt": "2026-08-12",
+        "modelVersion": "qwen3.5-397b-a17b"
+      },
+      {
+        "modelId": "qwen-3-5",
+        "dimension": "webdev",
+        "value": 1400.1267384234584,
+        "rank": null,
+        "lower": 1394.637404532801,
+        "upper": 1405.6160723141156,
+        "observations": null,
+        "category": "overall",
+        "observedAt": "2026-08-14",
+        "modelVersion": "qwen3.5-397b-a17b"
+      }
+    ]
+  },
+  "pricing": [
+    {
+      "offerId": "alibaba-glm-5-3-cn-beijing-cny",
+      "modelId": "glm-5-3",
+      "providerModelId": "ZHIPU/GLM-5.3",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "cn-beijing",
+      "currency": "CNY",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 0,
+      "maxInputTokensInclusive": 1048576,
+      "inputPrice": 8,
+      "cachedInputPrice": 2,
+      "outputPrice": 28,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://help.aliyun.com/en/model-studio/glm-5-3-by-zhipu"
+    },
+    {
+      "offerId": "alibaba-glm-5-3-sg-usd",
+      "modelId": "glm-5-3",
+      "providerModelId": "ZHIPU/GLM-5.3",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "sg",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 0,
+      "maxInputTokensInclusive": 1048576,
+      "inputPrice": 1.4,
+      "cachedInputPrice": 0.26,
+      "outputPrice": 4.4,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/tc/model-studio/glm-5-3-by-zhipu"
+    },
+    {
+      "offerId": "alibaba-qwen-3-5-cn-beijing-usd",
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "cn-beijing",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 0,
+      "maxInputTokensInclusive": 128000,
+      "inputPrice": 0.172,
+      "cachedInputPrice": null,
+      "outputPrice": 1.032,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing"
+    },
+    {
+      "offerId": "alibaba-qwen-3-5-cn-beijing-usd",
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "cn-beijing",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 128000,
+      "maxInputTokensInclusive": 256000,
+      "inputPrice": 0.43,
+      "cachedInputPrice": null,
+      "outputPrice": 2.58,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing"
+    },
+    {
+      "offerId": "alibaba-qwen-3-5-de-frankfurt-usd",
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "de-frankfurt",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 0,
+      "maxInputTokensInclusive": 128000,
+      "inputPrice": 0.172,
+      "cachedInputPrice": null,
+      "outputPrice": 1.032,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing"
+    },
+    {
+      "offerId": "alibaba-qwen-3-5-de-frankfurt-usd",
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "de-frankfurt",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 128000,
+      "maxInputTokensInclusive": 256000,
+      "inputPrice": 0.43,
+      "cachedInputPrice": null,
+      "outputPrice": 2.58,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing"
+    },
+    {
+      "offerId": "alibaba-qwen-3-5-sg-usd",
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "sg",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 0,
+      "maxInputTokensInclusive": 256000,
+      "inputPrice": 0.6,
+      "cachedInputPrice": null,
+      "outputPrice": 3.6,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing"
+    },
+    {
+      "offerId": "alibaba-qwen-3-5-us-virginia-usd",
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "us-virginia",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 0,
+      "maxInputTokensInclusive": 128000,
+      "inputPrice": 0.172,
+      "cachedInputPrice": null,
+      "outputPrice": 1.032,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing"
+    },
+    {
+      "offerId": "alibaba-qwen-3-5-us-virginia-usd",
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "regionId": "us-virginia",
+      "currency": "USD",
+      "unit": "per_1m_tokens",
+      "billingMode": "realtime",
+      "minInputTokensExclusive": 128000,
+      "maxInputTokensInclusive": 256000,
+      "inputPrice": 0.43,
+      "cachedInputPrice": null,
+      "outputPrice": 2.58,
+      "observedAt": "2026-09-02",
+      "staleAfter": "2026-10-02",
+      "validThrough": null,
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing"
+    }
+  ],
+  "providerSources": [
+    {
+      "modelId": "claude-opus-4-8",
+      "providerModelId": "claude-opus-4-8",
+      "providerId": "anthropic",
+      "kind": "model_card",
+      "title": "Introducing Claude Opus 4.8",
+      "url": "https://www.anthropic.com/news/claude-opus-4-8",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "claude-sonnet-4-6",
+      "providerModelId": "claude-sonnet-4-6",
+      "providerId": "anthropic",
+      "kind": "api_docs",
+      "title": "Claude Sonnet 4.6 model overview",
+      "url": "https://platform.claude.com/docs/en/models/sonnet-4-6/overview",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "providerModelId": "DeepSeek-V4-Flash-0731",
+      "providerId": "deepseek",
+      "kind": "license",
+      "title": "DeepSeek V4 Flash official weights",
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "providerModelId": "DeepSeek-V4-Flash-0731",
+      "providerId": "deepseek",
+      "kind": "pricing",
+      "title": "DeepSeek API pricing",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "providerModelId": "DeepSeek-V4-Pro-0813",
+      "providerId": "deepseek",
+      "kind": "license",
+      "title": "DeepSeek V4 Pro official weights",
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "deepseek-v4-pro",
+      "providerModelId": "DeepSeek-V4-Pro-0813",
+      "providerId": "deepseek",
+      "kind": "pricing",
+      "title": "DeepSeek API pricing",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "glm-5-3",
+      "providerModelId": "ZHIPU/GLM-5.3",
+      "providerId": "alibaba-cloud-model-studio",
+      "kind": "pricing",
+      "title": "ZHIPU/GLM-5.3 pricing for China (Beijing)",
+      "url": "https://help.aliyun.com/en/model-studio/glm-5-3-by-zhipu",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "glm-5-3",
+      "providerModelId": "ZHIPU/GLM-5.3",
+      "providerId": "alibaba-cloud-model-studio",
+      "kind": "pricing",
+      "title": "ZHIPU/GLM-5.3 pricing for Singapore",
+      "url": "https://www.alibabacloud.com/help/tc/model-studio/glm-5-3-by-zhipu",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "providerModelId": "gpt-5.6-luna",
+      "providerId": "openai",
+      "kind": "api_docs",
+      "title": "GPT-5.6 Luna model documentation",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "providerModelId": "gpt-5.6-sol",
+      "providerId": "openai",
+      "kind": "api_docs",
+      "title": "GPT-5.6 Sol model documentation",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.6-sol",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "qwen-3-5",
+      "providerModelId": "qwen3.5-397b-a17b",
+      "providerId": "alibaba-cloud-model-studio",
+      "kind": "pricing",
+      "title": "Alibaba Cloud Model Studio Qwen pricing",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "observedAt": "2026-09-02"
+    },
+    {
+      "modelId": "qwen-3-5",
+      "providerModelId": "Qwen3.5-397B-A17B",
+      "providerId": "qwen",
+      "kind": "license",
+      "title": "Qwen3.5-397B-A17B official weights",
+      "url": "https://huggingface.co/Qwen/Qwen3.5-397B-A17B",
+      "observedAt": "2026-09-02"
+    }
+  ]
+}

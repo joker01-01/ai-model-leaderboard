@@ -29,6 +29,10 @@ jobs:
         env:
           # 未配置时仍会更新 Arena；AA 主指数会保持上一次已核验快照。
           AA_API_KEY: ${{ secrets.AA_API_KEY }}
+      - name: Export ModelOps evidence adapter
+        run: npm run modelops:data
+      - name: Verify ModelOps data contract
+        run: npm run test:modelops-data
       - name: Verify generated data builds
         run: npm run build
       - name: Open data review pull request

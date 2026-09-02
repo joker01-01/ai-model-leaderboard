@@ -38,6 +38,10 @@ The project currently tracks 20 concrete model versions and exposes two differen
 
 Arena data is shown as user-preference reference in model details. It does not determine the public ranking.
 
+The repository also contains the Phase B offline ModelOps Agent core. It strictly loads the generated evidence JSON and runs five typed operations—catalog filtering, benchmark lookup, pricing, allowlisted provider-document search, and pure update proposals—inside a bounded LangGraph workflow. Its deterministic fake gateway and injected document client make tests and evaluations network-free.
+
+This Agent core is not connected to the website yet. A real model gateway, concrete HTTP document client, FastAPI/SSE endpoints, and the React Agent panel remain later phases.
+
 ## The publish pipeline
 
 ```mermaid
@@ -79,6 +83,12 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | Editorial scoring | `src/lib/editorial.ts` |
 | AA generated snapshot | `src/data/generated/aaSnapshot.ts` |
 | Arena generated snapshot | `src/data/generated/arenaSnapshot.ts` |
+| ModelOps reviewed/generated data | `data/modelops/` |
+| ModelOps data contracts/tests | `scripts/modelops-data-schema.ts`, `scripts/modelops-data.test.ts` |
+| Strict Python contracts/repository | `backend/app/domain/`, `backend/app/repositories/` |
+| Five typed ModelOps tools | `backend/app/tools/` |
+| LangGraph workflow/verifier | `backend/app/graph/`, `backend/app/services/` |
+| Offline Agent evaluations | `backend/evals/` |
 | Sync / matching report | `data/sync-report.json` |
 | Sync workflow | `.github/workflows/sync-data.yml` |
 | Deploy workflow | `.github/workflows/deploy.yml` |
@@ -89,6 +99,8 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 npm install
 npm run dev
 npm run build
+npm run modelops:data:check
+npm run test:modelops-data
 ```
 
 Manual sync:
@@ -101,18 +113,24 @@ npm run build
 
 Without `AA_API_KEY`, the sync keeps the previous verified Artificial Analysis snapshot and can still process the Arena side.
 
+Offline ModelOps Agent verification requires Python 3.12:
+
+```powershell
+cd backend
+python -m pip install -e ".[dev]"
+python -m pytest -q
+python -m ruff check app tests evals
+python -m mypy app tests evals
+python evals/run.py
+```
+
+These checks use committed generated data, `FakeModelGateway`, and injected provider-document responses. They do not call a model provider or fetch live provider documentation.
+
 ## What is not automated yet
 
-There is currently no unit-test script in `package.json` for scoring or matching. Reliability is enforced by matching policy, the generated sync report, the review PR, and the separation between sync and deploy.
+`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The backend suite covers the strict repository, all five tools, graph routing and terminal states; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow is configured to run these gates with Python lint and type checking in addition to the frontend checks; its GitHub-hosted execution has not yet been observed for this working-tree change.
 
-That is also the clearest engineering gap in the current version. The next useful addition would be focused tests for:
-
-- exact version → match
-- similar name → reject
-- unknown version → reject
-- multiple candidates → ambiguous
-- missing public score → pending
-- editorial score never changes public rank
+The remaining automation gaps are general frontend interaction tests, API/SSE integration tests, a network-backed sync freshness gate, and checks against a real model/document gateway. Publication still requires human review.
 
 ## Limitations
 
@@ -120,7 +138,9 @@ That is also the clearest engineering gap in the current version. The next usefu
 - Scores are snapshots from selected public benchmark sources, not vendor-official conclusions.
 - Model versions, prices, context windows, and licenses change quickly.
 - Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
-- Automated scoring/matching tests are still missing.
+- Structured prices currently cover only a small exact-version/provider subset; missing prices, end-user country availability, and latency stay unresolved instead of being inferred.
+- The Agent currently has no FastAPI/SSE surface, concrete LLM gateway, concrete HTTP provider-document client, frontend panel, persistence, or public backend deployment.
+- General UI and API integration tests are not implemented yet.
 
 ## Data principle
 
@@ -154,6 +174,8 @@ Before recording a public score:
 - 编辑权重和公开榜分开。
 - 自动同步之后仍保留人工审核门。
 
-当前最大的工程短板也明确保留：`package.json` 里还没有 scoring / matching 的自动测试。后续最值得补的是精确匹配、模糊拒绝、歧义处理和 public/editorial 隔离测试。
+当前已完成 Phase B 的离线 ModelOps Agent 核心：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、fake model gateway，以及 24 条无网络 eval。更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
+
+尚未实现 FastAPI/SSE、真实模型 gateway、具体 HTTP 文档客户端和 React Agent Panel；现有排行榜仍独立运行，发布仍须人工合并审核 PR。
 
 </details>

@@ -1,0 +1,297 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "modelId": "deepseek-v4-pro",
+      "aaSlugs": [
+        "deepseek-v4-pro-0813"
+      ],
+      "arenaNames": [
+        "deepseek-v4-pro-0813",
+        "DeepSeek V4 Pro"
+      ],
+      "benchmarkVersionIds": [
+        "deepseek-v4-pro-0813"
+      ],
+      "providerModels": [
+        {
+          "providerId": "deepseek",
+          "providerModelId": "DeepSeek-V4-Pro-0813"
+        }
+      ]
+    },
+    {
+      "modelId": "claude-opus-4-8",
+      "aaSlugs": [
+        "claude-opus-4-8"
+      ],
+      "arenaNames": [
+        "claude-opus-4-8",
+        "Claude Opus 4.8"
+      ],
+      "benchmarkVersionIds": [
+        "claude-opus-4-8"
+      ],
+      "providerModels": [
+        {
+          "providerId": "anthropic",
+          "providerModelId": "claude-opus-4-8"
+        }
+      ]
+    },
+    {
+      "modelId": "gpt-56-sol",
+      "aaSlugs": [
+        "gpt-5-6-sol"
+      ],
+      "arenaNames": [
+        "gpt-5.6-sol",
+        "GPT-5.6 Sol"
+      ],
+      "benchmarkVersionIds": [
+        "gpt-5.6-sol"
+      ],
+      "providerModels": [
+        {
+          "providerId": "openai",
+          "providerModelId": "gpt-5.6-sol"
+        }
+      ]
+    },
+    {
+      "modelId": "gpt-56-luna",
+      "aaSlugs": [
+        "gpt-5-6-luna"
+      ],
+      "arenaNames": [
+        "gpt-5.6-luna",
+        "GPT-5.6 Luna"
+      ],
+      "benchmarkVersionIds": [
+        "gpt-5.6-luna"
+      ],
+      "providerModels": [
+        {
+          "providerId": "openai",
+          "providerModelId": "gpt-5.6-luna"
+        }
+      ]
+    },
+    {
+      "modelId": "gemini-3-7-flash",
+      "aaSlugs": [
+        "gemini-3-7-flash"
+      ],
+      "arenaNames": [
+        "gemini-3.7-flash",
+        "Gemini 3.7 Flash"
+      ],
+      "benchmarkVersionIds": [
+        "gemini-3.7-flash@eu"
+      ]
+    },
+    {
+      "modelId": "qwen-3-5",
+      "aaSlugs": [
+        "qwen3-5-397b-a17b",
+        "qwen-qwen3-5-397b-a17b"
+      ],
+      "arenaNames": [
+        "qwen3.5-397b-a17b",
+        "Qwen3.5-397B-A17B"
+      ],
+      "benchmarkVersionIds": [
+        "qwen/qwen3.5-397b-a17b"
+      ],
+      "providerModels": [
+        {
+          "providerId": "alibaba-cloud-model-studio",
+          "providerModelId": "qwen3.5-397b-a17b"
+        },
+        {
+          "providerId": "qwen",
+          "providerModelId": "Qwen3.5-397B-A17B"
+        }
+      ]
+    },
+    {
+      "modelId": "deepseek-v4",
+      "aaSlugs": [
+        "deepseek-v4"
+      ],
+      "arenaNames": [
+        "deepseek-v4",
+        "DeepSeek V4"
+      ]
+    },
+    {
+      "modelId": "claude-sonnet-4-6",
+      "aaSlugs": [
+        "claude-sonnet-4-6"
+      ],
+      "arenaNames": [
+        "claude-sonnet-4-6",
+        "Claude Sonnet 4.6"
+      ],
+      "benchmarkVersionIds": [
+        "claude-sonnet-4-6"
+      ],
+      "providerModels": [
+        {
+          "providerId": "anthropic",
+          "providerModelId": "claude-sonnet-4-6"
+        }
+      ]
+    },
+    {
+      "modelId": "glm-5-3",
+      "aaSlugs": [
+        "glm-5-3"
+      ],
+      "arenaNames": [
+        "glm-5.3",
+        "GLM-5.3"
+      ],
+      "providerModels": [
+        {
+          "providerId": "alibaba-cloud-model-studio",
+          "providerModelId": "ZHIPU/GLM-5.3"
+        }
+      ]
+    },
+    {
+      "modelId": "grok-4-6",
+      "aaSlugs": [
+        "grok-4-6"
+      ],
+      "arenaNames": [
+        "grok-4.6",
+        "Grok 4.6"
+      ],
+      "benchmarkVersionIds": [
+        "grok-4.6"
+      ]
+    },
+    {
+      "modelId": "kimi-k3",
+      "aaSlugs": [
+        "kimi-k3"
+      ],
+      "arenaNames": [
+        "kimi-k3",
+        "Kimi K3"
+      ],
+      "benchmarkVersionIds": [
+        "kimi-k3"
+      ]
+    },
+    {
+      "modelId": "llama-5",
+      "aaSlugs": [
+        "llama-5"
+      ],
+      "arenaNames": [
+        "llama-5",
+        "Llama 5"
+      ]
+    },
+    {
+      "modelId": "gemini-3-1-pro",
+      "aaSlugs": [
+        "gemini-3-1-pro-preview"
+      ],
+      "arenaNames": [
+        "gemini-3.1-pro-preview",
+        "Gemini 3.1 Pro"
+      ],
+      "benchmarkVersionIds": [
+        "gemini-3.1-pro-preview"
+      ]
+    },
+    {
+      "modelId": "minimax-m3",
+      "aaSlugs": [
+        "minimax-m3"
+      ],
+      "arenaNames": [
+        "minimax-m3",
+        "MiniMax M3"
+      ],
+      "benchmarkVersionIds": [
+        "minimax-m3"
+      ]
+    },
+    {
+      "modelId": "deepseek-v4-flash",
+      "aaSlugs": [
+        "deepseek-v4-flash-0731"
+      ],
+      "arenaNames": [
+        "deepseek-v4-flash-0731",
+        "DeepSeek V4 Flash"
+      ],
+      "benchmarkVersionIds": [
+        "deepseek-v4-flash-0731"
+      ],
+      "providerModels": [
+        {
+          "providerId": "deepseek",
+          "providerModelId": "DeepSeek-V4-Flash-0731"
+        }
+      ]
+    },
+    {
+      "modelId": "claude-fable-5",
+      "aaSlugs": [
+        "claude-fable-5"
+      ],
+      "arenaNames": [
+        "claude-fable-5",
+        "Claude Fable 5"
+      ],
+      "benchmarkVersionIds": [
+        "claude-fable-5"
+      ]
+    },
+    {
+      "modelId": "grok-4-20",
+      "aaSlugs": [
+        "grok-4-20"
+      ],
+      "arenaNames": [
+        "grok-4.20",
+        "Grok 4.20"
+      ]
+    },
+    {
+      "modelId": "motif-3",
+      "aaSlugs": [
+        "motif-3"
+      ],
+      "arenaNames": [
+        "motif-3",
+        "Motif 3"
+      ]
+    },
+    {
+      "modelId": "doubao-2-1-pro",
+      "aaSlugs": [
+        "doubao-2-1-pro"
+      ],
+      "arenaNames": [
+        "doubao-2.1-pro",
+        "Doubao 2.1 Pro"
+      ]
+    },
+    {
+      "modelId": "mistral-large-3",
+      "aaSlugs": [
+        "mistral-large-3"
+      ],
+      "arenaNames": [
+        "mistral-large-3",
+        "Mistral Large 3"
+      ]
+    }
+  ]
+}

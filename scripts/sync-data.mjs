@@ -9,6 +9,7 @@ const now = new Date().toISOString();
 
 const paths = {
   aa: resolve(projectRoot, "src/data/generated/aaSnapshot.ts"),
+  aliases: resolve(projectRoot, "data/modelops/model-aliases.json"),
   arena: resolve(projectRoot, "src/data/generated/arenaSnapshot.ts"),
   report: resolve(projectRoot, "data/sync-report.json"),
 };
@@ -17,28 +18,73 @@ const paths = {
  * 映射只允许精确 ID / slug / 名称匹配，禁止模糊匹配或仅按模型家族猜测。
  * 新模型或匹配歧义会进入报告，由人复核后再补充别名。
  */
-const trackedModels = [
-  { modelId: "deepseek-v4-pro", aaSlugs: ["deepseek-v4-pro-0813"], arenaNames: ["deepseek-v4-pro-0813", "DeepSeek V4 Pro"] },
-  { modelId: "claude-opus-4-8", aaSlugs: ["claude-opus-4-8"], arenaNames: ["claude-opus-4-8", "Claude Opus 4.8"] },
-  { modelId: "gpt-56-sol", aaSlugs: ["gpt-5-6-sol"], arenaNames: ["gpt-5.6-sol", "GPT-5.6 Sol"] },
-  { modelId: "gpt-56-luna", aaSlugs: ["gpt-5-6-luna"], arenaNames: ["gpt-5.6-luna", "GPT-5.6 Luna"] },
-  { modelId: "gemini-3-7-flash", aaSlugs: ["gemini-3-7-flash"], arenaNames: ["gemini-3.7-flash", "Gemini 3.7 Flash"] },
-  { modelId: "qwen-3-5", aaSlugs: ["qwen3-5-397b-a17b", "qwen-qwen3-5-397b-a17b"], arenaNames: ["qwen3.5-397b-a17b", "Qwen3.5-397B-A17B"] },
-  { modelId: "deepseek-v4", aaSlugs: ["deepseek-v4"], arenaNames: ["deepseek-v4", "DeepSeek V4"] },
-  { modelId: "claude-sonnet-4-6", aaSlugs: ["claude-sonnet-4-6"], arenaNames: ["claude-sonnet-4-6", "Claude Sonnet 4.6"] },
-  { modelId: "glm-5-3", aaSlugs: ["glm-5-3"], arenaNames: ["glm-5.3", "GLM-5.3"] },
-  { modelId: "grok-4-6", aaSlugs: ["grok-4-6"], arenaNames: ["grok-4.6", "Grok 4.6"] },
-  { modelId: "kimi-k3", aaSlugs: ["kimi-k3"], arenaNames: ["kimi-k3", "Kimi K3"] },
-  { modelId: "llama-5", aaSlugs: ["llama-5"], arenaNames: ["llama-5", "Llama 5"] },
-  { modelId: "gemini-3-1-pro", aaSlugs: ["gemini-3-1-pro-preview"], arenaNames: ["gemini-3.1-pro-preview", "Gemini 3.1 Pro"] },
-  { modelId: "minimax-m3", aaSlugs: ["minimax-m3"], arenaNames: ["minimax-m3", "MiniMax M3"] },
-  { modelId: "deepseek-v4-flash", aaSlugs: ["deepseek-v4-flash-0731"], arenaNames: ["deepseek-v4-flash-0731", "DeepSeek V4 Flash"] },
-  { modelId: "claude-fable-5", aaSlugs: ["claude-fable-5"], arenaNames: ["claude-fable-5", "Claude Fable 5"] },
-  { modelId: "grok-4-20", aaSlugs: ["grok-4-20"], arenaNames: ["grok-4.20", "Grok 4.20"] },
-  { modelId: "motif-3", aaSlugs: ["motif-3"], arenaNames: ["motif-3", "Motif 3"] },
-  { modelId: "doubao-2-1-pro", aaSlugs: ["doubao-2-1-pro"], arenaNames: ["doubao-2.1-pro", "Doubao 2.1 Pro"] },
-  { modelId: "mistral-large-3", aaSlugs: ["mistral-large-3"], arenaNames: ["mistral-large-3", "Mistral Large 3"] },
-];
+const aliasConfig = JSON.parse(await readFile(paths.aliases, "utf8"));
+if (aliasConfig.schemaVersion !== 1 || !Array.isArray(aliasConfig.models)) {
+  throw new Error(`Unsupported model alias schema in ${paths.aliases}`);
+}
+const modelIds = new Set();
+const aliasOwners = {
+  aaSlugs: new Map(),
+  arenaNames: new Map(),
+  benchmarkVersionIds: new Map(),
+};
+const providerBindingOwners = new Map();
+const providerIds = new Set(["alibaba-cloud-model-studio", "anthropic", "deepseek", "openai", "qwen"]);
+const trackedModels = aliasConfig.models.map((entry, index) => {
+  const entryPath = `model alias entry ${index}`;
+  if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+    throw new Error(`${entryPath} must be an object`);
+  }
+  const keys = Object.keys(entry).sort();
+  const expectedKeys = ["aaSlugs", "arenaNames", "modelId"];
+  if ("benchmarkVersionIds" in entry) expectedKeys.push("benchmarkVersionIds");
+  if ("providerModels" in entry) expectedKeys.push("providerModels");
+  if (keys.join("|") !== expectedKeys.sort().join("|")) {
+    throw new Error(`${entryPath} has missing or unexpected fields`);
+  }
+  if (
+    typeof entry.modelId !== "string"
+    || entry.modelId.trim() === ""
+    || entry.modelId.trim() !== entry.modelId
+    || modelIds.has(entry.modelId)
+  ) {
+    throw new Error(`${entryPath}.modelId must be a unique non-empty string`);
+  }
+  modelIds.add(entry.modelId);
+  for (const field of ["aaSlugs", "arenaNames", "benchmarkVersionIds"]) {
+    const aliases = entry[field] ?? [];
+    if (!Array.isArray(aliases) || aliases.some((alias) => typeof alias !== "string" || alias.trim() === "" || alias.trim() !== alias)) {
+      throw new Error(`${entryPath}.${field} must contain only non-empty strings`);
+    }
+    for (const alias of aliases) {
+      const owner = aliasOwners[field].get(alias);
+      if (owner) throw new Error(`${field} alias ${JSON.stringify(alias)} is assigned to both ${owner} and ${entry.modelId}`);
+      aliasOwners[field].set(alias, entry.modelId);
+    }
+  }
+  const providerModels = entry.providerModels ?? [];
+  if (!Array.isArray(providerModels)) throw new Error(`${entryPath}.providerModels must be an array`);
+  for (const [bindingIndex, binding] of providerModels.entries()) {
+    const bindingPath = `${entryPath}.providerModels[${bindingIndex}]`;
+    if (
+      !binding
+      || typeof binding !== "object"
+      || Array.isArray(binding)
+      || Object.keys(binding).sort().join("|") !== "providerId|providerModelId"
+      || !providerIds.has(binding.providerId)
+      || typeof binding.providerModelId !== "string"
+      || binding.providerModelId.trim() === ""
+      || binding.providerModelId.trim() !== binding.providerModelId
+    ) {
+      throw new Error(`${bindingPath} must contain one supported providerId and one non-empty providerModelId`);
+    }
+    const key = `${binding.providerId}|${binding.providerModelId}`;
+    const owner = providerBindingOwners.get(key);
+    if (owner) throw new Error(`provider binding ${JSON.stringify(key)} is assigned to both ${owner} and ${entry.modelId}`);
+    providerBindingOwners.set(key, entry.modelId);
+  }
+  return entry;
+});
 
 async function fetchJson(url, options = {}) {
   let lastError;

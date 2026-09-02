@@ -16,5 +16,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "vite.config.ts"]
+  "include": [
+    "src",
+    "scripts/export-modelops-data.ts",
+    "scripts/modelops-data.test.ts",
+    "scripts/modelops-data-schema.ts",
+    "vite.config.ts"
+  ]
 }
