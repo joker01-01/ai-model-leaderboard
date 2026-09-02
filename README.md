@@ -128,7 +128,7 @@ These checks use committed generated data, `FakeModelGateway`, and injected prov
 
 ## What is not automated yet
 
-`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The backend suite covers the strict repository, all five tools, graph routing and terminal states; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow is configured to run these gates with Python lint and type checking in addition to the frontend checks; its GitHub-hosted execution has not yet been observed for this working-tree change.
+`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The backend suite covers the strict repository, all five tools, graph routing and terminal states; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow runs these gates with Python lint and type checking in addition to the frontend checks; its GitHub-hosted run passed for the Phase A/B implementation commit.
 
 The remaining automation gaps are general frontend interaction tests, API/SSE integration tests, a network-backed sync freshness gate, and checks against a real model/document gateway. Publication still requires human review.
 

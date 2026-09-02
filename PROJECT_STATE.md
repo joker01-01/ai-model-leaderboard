@@ -82,7 +82,7 @@ The frontend remains usable when no Agent API is configured. The FastAPI service
 
 ## Verification
 
-Verified on 2026-09-02 after Phase A and Phase B implementation:
+Verified through 2026-09-03 after Phase A and Phase B implementation:
 
 - `npm ci` succeeded.
 - `npm run modelops:data` generated the adapter successfully outside the managed sandbox.
@@ -98,7 +98,8 @@ Verified on 2026-09-02 after Phase A and Phase B implementation:
 - `python -m ruff check app tests evals` passed.
 - `python -m mypy app tests evals` passed for 29 source files.
 - `python evals/run.py` passed 24/24 deterministic cases with no model-provider or provider-document network calls.
-- The backend CI steps are configured in `.github/workflows/ci.yml`; GitHub-hosted execution is not claimed until the workflow runs remotely.
+- GitHub-hosted `Verify pull request` run `33689799358` passed for implementation commit `173d0e9`, including generated-data checks, frontend build, pytest, Ruff, mypy, and all deterministic Agent evaluations.
+- GitHub-hosted `Deploy to GitHub Pages` run `33689799362` passed for implementation commit `173d0e9`.
 
 ## Next
 
