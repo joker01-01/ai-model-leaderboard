@@ -44,9 +44,9 @@ class ApiSettings(StrictModel):
         "http://localhost:5173",
         "https://joker01-01.github.io",
     )
-    openai_api_key: SecretStr | None = None
-    openai_model: NonEmptyString = "gpt-5.4-mini"
-    openai_base_url: AbsoluteHttpsUrl = "https://api.openai.com/v1"
+    model_api_key: SecretStr | None = None
+    model_name: NonEmptyString = "deepseek-v4-flash"
+    model_base_url: AbsoluteHttpsUrl = "https://api.deepseek.com"
     model_timeout_seconds: Annotated[float, Field(gt=0, le=120)] = 30.0
     provider_document_timeout_seconds: Annotated[float, Field(gt=0, le=30)] = 10.0
     provider_document_max_bytes: Annotated[int, Field(ge=1_024, le=5_000_000)] = 1_000_000
@@ -61,9 +61,9 @@ class ApiSettings(StrictModel):
         if cors is not None:
             data["cors_origins"] = tuple(item.strip() for item in cors.split(",") if item.strip())
         string_fields = {
-            "MODELOPS_OPENAI_API_KEY": "openai_api_key",
-            "MODELOPS_OPENAI_MODEL": "openai_model",
-            "MODELOPS_OPENAI_BASE_URL": "openai_base_url",
+            "MODELOPS_MODEL_API_KEY": "model_api_key",
+            "MODELOPS_MODEL_NAME": "model_name",
+            "MODELOPS_MODEL_BASE_URL": "model_base_url",
         }
         for variable, field_name in string_fields.items():
             if variable in values:

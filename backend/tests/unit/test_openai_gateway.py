@@ -1,4 +1,4 @@
-"""Offline contract tests for the OpenAI Responses API model gateway."""
+"""Offline contract tests for the OpenAI-compatible Responses API model gateway."""
 
 from __future__ import annotations
 
@@ -66,8 +66,8 @@ def _parse_with(handler: Handler) -> ParsedAgentRequest:
             gateway = OpenAIResponsesGateway(
                 client=client,
                 api_key=_API_KEY,
-                model="test-structured-model",
-                base_url="https://gateway.example/v1/",
+                model="deepseek-v4-flash",
+                base_url="https://api.deepseek.com",
                 timeout_seconds=2.0,
             )
             return await gateway.parse_request(AgentRequest(message=_USER_INPUT))
@@ -83,7 +83,7 @@ def _has_default(value: object) -> bool:
     return False
 
 
-def test_gateway_posts_stateless_strict_schema_request_and_parses_output() -> None:
+def test_gateway_posts_stateless_schema_request_to_provider_root_and_parses_output() -> None:
     captured: dict[str, object] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -97,17 +97,18 @@ def test_gateway_posts_stateless_strict_schema_request_and_parses_output() -> No
     request = captured["request"]
     assert isinstance(request, httpx.Request)
     assert request.method == "POST"
-    assert request.url == httpx.URL("https://gateway.example/v1/responses")
+    assert request.url == httpx.URL("https://api.deepseek.com/responses")
     assert request.headers["authorization"] == f"Bearer {_API_KEY}"
 
     body = json.loads(request.content)
-    assert body["model"] == "test-structured-model"
+    assert body["model"] == "deepseek-v4-flash"
     assert body["input"] == _USER_INPUT
     assert body["store"] is False
+    assert body["reasoning"] == {"effort": "none"}
     response_format = body["text"]["format"]
     assert response_format["type"] == "json_schema"
     assert response_format["name"] == "parsed_agent_request"
-    assert response_format["strict"] is True
+    assert "strict" not in response_format
 
     schema = response_format["schema"]
     assert schema["required"] == list(schema["properties"])
@@ -116,6 +117,36 @@ def test_gateway_posts_stateless_strict_schema_request_and_parses_output() -> No
     assert schema["additionalProperties"] is False
     assert constraints_schema["additionalProperties"] is False
     assert not _has_default(schema)
+
+
+def test_gateway_ignores_reasoning_items_before_structured_output() -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "status": "completed",
+                "output": [
+                    {
+                        "type": "reasoning",
+                        "content": [{"type": "reasoning_text", "text": "provider reasoning"}],
+                    },
+                    {
+                        "type": "message",
+                        "content": [
+                            {
+                                "type": "output_text",
+                                "text": json.dumps(_structured_output()),
+                            }
+                        ],
+                    },
+                ],
+            },
+        )
+
+    parsed = _parse_with(handler)
+
+    assert parsed.intent == AgentIntent.RECOMMEND
+    assert parsed.constraints.task == ModelTask.PYTHON_CODING
 
 
 @pytest.mark.parametrize(

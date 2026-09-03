@@ -166,6 +166,9 @@ def test_settings_parse_cors_and_numeric_environment_values() -> None:
     settings = ApiSettings.from_env(
         {
             "MODELOPS_CORS_ORIGINS": "https://one.example/,http://localhost:4173",
+            "MODELOPS_MODEL_API_KEY": "test-only-key",
+            "MODELOPS_MODEL_NAME": "configured-model",
+            "MODELOPS_MODEL_BASE_URL": "https://gateway.example/api",
             "MODELOPS_MODEL_TIMEOUT_SECONDS": "12.5",
             "MODELOPS_PROVIDER_DOCUMENT_TIMEOUT_SECONDS": "4",
             "MODELOPS_PROVIDER_DOCUMENT_MAX_BYTES": "2048",
@@ -175,6 +178,10 @@ def test_settings_parse_cors_and_numeric_environment_values() -> None:
     )
 
     assert settings.cors_origins == ("https://one.example", "http://localhost:4173")
+    assert settings.model_api_key is not None
+    assert settings.model_api_key.get_secret_value() == "test-only-key"
+    assert settings.model_name == "configured-model"
+    assert settings.model_base_url == "https://gateway.example/api"
     assert settings.model_timeout_seconds == 12.5
     assert settings.provider_document_timeout_seconds == 4
     assert settings.provider_document_max_bytes == 2048
@@ -187,11 +194,19 @@ def test_settings_parse_cors_and_numeric_environment_values() -> None:
         ApiSettings.from_env({"MODELOPS_CORS_ORIGINS": "https://one.example/not-an-origin"})
 
 
+def test_settings_default_to_deepseek_v4_flash() -> None:
+    settings = ApiSettings.from_env({})
+
+    assert settings.model_api_key is None
+    assert settings.model_name == "deepseek-v4-flash"
+    assert settings.model_base_url == "https://api.deepseek.com"
+
+
 def test_default_runtime_factory_composes_without_network_access() -> None:
     application = create_app(
         settings=ApiSettings(
             cors_origins=("https://leaderboard.example",),
-            openai_api_key=SecretStr("test-only-key"),
+            model_api_key=SecretStr("test-only-key"),
         )
     )
 

@@ -272,7 +272,7 @@ Phase C 已按以下范围落地：
 | `backend/app/config.py` | 环境变量配置；不提交密钥 |
 | `backend/app/api/agent.py` | 流式与非流式 Agent 端点 |
 | `backend/app/api/sse.py` | typed event 序列化、heartbeat、断连取消 |
-| `backend/app/services/openai_gateway.py` | OpenAI Responses strict structured-output gateway；保留测试 fake |
+| `backend/app/services/openai_gateway.py` | DeepSeek V4 Flash 的 OpenAI-compatible Responses structured-output gateway；保留测试 fake 和本地严格校验 |
 | `backend/app/services/provider_document_client.py` | exact allowlist、同证据绑定跳转、总时限和响应大小受限的 HTTP 文档客户端 |
 
 ### 8.2 新增/调整共享数据
@@ -389,7 +389,7 @@ git diff --check
 
 ### 阶段 C：FastAPI 与 SSE
 
-已于 2026-09-03 在工作树完成：FastAPI lifespan/CORS/health、snake_case 流式与非流式接口、typed SSE/heartbeat/断连取消、OpenAI Responses structured-output gateway，以及 exact-allowlist HTTP provider-document client。89 个 backend tests、Ruff、覆盖 app/tests/evals 的 mypy、24/24 eval 和现有前端/共享数据回归均通过；11 个精确 allowlist URL 的人工 provider-document live transport smoke 也全部返回 HTTP 200。未增加持久化、断点续传、认证或写入能力，真实 OpenAI 联调仍需授权 API key。
+已于 2026-09-03 在工作树完成：FastAPI lifespan/CORS/health、snake_case 流式与非流式接口、typed SSE/heartbeat/断连取消、使用 DeepSeek V4 Flash 的 OpenAI-compatible Responses structured-output gateway，以及 exact-allowlist HTTP provider-document client。91 个离线 backend tests、Ruff、覆盖 app/tests/evals 的 mypy、24/24 eval 和现有前端/共享数据回归均通过；11 个精确 allowlist URL 的人工 provider-document live transport smoke 全部返回 HTTP 200，DeepSeek V4 Flash 也已通过完整意图 Schema 的真实 API 联调。未增加持久化、断点续传、认证或写入能力。
 
 ### 阶段 D：前端与交付
 

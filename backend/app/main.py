@@ -37,16 +37,16 @@ RuntimeFactory = Callable[[ApiSettings], AbstractAsyncContextManager[AgentRuntim
 
 @asynccontextmanager
 async def default_runtime_factory(settings: ApiSettings) -> AsyncIterator[AgentRuntime]:
-    if settings.openai_api_key is None:
-        raise RuntimeError("MODELOPS_OPENAI_API_KEY is required")
+    if settings.model_api_key is None:
+        raise RuntimeError("MODELOPS_MODEL_API_KEY is required")
 
     repository = LeaderboardRepository.load()
     async with httpx.AsyncClient() as client:
         gateway = OpenAIResponsesGateway(
             client=client,
-            api_key=settings.openai_api_key.get_secret_value(),
-            model=settings.openai_model,
-            base_url=settings.openai_base_url,
+            api_key=settings.model_api_key.get_secret_value(),
+            model=settings.model_name,
+            base_url=settings.model_base_url,
             timeout_seconds=settings.model_timeout_seconds,
         )
         document_client = HttpProviderDocumentClient(

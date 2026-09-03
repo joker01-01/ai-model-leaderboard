@@ -22,7 +22,7 @@ Python 3.12 Agent core
   -> five typed read-only/pure tools
   -> deterministic evidence verifier + bounded LangGraph workflow
   -> typed AgentAnswer / awaiting_human_review proposal
-  <- OpenAI Responses structured-output gateway
+  <- DeepSeek V4 Flash through an OpenAI-compatible Responses structured-output gateway
   <- bounded exact-allowlist HTTP provider-document client
 
 Independent FastAPI service
@@ -50,10 +50,10 @@ The frontend remains usable when no Agent API is configured. FastAPI must be dep
 - `docs/reuse-assessment.md` records why the MVP will extend this repository instead of forking a generic Agent template.
 - Phase A is implemented and verified: static benchmark versions, AA slugs, Arena names, and exact `(providerId, providerModelId)` pairs are shared; reviewed evidence is exported deterministically; focused tests cover strict failures plus public/editorial ranking equivalence.
 - Phase B is implemented and verified: strict immutable Pydantic contracts, generated-data repository validation, five typed tools, deterministic evidence verification, a low-level LangGraph state machine, dependency-injected fake gateway/document client, and pure update proposals.
-- Phase C is implemented and verified: environment-backed configuration, FastAPI lifespan/CORS/health, snake_case streaming and non-streaming Agent endpoints, typed SSE sequencing/heartbeat/disconnect cancellation, an OpenAI Responses structured-output gateway, and a bounded HTTP provider-document client.
+- Phase C is implemented and verified: environment-backed configuration, FastAPI lifespan/CORS/health, snake_case streaming and non-streaming Agent endpoints, typed SSE sequencing/heartbeat/disconnect cancellation, a DeepSeek V4 Flash OpenAI-compatible Responses gateway, and a bounded HTTP provider-document client.
 - The HTTP document boundary uses repository-owned exact URLs, total and per-operation timeouts, bounded identity-encoded text responses, and redirect binding to the same `(modelId, providerId, providerModelId, kind)` metadata. Cross-binding redirects cannot be misattributed as evidence.
 - The three graph intents are `recommend`, `explain_unranked`, and `prepare_update`. Missing user inputs end in `needs_clarification`; evidence gaps produce bounded completed answers; unrecoverable gateway/tool failures end in `failed`; valid proposals end in `awaiting_human_review` without writes.
-- The offline backend suite contains 89 repository/tool/graph/gateway/API tests. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
+- The offline backend suite contains 91 repository/tool/graph/gateway/API tests. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
 - The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 62 benchmark observations, 18 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
 - The scheduled sync now regenerates and tests the ModelOps adapter before it can prepare a review PR; merge to `main` remains the publication gate.
 - Pull requests and pushes to `main` are configured to run the offline generated-data drift check, focused TypeScript data tests, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
@@ -66,6 +66,7 @@ The frontend remains usable when no Agent API is configured. FastAPI must be dep
 - Keep model matching deterministic. LLM output may extract intent and constraints but cannot approve fuzzy version matches.
 - Keep Pydantic at the graph and tool boundaries, use `TypedDict` for graph state, and inject repositories/gateways/clients through immutable runtime context rather than graph state.
 - Use the low-level LangGraph graph API. The LLM gateway is limited to structured intent/constraint extraction; candidate filtering, evidence verification, ranking, routing, and terminal status are deterministic.
+- Use `deepseek-v4-flash` as the default intent-extraction model through `https://api.deepseek.com/responses`; disable reasoning for this bounded extraction call and enforce the final contract with strict local Pydantic validation.
 - Only missing user-fillable inputs cause clarification. Missing, stale, ambiguous, or conflicting repository evidence is explained as a bounded result, while unrecoverable internal failures terminate the run.
 - Missing price, region, license, or benchmark evidence remains missing; qualitative price tiers cannot prove a monthly-budget constraint.
 - Price offers use stable provider/region/offer IDs and per-request token intervals. A tool returns all matching offers in deterministic order and cannot silently select the cheapest one.
@@ -84,7 +85,6 @@ The frontend remains usable when no Agent API is configured. FastAPI must be dep
 - Structured negative availability, end-user country availability, and latency evidence are not modeled yet; provider deployment regions alone cannot answer all geographic constraints.
 - `npm run sync:data:check` does not fail when generated data would drift.
 - The React Agent Panel and general frontend interaction tests do not exist yet; the static leaderboard remains independent of the Agent API.
-- No live OpenAI request has been accepted because no API key was available. All repository tests/evals remain offline; the provider-document client additionally passed a manual live transport smoke against every distinct allowlisted URL.
 - A public backend deployment target has not been selected; local integration is sufficient for the MVP implementation stages.
 - In the current managed Windows sandbox, `tsx` can fail before project code with `uv_os_get_passwd ... ENOMEM`; the same commands succeed outside that sandbox, so no repository-specific workaround was added.
 - The dev extra temporarily caps AnyIO below 4.15 because the current Starlette TestClient still uses an alias deprecated by AnyIO 4.15. Revisit the cap after Starlette migrates the alias.
@@ -103,12 +103,13 @@ Verified through 2026-09-03 after Phase C implementation:
 - README publication claims and the human merge boundary still match the checked GitHub Actions workflows.
 - `git diff --check`, an explicit trailing-whitespace scan covering untracked files, and a common secret-pattern scan reported no findings.
 - The network-backed `npm run sync:data:check` was not run; external AA/Arena refresh behavior is not claimed as runtime-verified in Phase A.
-- `python -m pytest -q` from `backend/` passed 89 tests without warnings, including 14 API integration tests, OpenAI structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding. The repo-local pytest base directory also avoids this host's inaccessible global `pytest-current` symlink.
+- `python -m pytest -q` from `backend/` passed all 91 tests after the DeepSeek configuration change, including API integration tests, Responses structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding.
 - `python -m ruff check app tests evals` passed.
 - `python -m mypy app tests evals` passed for 41 source files.
 - `python evals/run.py` passed 24/24 deterministic cases with no model-provider or provider-document network calls.
-- A clean Python 3.12 virtual environment installed `.[dev]`, reported no broken requirements from `python -m pip check`, passed all 89 tests and 24 evals, and was removed after verification. The 15 conflicts in the host's global Conda environment do not intersect the project's 49-package dependency closure.
+- Before the provider-only change, a clean Python 3.12 virtual environment installed `.[dev]`, reported no broken requirements from `python -m pip check`, passed the then-current 89 tests and 24 evals, and was removed after verification. No dependency changed in the DeepSeek update.
 - A manual live smoke through `HttpProviderDocumentClient` reached all 11 distinct exact-allowlisted provider-document URLs represented by 12 source bindings with HTTP 200; there were no redirects, non-200 responses, timeouts, or unavailable responses. Response bodies were not retained or reported.
+- A direct live smoke through the configured `deepseek-v4-flash` Responses gateway reached `https://api.deepseek.com/responses`, accepted the complete Pydantic-derived JSON Schema, and returned a locally validated `recommend` intent. The key and response body were not written to the repository or reported.
 - `npm run modelops:data:check`, `npm run test:modelops-data` (11/11), and `npm run build` passed outside the managed sandbox after the sandbox-only `tsx` ENOMEM failure reproduced.
 - GitHub-hosted `Verify pull request` run `33689799358` passed for implementation commit `173d0e9`, including generated-data checks, frontend build, pytest, Ruff, mypy, and all deterministic Agent evaluations.
 - GitHub-hosted `Deploy to GitHub Pages` run `33689799362` passed for implementation commit `173d0e9`.

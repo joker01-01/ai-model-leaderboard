@@ -1,4 +1,4 @@
-"""OpenAI Responses API implementation of the model-intent boundary."""
+"""OpenAI-compatible Responses API implementation of the model-intent boundary."""
 
 from __future__ import annotations
 
@@ -82,7 +82,7 @@ def _responses_endpoint(base_url: str) -> str:
         host = f"[{host}]"
     authority = host if port is None else f"{host}:{port}"
     path = parsed.path.rstrip("/")
-    endpoint_path = f"{path}/responses" if path.endswith("/v1") else f"{path}/v1/responses"
+    endpoint_path = f"{path}/responses"
     return f"https://{authority}{endpoint_path}"
 
 
@@ -125,7 +125,7 @@ def _output_text(payload: object) -> str:
 
 
 class OpenAIResponsesGateway:
-    """Extract a strict ``ParsedAgentRequest`` through OpenAI's Responses API."""
+    """Extract a strict ``ParsedAgentRequest`` through a Responses-compatible API."""
 
     def __init__(
         self,
@@ -155,11 +155,11 @@ class OpenAIResponsesGateway:
             "instructions": _INSTRUCTIONS,
             "input": request.message,
             "store": False,
+            "reasoning": {"effort": "none"},
             "text": {
                 "format": {
                     "type": "json_schema",
                     "name": "parsed_agent_request",
-                    "strict": True,
                     "schema": _PARSED_REQUEST_SCHEMA,
                 }
             },
