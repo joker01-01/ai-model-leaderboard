@@ -1,0 +1,13 @@
+**
+!Dockerfile
+!.dockerignore
+!backend/
+!backend/pyproject.toml
+!backend/app/
+!backend/app/**
+!data/
+!data/modelops/
+!data/modelops/generated/
+!data/modelops/generated/*.json
+**/__pycache__/
+**/*.py[cod]

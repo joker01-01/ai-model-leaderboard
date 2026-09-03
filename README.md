@@ -14,7 +14,7 @@ This project is an AI model evaluation platform built around one rule: **if the 
 
 The public board ranks same-version scores from Artificial Analysis. A separate editorial board can re-rank by user-adjustable preferences. Data sync runs automatically, but publication still waits for human review.
 
-**Live:** https://joker01-01.github.io/ai-model-leaderboard/
+**Frontend:** https://joker01-01.github.io/ai-model-leaderboard/
 
 `React 19` · `TypeScript` · `Vite 7` · `GitHub Actions` · `GitHub Pages`
 
@@ -41,7 +41,7 @@ Arena data is shown as user-preference reference in model details. It does not d
 
 The repository also contains the Phase C ModelOps Agent backend. It strictly loads the generated evidence JSON and runs five typed operations—catalog filtering, benchmark lookup, pricing, allowlisted provider-document search, and pure update proposals—inside a bounded LangGraph workflow. FastAPI exposes health, non-streaming invoke, and typed POST SSE endpoints; an OpenAI-compatible Responses gateway uses DeepSeek V4 Flash for intent extraction and validates its output locally, while ranking, evidence checks, and proposal decisions remain deterministic.
 
-The Agent API is not connected to the website yet. The existing leaderboard remains independently usable; the React Agent panel and public backend deployment remain Phase D work.
+The Agent API is not connected to the website yet. The existing leaderboard remains independently usable. A Zeabur backend target and reproducible container configuration are prepared, while the public service deployment, runtime verification, and React Agent panel remain pending.
 
 ## The publish pipeline
 
@@ -91,6 +91,7 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | LangGraph workflow/verifier | `backend/app/graph/`, `backend/app/services/` |
 | FastAPI and typed SSE boundary | `backend/app/main.py`, `backend/app/api/` |
 | Runtime configuration | `.env.example`, `backend/app/config.py` |
+| Zeabur backend deployment | `Dockerfile`, `.dockerignore`, `docs/backend-deployment-zeabur.md` |
 | Offline Agent evaluations | `backend/evals/` |
 | Sync / matching report | `data/sync-report.json` |
 | Sync workflow | `.github/workflows/sync-data.yml` |
@@ -144,11 +145,15 @@ Available endpoints:
 
 The API is intentionally stateless: `session_id` is accepted as client context, but persistence and stream replay are not implemented.
 
+## Deploy the backend
+
+The selected target is a Zeabur-managed Tencent Cloud server in Singapore. The server is provisioned, but the API service and public domain are not yet deployed or runtime-verified. Follow [`docs/backend-deployment-zeabur.md`](docs/backend-deployment-zeabur.md) and keep the Docker build context at the repository root so the image contains both `backend/app/` and the committed ModelOps JSON under `data/modelops/generated/`.
+
 ## What is not automated yet
 
 `npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 91-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
-The remaining acceptance gaps are general frontend interaction tests and a network-backed sync freshness gate. Publication still requires human review.
+The remaining acceptance gaps are the Zeabur live deployment checks, general frontend interaction tests, and a network-backed sync freshness gate. Publication still requires human review.
 
 ## Limitations
 
@@ -157,7 +162,7 @@ The remaining acceptance gaps are general frontend interaction tests and a netwo
 - Model versions, prices, context windows, and licenses change quickly.
 - Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
 - Structured prices currently cover only a small exact-version/provider subset; missing prices, end-user country availability, and latency stay unresolved instead of being inferred.
-- The Agent has no frontend panel, persistence, stream replay, authentication, or public backend deployment yet.
+- The Agent has no frontend panel, persistence, stream replay, or authentication; the Zeabur runtime is not yet deployed or verified.
 - The concrete clients are contract-tested with injected HTTP transports. The provider-document client passed a manual live transport smoke across all 11 distinct exact-allowlisted URLs, and the configured DeepSeek V4 Flash gateway accepted the complete structured intent schema in a live request.
 - General UI interaction tests are not implemented yet.
 
@@ -195,6 +200,6 @@ Before recording a public score:
 
 当前已完成 Phase C：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、FastAPI health/invoke/SSE、使用 DeepSeek V4 Flash 的 OpenAI-compatible Responses 结构化输出 gateway、受限 HTTP 文档客户端，以及 24 条无网络 eval。SSE 保证递增 sequence、单一终止事件和断连取消；更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
 
-尚未实现 React Agent Panel、持久化/断点续传和公开后端部署；现有排行榜仍独立运行，发布仍须人工合并审核 PR。Phase C 的客户端契约均有注入 transport 离线验证；供应商文档客户端已完成 11 个精确 allowlist URL 的人工 live transport smoke，DeepSeek V4 Flash 也已通过完整意图 Schema 的真实 API 联调。
+尚未实现 React Agent Panel 和持久化/断点续传；Zeabur 新加坡后端目标与容器配置已经准备好，但 API 服务、公开域名和线上运行验收尚未完成。现有排行榜仍独立运行，发布仍须人工合并审核 PR。Phase C 的客户端契约均有注入 transport 离线验证；供应商文档客户端已完成 11 个精确 allowlist URL 的人工 live transport smoke，DeepSeek V4 Flash 也已通过完整意图 Schema 的真实 API 联调。
 
 </details>

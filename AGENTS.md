@@ -17,6 +17,7 @@ The ModelOps document is an approved implementation plan, not proof of implement
 - `backend/app/repositories/leaderboard.py` strictly loads the committed generated JSON; `backend/app/tools/` contains five typed read-only/pure tools; `backend/app/graph/` contains state, nodes, routes, dependency injection, and tool orchestration.
 - `backend/app/services/model_gateway.py` keeps the gateway protocol and deterministic fake; `backend/app/services/openai_gateway.py` implements locally validated OpenAI-compatible Responses structured output with DeepSeek V4 Flash as the default provider model, and `backend/app/services/provider_document_client.py` implements bounded exact-allowlist document fetching.
 - `backend/app/main.py` owns FastAPI configuration and lifespan dependencies; `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints. The React Agent Panel is not implemented yet.
+- The selected independent backend target is Zeabur on a managed Tencent Cloud Singapore server. The root `Dockerfile` packages `backend/app/` together with `data/modelops/generated/`; Zeabur must build from the repository root with Root Directory left empty.
 - `.github/workflows/sync-data.yml` prepares review PRs; `.github/workflows/deploy.yml` deploys merged `main` to GitHub Pages.
 
 ## Verified commands
@@ -92,6 +93,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - Merging to `main` remains the human approval gate before GitHub Pages deployment.
 - Do not add automatic merge, direct publication, production-data writes, or broader workflow permissions without explicit user authorization and a separately reviewed design.
 - ModelOps tools remain read-only or pure proposal operations unless an explicitly approved milestone adds writes.
+- Zeabur GitHub services redeploy on pushes to their linked branch by default. Keep the backend service linked to `main` so the human merge remains the backend release gate.
 
 ## Risk-proportionate review
 

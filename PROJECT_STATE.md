@@ -36,11 +36,12 @@ Next target direction:
 
 ```text
 Existing leaderboard + Agent Panel
-  -> configured independent FastAPI SSE API
+  -> Zeabur HTTPS domain
+  -> independent FastAPI SSE API
   -> current bounded LangGraph core and evidence/proposal views
 ```
 
-The frontend remains usable when no Agent API is configured. FastAPI must be deployed separately from GitHub Pages; no public backend target has been selected yet.
+The frontend remains usable when no Agent API is configured. The selected independent target is a Zeabur-managed Tencent Cloud server in Singapore with 2 vCPU, 2 GB RAM, 40 GB SSD, and 512 GB monthly outbound transfer. The server is purchased and running, but the FastAPI service, HTTPS domain, and live API behavior have not yet been deployed or verified.
 
 ## Current Status
 
@@ -51,6 +52,7 @@ The frontend remains usable when no Agent API is configured. FastAPI must be dep
 - Phase A is implemented and verified: static benchmark versions, AA slugs, Arena names, and exact `(providerId, providerModelId)` pairs are shared; reviewed evidence is exported deterministically; focused tests cover strict failures plus public/editorial ranking equivalence.
 - Phase B is implemented and verified: strict immutable Pydantic contracts, generated-data repository validation, five typed tools, deterministic evidence verification, a low-level LangGraph state machine, dependency-injected fake gateway/document client, and pure update proposals.
 - Phase C is implemented and verified: environment-backed configuration, FastAPI lifespan/CORS/health, snake_case streaming and non-streaming Agent endpoints, typed SSE sequencing/heartbeat/disconnect cancellation, a DeepSeek V4 Flash OpenAI-compatible Responses gateway, and a bounded HTTP provider-document client.
+- Root-level Docker packaging and a Zeabur deployment runbook are prepared for the purchased Singapore server. No Zeabur service or public API deployment is claimed yet.
 - The HTTP document boundary uses repository-owned exact URLs, total and per-operation timeouts, bounded identity-encoded text responses, and redirect binding to the same `(modelId, providerId, providerModelId, kind)` metadata. Cross-binding redirects cannot be misattributed as evidence.
 - The three graph intents are `recommend`, `explain_unranked`, and `prepare_update`. Missing user inputs end in `needs_clarification`; evidence gaps produce bounded completed answers; unrecoverable gateway/tool failures end in `failed`; valid proposals end in `awaiting_human_review` without writes.
 - The offline backend suite contains 91 repository/tool/graph/gateway/API tests. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
@@ -77,6 +79,8 @@ The frontend remains usable when no Agent API is configured. FastAPI must be dep
 - Provider-document redirects may continue only through registered URLs with the same exact model/provider/provider-model/kind binding as the initial source.
 - `prepare_data_update` remains a pure, reviewable proposal operation. It cannot write files, call GitHub, merge, or publish.
 - Security review depth is proportional to the touched trust boundary; ordinary documentation/UI/pure-function work does not trigger a broad security audit.
+- Zeabur builds the backend from the repository root so the image preserves both `backend/app/` and `data/modelops/generated/`. Start with one Uvicorn worker and no database or persistent volume.
+- Zeabur's GitHub integration redeploys on pushes to its linked branch by default. Link only `main` so the human merge remains the backend release gate.
 
 ## Known Problems
 
@@ -85,13 +89,14 @@ The frontend remains usable when no Agent API is configured. FastAPI must be dep
 - Structured negative availability, end-user country availability, and latency evidence are not modeled yet; provider deployment regions alone cannot answer all geographic constraints.
 - `npm run sync:data:check` does not fail when generated data would drift.
 - The React Agent Panel and general frontend interaction tests do not exist yet; the static leaderboard remains independent of the Agent API.
-- A public backend deployment target has not been selected; local integration is sufficient for the MVP implementation stages.
+- The Zeabur service, generated HTTPS domain, live DeepSeek-backed invoke/SSE flow, browser CORS behavior, resource use, and rollback have not yet been verified on the purchased server.
+- A local Docker or Podman runtime is unavailable, so the image build and container health check must be verified by Zeabur's remote build before the frontend is connected.
 - In the current managed Windows sandbox, `tsx` can fail before project code with `uv_os_get_passwd ... ENOMEM`; the same commands succeed outside that sandbox, so no repository-specific workaround was added.
 - The dev extra temporarily caps AnyIO below 4.15 because the current Starlette TestClient still uses an alias deprecated by AnyIO 4.15. Revisit the cap after Starlette migrates the alias.
 
 ## Verification
 
-Verified through 2026-09-03 after Phase C implementation:
+Verified through 2026-09-04 after preparing the Zeabur deployment boundary:
 
 - `npm ci` succeeded.
 - `npm run modelops:data` generated the adapter successfully outside the managed sandbox.
@@ -113,10 +118,14 @@ Verified through 2026-09-03 after Phase C implementation:
 - `npm run modelops:data:check`, `npm run test:modelops-data` (11/11), and `npm run build` passed outside the managed sandbox after the sandbox-only `tsx` ENOMEM failure reproduced.
 - GitHub-hosted `Verify pull request` run `33689799358` passed for implementation commit `173d0e9`, including generated-data checks, frontend build, pytest, Ruff, mypy, and all deterministic Agent evaluations.
 - GitHub-hosted `Deploy to GitHub Pages` run `33689799362` passed for implementation commit `173d0e9`.
+- The Zeabur dashboard was user-confirmed on 2026-09-04 to show the selected Singapore server as running. This verifies infrastructure provisioning only, not the API image, service, domain, or runtime behavior.
+- After adding the root Docker packaging, `python -m pytest -q` passed all 91 tests, Ruff passed, mypy passed for 41 source files, and `python evals/run.py` passed 24/24 deterministic cases.
+- `npm run build` passed. `npm run modelops:data:check` and `npm run test:modelops-data` first hit the documented sandbox-only `tsx` ENOMEM failure, then passed outside the managed sandbox with all 11 focused tests successful.
+- Neither Docker nor Podman is installed in the current local environment, so the container image, image health check, and Zeabur runtime remain unverified until the remote build.
 
 ## Next
 
-1. Phase D: add the React Agent Panel, typed SSE parser, cancellation controls, clarification flow, evidence display, and review-only proposal preview without changing leaderboard ranking behavior.
-2. Configure the frontend API URL while keeping the existing static leaderboard usable when no backend is configured.
-3. Add focused SSE parser/panel interaction tests, then run the complete frontend, shared-data, backend, and deterministic-eval gates.
-4. Select or document the separate backend deployment target; do not add persistence, resumability, authentication, writes, or publication automation without a separately approved scope.
+1. Create the Zeabur GitHub service on the purchased server, configure the documented environment values, and let Zeabur build from the repository root.
+2. Verify the generated HTTPS domain with health, live invoke, POST SSE, cancellation, CORS, logs, resource use, and rollback checks before connecting the frontend.
+3. Resume Phase D with the typed SSE client and React Agent Panel while keeping the static leaderboard usable when no backend URL is configured.
+4. Add focused SSE parser/panel interaction tests, then run the complete frontend, shared-data, backend, and deterministic-eval gates.
