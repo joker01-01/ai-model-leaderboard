@@ -17,204 +17,192 @@ export interface ArenaSnapshot {
 }
 
 export const ARENA_SNAPSHOT: ArenaSnapshot = {
-  "generatedAt": "2026-08-15T03:50:22.702Z",
+  "generatedAt": "2026-09-03T19:53:52.717Z",
   "sourceUrl": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
   "models": {
     "deepseek-v4-pro": {
       "agent": {
-        "value": 0.0013587590747476115,
+        "value": 0.000963551515408545,
         "rank": null,
-        "lower": -0.007413446391530614,
-        "upper": 0.010130964541025838,
-        "observations": 1389020,
+        "lower": -0.00919643848224112,
+        "upper": 0.011123541513058211,
+        "observations": 1495823,
         "category": "overall",
-        "observedAt": "2026-08-13",
+        "observedAt": "2026-08-31",
         "modelVersion": "DeepSeek V4 Pro"
       }
     },
     "claude-opus-4-8": {
       "text": {
-        "value": 1473.5885585184208,
+        "value": 1472.952873713257,
         "rank": null,
-        "lower": 1468.9998954372352,
-        "upper": 1478.1772215996061,
-        "observations": 41219,
+        "lower": 1468.6611335903942,
+        "upper": 1477.24461383612,
+        "observations": 49123,
         "category": "overall",
-        "observedAt": "2026-08-12",
+        "observedAt": "2026-09-01",
         "modelVersion": "claude-opus-4-8"
       },
       "webdev": {
-        "value": 1538.9551291784912,
+        "value": 1539.947320027714,
         "rank": null,
-        "lower": 1531.7325716353755,
-        "upper": 1546.177686721607,
+        "lower": 1533.19132444342,
+        "upper": 1546.703315612008,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-08-14",
+        "observedAt": "2026-09-01",
         "modelVersion": "claude-opus-4-8"
       },
       "agent": {
-        "value": 0.021237417314482008,
+        "value": 0.023317130536734038,
         "rank": null,
-        "lower": -0.00595799472430001,
-        "upper": 0.048432829353264026,
-        "observations": 1392959,
+        "lower": -0.00266411355243135,
+        "upper": 0.04929837462589942,
+        "observations": 1437968,
         "category": "overall",
-        "observedAt": "2026-08-13",
+        "observedAt": "2026-08-31",
         "modelVersion": "Claude Opus 4.8"
       }
     },
     "qwen-3-5": {
       "text": {
-        "value": 1441.9739144664302,
+        "value": 1441.3653907021758,
         "rank": null,
-        "lower": 1438.4677729898387,
-        "upper": 1445.4800559430216,
-        "observations": 66641,
+        "lower": 1437.9858136505857,
+        "upper": 1444.7449677537659,
+        "observations": 73400,
         "category": "overall",
-        "observedAt": "2026-08-12",
+        "observedAt": "2026-09-01",
         "modelVersion": "qwen3.5-397b-a17b"
       },
       "webdev": {
-        "value": 1400.1267384234584,
+        "value": 1398.1927668184385,
         "rank": null,
-        "lower": 1394.637404532801,
-        "upper": 1405.6160723141156,
+        "lower": 1392.8859868249374,
+        "upper": 1403.4995468119394,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-08-14",
+        "observedAt": "2026-09-01",
         "modelVersion": "qwen3.5-397b-a17b"
       }
     },
     "claude-sonnet-4-6": {
       "text": {
-        "value": 1472.055420303124,
+        "value": 1472.3723127141732,
         "rank": null,
-        "lower": 1468.4365020750502,
-        "upper": 1475.6743385311977,
-        "observations": 66602,
+        "lower": 1468.7583255240875,
+        "upper": 1475.9862999042589,
+        "observations": 66343,
         "category": "overall",
-        "observedAt": "2026-08-12",
+        "observedAt": "2026-09-01",
         "modelVersion": "claude-sonnet-4-6"
       },
       "webdev": {
-        "value": 1523.6787757438246,
+        "value": 1521.6249698732458,
         "rank": null,
-        "lower": 1518.1685879745507,
-        "upper": 1529.1889635130988,
+        "lower": 1516.3089697256382,
+        "upper": 1526.9409700208537,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-08-14",
+        "observedAt": "2026-09-01",
         "modelVersion": "claude-sonnet-4-6"
       },
       "agent": {
-        "value": 0.0311659666938185,
+        "value": 0.00951465055230567,
         "rank": null,
-        "lower": 0.017166872202375866,
-        "upper": 0.04516506118526113,
-        "observations": 1250934,
+        "lower": -0.003154078808728122,
+        "upper": 0.022183379913339463,
+        "observations": 1371137,
         "category": "overall",
-        "observedAt": "2026-08-13",
+        "observedAt": "2026-08-31",
         "modelVersion": "Claude Sonnet 4.6"
       }
     },
     "gemini-3-1-pro": {
       "text": {
-        "value": 1486.2449879778885,
+        "value": 1486.7458939140486,
         "rank": null,
-        "lower": 1482.907653091225,
-        "upper": 1489.582322864552,
-        "observations": 94989,
+        "lower": 1483.5285270523307,
+        "upper": 1489.9632607757665,
+        "observations": 102763,
         "category": "overall",
-        "observedAt": "2026-08-12",
+        "observedAt": "2026-09-01",
         "modelVersion": "gemini-3.1-pro-preview"
       },
       "webdev": {
-        "value": 1446.7871487156465,
+        "value": 1445.6877553465831,
         "rank": null,
-        "lower": 1441.4178936932922,
-        "upper": 1452.1564037380008,
+        "lower": 1440.4799669725103,
+        "upper": 1450.895543720656,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-08-14",
+        "observedAt": "2026-09-01",
         "modelVersion": "gemini-3.1-pro-preview"
       }
     },
     "minimax-m3": {
       "text": {
-        "value": 1443.418549674021,
+        "value": 1442.975730922721,
         "rank": null,
-        "lower": 1438.7521617678021,
-        "upper": 1448.08493758024,
-        "observations": 37180,
+        "lower": 1438.6220238274493,
+        "upper": 1447.3294380179925,
+        "observations": 44544,
         "category": "overall",
-        "observedAt": "2026-08-12",
+        "observedAt": "2026-09-01",
         "modelVersion": "minimax-m3"
       },
       "webdev": {
-        "value": 1489.7577057450906,
+        "value": 1486.7702075635343,
         "rank": null,
-        "lower": 1482.6072138265074,
-        "upper": 1496.9081976636737,
+        "lower": 1480.019915216381,
+        "upper": 1493.5204999106877,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-08-14",
+        "observedAt": "2026-09-01",
         "modelVersion": "minimax-m3"
-      }
-    },
-    "deepseek-v4-flash": {
-      "agent": {
-        "value": -0.021950938609330475,
-        "rank": null,
-        "lower": -0.030959141742423597,
-        "upper": -0.012942735476237352,
-        "observations": 1188280,
-        "category": "overall",
-        "observedAt": "2026-08-13",
-        "modelVersion": "DeepSeek V4 Flash"
       }
     },
     "claude-fable-5": {
       "text": {
-        "value": 1506.6310643625845,
+        "value": 1507.404584435896,
         "rank": null,
-        "lower": 1501.2038502055082,
-        "upper": 1512.058278519661,
-        "observations": 21439,
+        "lower": 1502.4267820840125,
+        "upper": 1512.382386787779,
+        "observations": 26977,
         "category": "overall",
-        "observedAt": "2026-08-12",
+        "observedAt": "2026-09-01",
         "modelVersion": "claude-fable-5"
       },
       "webdev": {
-        "value": 1626.9493872808907,
+        "value": 1627.795420212901,
         "rank": null,
-        "lower": 1618.4898969645096,
-        "upper": 1635.4088775972716,
+        "lower": 1619.8473455238354,
+        "upper": 1635.7434949019664,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-08-14",
+        "observedAt": "2026-09-01",
         "modelVersion": "claude-fable-5"
       }
     },
     "mistral-large-3": {
       "text": {
-        "value": 1414.7978753532723,
+        "value": 1413.5558747284936,
         "rank": null,
-        "lower": 1411.6250655726208,
-        "upper": 1417.970685133924,
-        "observations": 59196,
+        "lower": 1410.4755015075148,
+        "upper": 1416.6362479494721,
+        "observations": 65336,
         "category": "overall",
-        "observedAt": "2026-08-12",
+        "observedAt": "2026-09-01",
         "modelVersion": "mistral-large-3"
       },
       "webdev": {
-        "value": 1230.1349177630286,
+        "value": 1229.277886791384,
         "rank": null,
-        "lower": 1204.3114140527946,
-        "upper": 1255.958421473263,
+        "lower": 1203.3090350084474,
+        "upper": 1255.2467385743207,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-08-14",
+        "observedAt": "2026-09-01",
         "modelVersion": "mistral-large-3"
       }
     }
