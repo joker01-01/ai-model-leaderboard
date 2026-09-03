@@ -22,8 +22,14 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-      - run: npm ci || npm install
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci
+      - name: Test Agent frontend
+        run: npm run test:agent
+      - name: Build production frontend
+        run: npm run build
+        env:
+          VITE_AGENT_API_URL: "https://modelops-agent-api.zeabur.app"
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

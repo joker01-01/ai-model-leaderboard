@@ -33,6 +33,8 @@ jobs:
         run: npm run modelops:data:check
       - name: Test ModelOps data contracts
         run: npm run test:modelops-data
+      - name: Test Agent frontend
+        run: npm run test:agent
       - name: Build production frontend
         run: npm run build
       - name: Test backend tools and graph

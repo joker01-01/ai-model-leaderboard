@@ -24,6 +24,10 @@ import {
   PRESETS,
 } from "./lib/score";
 import Radar from "./components/Radar";
+import AgentPanel from "./features/agent/AgentPanel";
+import { normalizeAgentApiOrigin } from "./features/agent/api";
+
+const AGENT_API_ORIGIN = normalizeAgentApiOrigin(import.meta.env.VITE_AGENT_API_URL);
 
 type RankingMode = "objective" | "editorial";
 type SortKey = DimKey | ObjectiveDimKey | "composite";
@@ -219,6 +223,7 @@ export default function App() {
           ? <ObjectivePanel entries={entries} />
           : <WeightPanel weights={weights} preset={preset} onPreset={applyPreset} onWeight={setDimWeight} onReset={reset} />}
       </section>
+      <AgentPanel apiOrigin={AGENT_API_ORIGIN} />
       <Controls mode={mode} sortKey={sortKey} setSortKey={setSortKey} q={q} setQ={setQ}
         country={country} setCountry={setCountry} countries={countries} openOnly={openOnly} setOpenOnly={setOpenOnly} />
       <Board mode={mode} entries={visible} sortKey={sortKey} expanded={expanded}
