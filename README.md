@@ -41,7 +41,7 @@ Arena data is shown as user-preference reference in model details. It does not d
 
 The repository also contains the Phase C ModelOps Agent backend. It strictly loads the generated evidence JSON and runs five typed operations—catalog filtering, benchmark lookup, pricing, allowlisted provider-document search, and pure update proposals—inside a bounded LangGraph workflow. FastAPI exposes health, non-streaming invoke, and typed POST SSE endpoints; an OpenAI-compatible Responses gateway uses DeepSeek V4 Flash for intent extraction and validates its output locally, while ranking, evidence checks, and proposal decisions remain deterministic.
 
-Phase D adds a React evidence console backed by a typed, runtime-validated POST SSE client. It renders the real event sequence, exact-version resolution, recommendation evidence, pricing, gaps, exclusions, clarification, and review-only proposals; stopping or rejecting a malformed stream actively disconnects the request. The panel remains disabled when `VITE_AGENT_API_URL` is absent, so the leaderboard stays independently usable. The Pages workflow supplies the accepted Zeabur HTTPS origin after its focused Agent tests pass.
+The Agent API is not connected to the website yet. The existing leaderboard remains independently usable. A Zeabur backend target and reproducible container configuration are prepared, while the public service deployment, runtime verification, and React Agent panel remain pending.
 
 ## The publish pipeline
 
@@ -90,7 +90,6 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | Five typed ModelOps tools | `backend/app/tools/` |
 | LangGraph workflow/verifier | `backend/app/graph/`, `backend/app/services/` |
 | FastAPI and typed SSE boundary | `backend/app/main.py`, `backend/app/api/` |
-| Typed SSE client and Agent Panel | `src/features/agent/` |
 | Runtime configuration | `.env.example`, `backend/app/config.py` |
 | Zeabur backend deployment | `Dockerfile`, `.dockerignore`, `docs/backend-deployment-zeabur.md` |
 | Offline Agent evaluations | `backend/evals/` |
@@ -106,7 +105,6 @@ npm run dev
 npm run build
 npm run modelops:data:check
 npm run test:modelops-data
-npm run test:agent
 ```
 
 Manual sync:
@@ -149,13 +147,13 @@ The API is intentionally stateless: `session_id` is accepted as client context, 
 
 ## Deploy the backend
 
-The backend runs as `modelops-agent-api` on a Zeabur-managed Tencent Cloud server in Singapore, with public origin `https://modelops-agent-api.zeabur.app`. Follow [`docs/backend-deployment-zeabur.md`](docs/backend-deployment-zeabur.md) for the verified configuration and recreation/rollback procedure. Keep the Docker build context at the repository root so the image contains both `backend/app/` and the committed ModelOps JSON under `data/modelops/generated/`.
+The selected target is a Zeabur-managed Tencent Cloud server in Singapore. The server is provisioned, but the API service and public domain are not yet deployed or runtime-verified. Follow [`docs/backend-deployment-zeabur.md`](docs/backend-deployment-zeabur.md) and keep the Docker build context at the repository root so the image contains both `backend/app/` and the committed ModelOps JSON under `data/modelops/generated/`.
 
 ## What is not automated yet
 
 `npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 91-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
-The Phase D rollout still requires browser acceptance on the published Pages build and a Zeabur rollback/restart drill. A network-backed sync freshness gate and broader frontend interaction coverage remain separate future work. Publication still requires human review.
+The remaining acceptance gaps are the Zeabur live deployment checks, general frontend interaction tests, and a network-backed sync freshness gate. Publication still requires human review.
 
 ## Limitations
 
@@ -164,9 +162,9 @@ The Phase D rollout still requires browser acceptance on the published Pages bui
 - Model versions, prices, context windows, and licenses change quickly.
 - Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
 - Structured prices currently cover only a small exact-version/provider subset; missing prices, end-user country availability, and latency stay unresolved instead of being inferred.
-- The Agent Panel is stateless and has no persistence, stream replay, authentication, or rate limiting. The Zeabur runtime has passed health/invoke/SSE/CORS checks plus a bounded client-disconnect and endpoint-stability observation; rollback recovery still needs a recorded drill.
+- The Agent has no frontend panel, persistence, stream replay, or authentication; the Zeabur runtime is not yet deployed or verified.
 - The concrete clients are contract-tested with injected HTTP transports. The provider-document client passed a manual live transport smoke across all 11 distinct exact-allowlisted URLs, and the configured DeepSeek V4 Flash gateway accepted the complete structured intent schema in a live request.
-- Focused Agent parser and panel interaction tests exist; broad end-to-end coverage for the rest of the leaderboard does not.
+- General UI interaction tests are not implemented yet.
 
 ## Data principle
 
@@ -200,8 +198,8 @@ Before recording a public score:
 - 编辑权重和公开榜分开。
 - 自动同步之后仍保留人工审核门。
 
-当前已完成 Phase C 后端和 Phase D 前端实现：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、FastAPI health/invoke/SSE、DeepSeek V4 Flash gateway、受限 HTTP 文档客户端，以及带深层运行时契约校验的 React Agent Panel。SSE 保证递增 sequence、单一终止事件和断连取消；更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
+当前已完成 Phase C：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、FastAPI health/invoke/SSE、使用 DeepSeek V4 Flash 的 OpenAI-compatible Responses 结构化输出 gateway、受限 HTTP 文档客户端，以及 24 条无网络 eval。SSE 保证递增 sequence、单一终止事件和断连取消；更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
 
-尚未实现持久化/断点续传、认证与限流；Zeabur 新加坡后端已通过 health、DeepSeek-backed invoke、POST SSE、GitHub Pages CORS、客户端主动断连和约 10 分钟端点稳定性检查。现有排行榜在 API 未配置时仍可独立运行，发布仍须人工合并审核 PR；公开 Pages 的浏览器验收和 Zeabur 回滚恢复演练仍待记录。
+尚未实现 React Agent Panel 和持久化/断点续传；Zeabur 新加坡后端目标与容器配置已经准备好，但 API 服务、公开域名和线上运行验收尚未完成。现有排行榜仍独立运行，发布仍须人工合并审核 PR。Phase C 的客户端契约均有注入 transport 离线验证；供应商文档客户端已完成 11 个精确 allowlist URL 的人工 live transport smoke，DeepSeek V4 Flash 也已通过完整意图 Schema 的真实 API 联调。
 
 </details>

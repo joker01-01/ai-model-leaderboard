@@ -14,13 +14,6 @@ GitHub Pages
 
 This deployment does not add persistence, replay, authentication, data writes, automatic merge, or automatic publication. `prepare_data_update` remains a review-only proposal operation.
 
-## Current deployment
-
-- Service: `modelops-agent-api`
-- Source: GitHub `main`, built with the root-level `Dockerfile`
-- Public origin: `https://modelops-agent-api.zeabur.app`
-- Verified on 2026-09-04: readiness, a live DeepSeek-backed invoke, POST SSE, and the GitHub Pages CORS preflight passed. The observed runtime logs showed no out-of-memory event or process restart during acceptance.
-
 ## Repository layout requirement
 
 Use the repository root as the Docker build context. Do not set the Zeabur service Root Directory to `backend/`.
@@ -35,8 +28,6 @@ data/modelops/generated/evidence.json
 The root-level `Dockerfile` preserves both paths in the image and starts Uvicorn from the container's `backend/` directory. Zeabur injects `PORT`; do not define or override it in the service variables.
 
 ## Zeabur project setup
-
-The existing service already uses this configuration. Keep these steps as the recreation and redeployment runbook.
 
 1. Commit and push the root `Dockerfile`, `.dockerignore`, and this runbook to `main`.
 2. Open the purchased server and select **Projects**.
@@ -74,14 +65,14 @@ MODELOPS_GRAPH_RECURSION_LIMIT=32
 
 `MODELOPS_CORS_ORIGINS` contains origins only, so the GitHub Pages repository path must not be appended.
 
-Do not add `AA_API_KEY`; it belongs to the separate data-sync workflow. `VITE_AGENT_API_URL` is injected only into the reviewed GitHub Pages build and is not a backend service variable.
+Do not add `AA_API_KEY`; it belongs to the separate data-sync workflow. `VITE_AGENT_API_URL` is a future Phase D frontend build value, not a backend service variable.
 
 ## Deployment acceptance
 
 Use the generated Zeabur HTTPS origin as `$ApiOrigin` in PowerShell:
 
 ```powershell
-$ApiOrigin = "https://modelops-agent-api.zeabur.app"
+$ApiOrigin = "https://<generated-domain>"
 ```
 
 ### 1. Readiness
@@ -148,19 +139,11 @@ The response must include `access-control-allow-origin: https://joker01-01.githu
 - A server restart or deployment rollback restores `/healthz` without persistent state or migration work.
 - The service remains stable during one live Agent run without an out-of-memory restart.
 
-### Recorded live result
-
-On 2026-09-04, the deployed `main` service passed `/healthz`, a DeepSeek-backed `query:invoke`, POST SSE, and the GitHub Pages CORS preflight. The observed runtime logs showed no OOM event or restart during these checks.
-
-A separate disconnect check uploaded a complete valid request, received HTTP 200 plus `run.started` sequence 1 and `node.started` sequence 2, then intentionally closed the client transport after about 1.511 seconds. The immediate health check still returned HTTP 200. During the following 603.4 seconds, 20/20 health checks succeeded (average 1.172 seconds, minimum 1.094, maximum 1.322), and the invoke checks before and after the window both returned HTTP 200 with a completed answer.
-
-This proves client transport disconnection and post-disconnect service readiness; it does not prove from online logs that the server-side graph task was cancelled. Internal task cancellation is verified offline by `backend/tests/integration/test_api.py::test_client_disconnect_cancels_an_unfinished_graph_run`. The ten-minute result is bounded endpoint stability, not a sustained-load or long-duration resource test. Rollback recovery and a control-plane CPU/memory snapshot remain separate operational checks.
-
 ## Cost boundary
 
 The purchased server is a fixed monthly resource. Start with one service and one Uvicorn worker. Observe CPU and memory before adding replicas or increasing limits.
 
-The public API currently has no authentication or rate limiting. CORS constrains browsers but does not prevent direct scripted requests. Expose the backend only through the reviewed Pages build and do not widen the configured browser origins without a separate review. Keep only a controlled small DeepSeek balance and review Usage regularly; enable an alert or quota only if the provider console explicitly offers it. Adding application authentication or rate limiting requires a separately approved scope.
+The public API currently has no authentication or rate limiting. CORS constrains browsers but does not prevent direct scripted requests. Keep the backend domain out of the public frontend until acceptance passes, and configure a DeepSeek balance alert or spending limit before broadly sharing it. Adding application authentication or rate limiting requires a separately approved scope.
 
 ## Rollback
 

@@ -16,7 +16,7 @@ The ModelOps document is an approved implementation plan, not proof of implement
 - Python 3.12, Pydantic v2, FastAPI, and the low-level LangGraph graph API provide the ModelOps Agent backend under `backend/`.
 - `backend/app/repositories/leaderboard.py` strictly loads the committed generated JSON; `backend/app/tools/` contains five typed read-only/pure tools; `backend/app/graph/` contains state, nodes, routes, dependency injection, and tool orchestration.
 - `backend/app/services/model_gateway.py` keeps the gateway protocol and deterministic fake; `backend/app/services/openai_gateway.py` implements locally validated OpenAI-compatible Responses structured output with DeepSeek V4 Flash as the default provider model, and `backend/app/services/provider_document_client.py` implements bounded exact-allowlist document fetching.
-- `backend/app/main.py` owns FastAPI configuration and lifespan dependencies; `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints. `src/features/agent/` contains the typed SSE client, runtime wire validation, and React evidence-console panel; without `VITE_AGENT_API_URL`, the static leaderboard remains usable and the panel stays disconnected.
+- `backend/app/main.py` owns FastAPI configuration and lifespan dependencies; `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints. The React Agent Panel is not implemented yet.
 - The selected independent backend target is Zeabur on a managed Tencent Cloud Singapore server. The root `Dockerfile` packages `backend/app/` together with `data/modelops/generated/`; Zeabur must build from the repository root with Root Directory left empty.
 - `.github/workflows/sync-data.yml` prepares review PRs; `.github/workflows/deploy.yml` deploys merged `main` to GitHub Pages.
 
@@ -29,7 +29,6 @@ npm run build
 npm run modelops:data
 npm run modelops:data:check
 npm run test:modelops-data
-npm run test:agent
 npm run sync:data
 npm run sync:data:check
 git diff --check
@@ -53,7 +52,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 - `npm run build` is the current TypeScript and production-build gate.
-- `npm run test:modelops-data` is the focused shared-data contract and ranking-regression suite. `npm run test:agent` covers the typed SSE parser and Agent Panel interactions. There is no general frontend lint script yet.
+- `npm run test:modelops-data` is the focused shared-data contract and ranking-regression suite. There is no general frontend test or lint script yet.
 - `npm run modelops:data:check` is offline and must fail when the committed ModelOps JSON is missing or stale.
 - `npm run sync:data` requires network access; fresh Artificial Analysis data also requires `AA_API_KEY`.
 - `npm run sync:data:check` is currently a dry run only. It does not fail when generated output would change, so do not treat a zero exit code as proof that snapshots are current.
