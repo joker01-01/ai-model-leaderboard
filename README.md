@@ -155,7 +155,7 @@ The backend runs as `modelops-agent-api` on a Zeabur-managed Tencent Cloud serve
 
 `npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 91-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
-The Phase D rollout still requires browser acceptance on the published Pages build and a Zeabur rollback/restart drill. A network-backed sync freshness gate and broader frontend interaction coverage remain separate future work. Publication still requires human review.
+Phase D is published through GitHub Pages. The live browser DOM contains both the configured Agent Panel and the existing leaderboard, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A network-backed sync freshness gate and broader frontend interaction coverage remain separate future work. Publication still requires human review.
 
 ## Limitations
 
@@ -164,7 +164,7 @@ The Phase D rollout still requires browser acceptance on the published Pages bui
 - Model versions, prices, context windows, and licenses change quickly.
 - Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
 - Structured prices currently cover only a small exact-version/provider subset; missing prices, end-user country availability, and latency stay unresolved instead of being inferred.
-- The Agent Panel is stateless and has no persistence, stream replay, authentication, or rate limiting. The Zeabur runtime has passed health/invoke/SSE/CORS checks plus a bounded client-disconnect and endpoint-stability observation; rollback recovery still needs a recorded drill.
+- The Agent Panel is stateless and has no persistence, stream replay, authentication, or rate limiting. The Zeabur runtime has passed health/invoke/SSE/CORS checks, a bounded client-disconnect and endpoint-stability observation, and a recorded Git-revert deployment/recovery drill. Because the reverted Phase D commit did not change backend build inputs, the drill covers deployment switching and recovery rather than a behaviorally different backend image. The post-recovery service graph showed low-single-digit CPU percentages and roughly 65-75 MB memory, but this is a point-in-time operational snapshot rather than a sustained-load test.
 - The concrete clients are contract-tested with injected HTTP transports. The provider-document client passed a manual live transport smoke across all 11 distinct exact-allowlisted URLs, and the configured DeepSeek V4 Flash gateway accepted the complete structured intent schema in a live request.
 - Focused Agent parser and panel interaction tests exist; broad end-to-end coverage for the rest of the leaderboard does not.
 
@@ -202,6 +202,6 @@ Before recording a public score:
 
 当前已完成 Phase C 后端和 Phase D 前端实现：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、FastAPI health/invoke/SSE、DeepSeek V4 Flash gateway、受限 HTTP 文档客户端，以及带深层运行时契约校验的 React Agent Panel。SSE 保证递增 sequence、单一终止事件和断连取消；更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
 
-尚未实现持久化/断点续传、认证与限流；Zeabur 新加坡后端已通过 health、DeepSeek-backed invoke、POST SSE、GitHub Pages CORS、客户端主动断连和约 10 分钟端点稳定性检查。现有排行榜在 API 未配置时仍可独立运行，发布仍须人工合并审核 PR；公开 Pages 的浏览器验收和 Zeabur 回滚恢复演练仍待记录。
+尚未实现持久化/断点续传、认证与限流；Zeabur 新加坡后端已通过 health、DeepSeek-backed invoke、POST SSE、GitHub Pages CORS、客户端主动断连、约 10 分钟端点稳定性检查，以及一次 Git-revert 部署切换/恢复演练。公开浏览器 DOM 已确认 Agent Panel 与原排行榜同时存在，三个 Agent 路径通过携带生产 Pages `Origin` 请求头的 HTTPS 传输检查。被回滚的 Phase D 提交没有改变后端构建输入，因此该演练验证的是 GitHub 到 Zeabur 的版本切换、健康连续性和恢复流程，而不是两个不同后端实现之间的回退。恢复后的服务图表显示 CPU 为低个位数百分比、内存约 65-75 MB，但这只是运维快照，不是持续负载测试。现有排行榜在 API 未配置时仍可独立运行，发布仍须人工合并审核 PR。
 
 </details>
