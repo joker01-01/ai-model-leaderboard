@@ -59,7 +59,7 @@ class HttpProviderDocumentClient:
         if response.status_code not in _REDIRECT_STATUSES:
             return None
         location = response.headers.get("location")
-        if location is None:
+        if not isinstance(location, str):
             return None
         return urljoin(url, location)
 
