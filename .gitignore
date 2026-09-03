@@ -3,9 +3,13 @@ dist
 .npm-cache
 .DS_Store
 *.local
+.env
+.env.*
+!.env.example
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest-tmp/
 .mypy_cache/
 .ruff_cache/
 .venv/

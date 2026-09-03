@@ -3,6 +3,7 @@
 [![Stack: React 19](https://img.shields.io/badge/Stack-React%2019-149ECA?style=flat-square)](https://react.dev/)
 [![Language: TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square)](https://www.typescriptlang.org/)
 [![Build: Vite 7](https://img.shields.io/badge/Build-Vite%207-646CFF?style=flat-square)](https://vite.dev/)
+[![API: FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=flat-square)](https://fastapi.tiangolo.com/)
 [![Deploy: GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-222222?style=flat-square)](https://joker01-01.github.io/ai-model-leaderboard/)
 [![Data: Exact Version Match](https://img.shields.io/badge/Data-Exact%20Version%20Match-0A7E8C?style=flat-square)](#reliability-rules)
 [![Review: Human in the Loop](https://img.shields.io/badge/Review-Human%20in%20the%20Loop-2EA44F?style=flat-square)](#the-publish-pipeline)
@@ -38,9 +39,9 @@ The project currently tracks 20 concrete model versions and exposes two differen
 
 Arena data is shown as user-preference reference in model details. It does not determine the public ranking.
 
-The repository also contains the Phase B offline ModelOps Agent core. It strictly loads the generated evidence JSON and runs five typed operations—catalog filtering, benchmark lookup, pricing, allowlisted provider-document search, and pure update proposals—inside a bounded LangGraph workflow. Its deterministic fake gateway and injected document client make tests and evaluations network-free.
+The repository also contains the Phase C ModelOps Agent backend. It strictly loads the generated evidence JSON and runs five typed operations—catalog filtering, benchmark lookup, pricing, allowlisted provider-document search, and pure update proposals—inside a bounded LangGraph workflow. FastAPI exposes health, non-streaming invoke, and typed POST SSE endpoints; a strict OpenAI Responses gateway handles intent extraction, while ranking, evidence checks, and proposal decisions remain deterministic.
 
-This Agent core is not connected to the website yet. A real model gateway, concrete HTTP document client, FastAPI/SSE endpoints, and the React Agent panel remain later phases.
+The Agent API is not connected to the website yet. The existing leaderboard remains independently usable; the React Agent panel and public backend deployment remain Phase D work.
 
 ## The publish pipeline
 
@@ -88,6 +89,8 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | Strict Python contracts/repository | `backend/app/domain/`, `backend/app/repositories/` |
 | Five typed ModelOps tools | `backend/app/tools/` |
 | LangGraph workflow/verifier | `backend/app/graph/`, `backend/app/services/` |
+| FastAPI and typed SSE boundary | `backend/app/main.py`, `backend/app/api/` |
+| Runtime configuration | `.env.example`, `backend/app/config.py` |
 | Offline Agent evaluations | `backend/evals/` |
 | Sync / matching report | `data/sync-report.json` |
 | Sync workflow | `.github/workflows/sync-data.yml` |
@@ -126,11 +129,26 @@ python evals/run.py
 
 These checks use committed generated data, `FakeModelGateway`, and injected provider-document responses. They do not call a model provider or fetch live provider documentation.
 
+To start the Phase C API locally, export the backend environment values and run Uvicorn from `backend/`. The repository does not auto-load `.env.example`:
+
+```powershell
+$env:MODELOPS_OPENAI_API_KEY = "<OpenAI API key>"
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Available endpoints:
+
+- `GET /healthz` — runtime readiness.
+- `POST /api/v1/agent/query:invoke` — one structured response.
+- `POST /api/v1/agent/query` — typed SSE with monotonic sequence, heartbeat comments, one terminal event, and disconnect cancellation.
+
+The API is intentionally stateless: `session_id` is accepted as client context, but persistence and stream replay are not implemented.
+
 ## What is not automated yet
 
-`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The backend suite covers the strict repository, all five tools, graph routing and terminal states; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow runs these gates with Python lint and type checking in addition to the frontend checks; its GitHub-hosted run passed for the Phase A/B implementation commit.
+`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 89-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
-The remaining automation gaps are general frontend interaction tests, API/SSE integration tests, a network-backed sync freshness gate, and checks against a real model/document gateway. Publication still requires human review.
+The remaining acceptance gaps are general frontend interaction tests, a network-backed sync freshness gate, and a live OpenAI smoke with an authorized API key. Publication still requires human review.
 
 ## Limitations
 
@@ -139,8 +157,9 @@ The remaining automation gaps are general frontend interaction tests, API/SSE in
 - Model versions, prices, context windows, and licenses change quickly.
 - Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
 - Structured prices currently cover only a small exact-version/provider subset; missing prices, end-user country availability, and latency stay unresolved instead of being inferred.
-- The Agent currently has no FastAPI/SSE surface, concrete LLM gateway, concrete HTTP provider-document client, frontend panel, persistence, or public backend deployment.
-- General UI and API integration tests are not implemented yet.
+- The Agent has no frontend panel, persistence, stream replay, authentication, or public backend deployment yet.
+- The concrete clients are contract-tested with injected HTTP transports. The provider-document client also passed a manual live transport smoke across all 11 distinct exact-allowlisted URLs; no live OpenAI request is claimed as accepted.
+- General UI interaction tests are not implemented yet.
 
 ## Data principle
 
@@ -174,8 +193,8 @@ Before recording a public score:
 - 编辑权重和公开榜分开。
 - 自动同步之后仍保留人工审核门。
 
-当前已完成 Phase B 的离线 ModelOps Agent 核心：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、fake model gateway，以及 24 条无网络 eval。更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
+当前已完成 Phase C：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、FastAPI health/invoke/SSE、OpenAI Responses 结构化输出 gateway、受限 HTTP 文档客户端，以及 24 条无网络 eval。SSE 保证递增 sequence、单一终止事件和断连取消；更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
 
-尚未实现 FastAPI/SSE、真实模型 gateway、具体 HTTP 文档客户端和 React Agent Panel；现有排行榜仍独立运行，发布仍须人工合并审核 PR。
+尚未实现 React Agent Panel、持久化/断点续传和公开后端部署；现有排行榜仍独立运行，发布仍须人工合并审核 PR。Phase C 的真实网络客户端采用注入 transport 离线验约；供应商文档客户端已完成 11 个精确 allowlist URL 的人工 live transport smoke，但尚未使用授权 API key 完成真实 OpenAI 联调。
 
 </details>

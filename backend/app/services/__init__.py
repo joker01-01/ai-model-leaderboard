@@ -1,1 +1,1 @@
-"""Deterministic verification and model gateway services."""
+"""Model gateways, evidence verification, and provider-document services."""

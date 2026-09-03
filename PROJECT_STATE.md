@@ -17,24 +17,30 @@ React 19 + TypeScript + Vite static frontend
   -> human merge to main
   -> GitHub Pages deployment
 
-Python 3.12 offline Agent core
+Python 3.12 Agent core
   <- strict read-only repository over the same generated JSON
   -> five typed read-only/pure tools
   -> deterministic evidence verifier + bounded LangGraph workflow
   -> typed AgentAnswer / awaiting_human_review proposal
-  <- FakeModelGateway + injected document client for offline tests/evals
+  <- OpenAI Responses structured-output gateway
+  <- bounded exact-allowlist HTTP provider-document client
+
+Independent FastAPI service
+  -> GET /healthz
+  -> POST /api/v1/agent/query:invoke
+  -> POST /api/v1/agent/query as typed SSE
+  -> disconnect cancellation; no persistence or replay
 ```
 
 Next target direction:
 
 ```text
 Existing leaderboard + Agent Panel
-  -> independent FastAPI SSE API
-  -> current bounded LangGraph core
-  -> concrete structured-output model gateway + allowlisted HTTP document client
+  -> configured independent FastAPI SSE API
+  -> current bounded LangGraph core and evidence/proposal views
 ```
 
-The frontend remains usable when no Agent API is configured. The FastAPI service is deployed separately from GitHub Pages.
+The frontend remains usable when no Agent API is configured. FastAPI must be deployed separately from GitHub Pages; no public backend target has been selected yet.
 
 ## Current Status
 
@@ -44,8 +50,10 @@ The frontend remains usable when no Agent API is configured. The FastAPI service
 - `docs/reuse-assessment.md` records why the MVP will extend this repository instead of forking a generic Agent template.
 - Phase A is implemented and verified: static benchmark versions, AA slugs, Arena names, and exact `(providerId, providerModelId)` pairs are shared; reviewed evidence is exported deterministically; focused tests cover strict failures plus public/editorial ranking equivalence.
 - Phase B is implemented and verified: strict immutable Pydantic contracts, generated-data repository validation, five typed tools, deterministic evidence verification, a low-level LangGraph state machine, dependency-injected fake gateway/document client, and pure update proposals.
+- Phase C is implemented and verified: environment-backed configuration, FastAPI lifespan/CORS/health, snake_case streaming and non-streaming Agent endpoints, typed SSE sequencing/heartbeat/disconnect cancellation, an OpenAI Responses structured-output gateway, and a bounded HTTP provider-document client.
+- The HTTP document boundary uses repository-owned exact URLs, total and per-operation timeouts, bounded identity-encoded text responses, and redirect binding to the same `(modelId, providerId, providerModelId, kind)` metadata. Cross-binding redirects cannot be misattributed as evidence.
 - The three graph intents are `recommend`, `explain_unranked`, and `prepare_update`. Missing user inputs end in `needs_clarification`; evidence gaps produce bounded completed answers; unrecoverable gateway/tool failures end in `failed`; valid proposals end in `awaiting_human_review` without writes.
-- The offline backend suite contains 42 repository/tool/graph tests. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
+- The offline backend suite contains 89 repository/tool/graph/gateway/API tests. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
 - The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 62 benchmark observations, 18 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
 - The scheduled sync now regenerates and tests the ModelOps adapter before it can prepare a review PR; merge to `main` remains the publication gate.
 - Pull requests and pushes to `main` are configured to run the offline generated-data drift check, focused TypeScript data tests, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
@@ -65,6 +73,7 @@ The frontend remains usable when no Agent API is configured. The FastAPI service
 - Reviewed prices must use an exact 30-calendar-day review window. The effective inclusive evidence cutoff is the earlier of `staleAfter` and a non-null provider `validThrough` date.
 - Agent recommendation order is AA Coding descending, AA Intelligence descending with missing values last, then exact model ID ascending. It is independent of the public leaderboard ranking.
 - Provider-document input cannot contain arbitrary URLs. Only registered allowlist entries may be fetched through an injected client, and all normalized query terms must occur in one bounded excerpt before it counts as evidence.
+- Provider-document redirects may continue only through registered URLs with the same exact model/provider/provider-model/kind binding as the initial source.
 - `prepare_data_update` remains a pure, reviewable proposal operation. It cannot write files, call GitHub, merge, or publish.
 - Security review depth is proportional to the touched trust boundary; ordinary documentation/UI/pure-function work does not trigger a broad security audit.
 
@@ -74,15 +83,15 @@ The frontend remains usable when no Agent API is configured. The FastAPI service
 - DeepSeek V4 Pro/Flash prices are time-band dependent and are intentionally omitted because the Phase A offer schema does not model time bands.
 - Structured negative availability, end-user country availability, and latency evidence are not modeled yet; provider deployment regions alone cannot answer all geographic constraints.
 - `npm run sync:data:check` does not fail when generated data would drift.
-- The offline Agent core has no FastAPI app, streaming/non-streaming API, SSE event layer, concrete LLM gateway, concrete HTTP provider-document client, or React Agent Panel yet.
-- API/SSE integration tests and general frontend interaction tests do not exist yet. The current Agent tests and evals exercise the graph directly with deterministic injected dependencies.
+- The React Agent Panel and general frontend interaction tests do not exist yet; the static leaderboard remains independent of the Agent API.
+- No live OpenAI request has been accepted because no API key was available. All repository tests/evals remain offline; the provider-document client additionally passed a manual live transport smoke against every distinct allowlisted URL.
 - A public backend deployment target has not been selected; local integration is sufficient for the MVP implementation stages.
 - In the current managed Windows sandbox, `tsx` can fail before project code with `uv_os_get_passwd ... ENOMEM`; the same commands succeed outside that sandbox, so no repository-specific workaround was added.
-- On this Windows host, pytest exits successfully after all tests but may emit an ignored `PermissionError` while cleaning its global temporary symlink. This is an environment cleanup warning, not a test failure.
+- The dev extra temporarily caps AnyIO below 4.15 because the current Starlette TestClient still uses an alias deprecated by AnyIO 4.15. Revisit the cap after Starlette migrates the alias.
 
 ## Verification
 
-Verified through 2026-09-03 after Phase A and Phase B implementation:
+Verified through 2026-09-03 after Phase C implementation:
 
 - `npm ci` succeeded.
 - `npm run modelops:data` generated the adapter successfully outside the managed sandbox.
@@ -94,16 +103,19 @@ Verified through 2026-09-03 after Phase A and Phase B implementation:
 - README publication claims and the human merge boundary still match the checked GitHub Actions workflows.
 - `git diff --check`, an explicit trailing-whitespace scan covering untracked files, and a common secret-pattern scan reported no findings.
 - The network-backed `npm run sync:data:check` was not run; external AA/Arena refresh behavior is not claimed as runtime-verified in Phase A.
-- `python -m pytest -q` from `backend/` passed 42 tests; the process exited 0 with the Windows temporary-symlink cleanup warning recorded above.
+- `python -m pytest -q` from `backend/` passed 89 tests without warnings, including 14 API integration tests, OpenAI structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding. The repo-local pytest base directory also avoids this host's inaccessible global `pytest-current` symlink.
 - `python -m ruff check app tests evals` passed.
-- `python -m mypy app tests evals` passed for 29 source files.
+- `python -m mypy app tests evals` passed for 41 source files.
 - `python evals/run.py` passed 24/24 deterministic cases with no model-provider or provider-document network calls.
+- A clean Python 3.12 virtual environment installed `.[dev]`, reported no broken requirements from `python -m pip check`, passed all 89 tests and 24 evals, and was removed after verification. The 15 conflicts in the host's global Conda environment do not intersect the project's 49-package dependency closure.
+- A manual live smoke through `HttpProviderDocumentClient` reached all 11 distinct exact-allowlisted provider-document URLs represented by 12 source bindings with HTTP 200; there were no redirects, non-200 responses, timeouts, or unavailable responses. Response bodies were not retained or reported.
+- `npm run modelops:data:check`, `npm run test:modelops-data` (11/11), and `npm run build` passed outside the managed sandbox after the sandbox-only `tsx` ENOMEM failure reproduced.
 - GitHub-hosted `Verify pull request` run `33689799358` passed for implementation commit `173d0e9`, including generated-data checks, frontend build, pytest, Ruff, mypy, and all deterministic Agent evaluations.
 - GitHub-hosted `Deploy to GitHub Pages` run `33689799362` passed for implementation commit `173d0e9`.
 
 ## Next
 
-1. Phase C: add configuration, FastAPI lifecycle/CORS, health, streaming SSE, and non-streaming invoke endpoints over the verified graph.
-2. Implement the concrete structured-output model gateway and allowlisted HTTP provider-document client with bounded timeouts, redirect/host checks, safe errors, and deterministic fakes for tests.
-3. Add API/SSE integration tests for event order, one terminal event, cancellation, error mapping, and log redaction; do not add persistence or resumability.
-4. Phase D: add the React Agent Panel and SSE parser, extend CI with API/frontend gates, select or document the separate backend deployment target, and complete final acceptance checks.
+1. Phase D: add the React Agent Panel, typed SSE parser, cancellation controls, clarification flow, evidence display, and review-only proposal preview without changing leaderboard ranking behavior.
+2. Configure the frontend API URL while keeping the existing static leaderboard usable when no backend is configured.
+3. Add focused SSE parser/panel interaction tests, then run the complete frontend, shared-data, backend, and deterministic-eval gates.
+4. Select or document the separate backend deployment target; do not add persistence, resumability, authentication, writes, or publication automation without a separately approved scope.

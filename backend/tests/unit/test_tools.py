@@ -325,6 +325,70 @@ def test_provider_docs_rejects_redirect_outside_allowlist_without_fetching_it(
     assert result.data.source_attempts[0].status == SourceAttemptStatus.SOURCE_NOT_ALLOWLISTED
 
 
+def test_provider_docs_rejects_allowlisted_redirect_across_source_metadata(
+    repository: LeaderboardRepository,
+) -> None:
+    sources = repository.get_provider_sources(
+        "qwen-3-5",
+        (ProviderSourceKind.LICENSE, ProviderSourceKind.PRICING),
+    )
+    license_source = next(source for source in sources if source.kind == ProviderSourceKind.LICENSE)
+    pricing_source = next(source for source in sources if source.kind == ProviderSourceKind.PRICING)
+    client = _FakeDocumentClient(
+        {
+            license_source.url: ProviderDocumentResponse(302, redirect_url=pricing_source.url),
+            pricing_source.url: ProviderDocumentResponse(200, "Official Apache license evidence."),
+        }
+    )
+    request = SearchProviderDocsInput(
+        model_id="qwen-3-5",
+        query="Apache license",
+        doc_kinds=(ProviderSourceKind.LICENSE, ProviderSourceKind.PRICING),
+    )
+
+    result = asyncio.run(search_provider_docs(request, repository=repository, client=client))
+
+    assert result.ok
+    assert result.data is not None
+    assert client.calls == [license_source.url, pricing_source.url]
+    assert [match.kind for match in result.data.matches] == [ProviderSourceKind.PRICING]
+    attempts = {attempt.url: attempt for attempt in result.data.source_attempts}
+    assert attempts[license_source.url].status == SourceAttemptStatus.SOURCE_NOT_ALLOWLISTED
+    assert attempts[license_source.url].reason == "redirect_target_metadata_mismatch"
+
+
+def test_provider_docs_allows_redirect_with_the_same_source_metadata(
+    repository: LeaderboardRepository,
+) -> None:
+    sources = tuple(
+        sorted(
+            repository.get_provider_sources("glm-5-3", (ProviderSourceKind.PRICING,)),
+            key=lambda source: source.url,
+        )
+    )
+    assert len(sources) == 2
+    initial_source, redirect_source = sources
+    client = _FakeDocumentClient(
+        {
+            initial_source.url: ProviderDocumentResponse(302, redirect_url=redirect_source.url),
+            redirect_source.url: ProviderDocumentResponse(200, "Official pricing evidence."),
+        }
+    )
+    request = SearchProviderDocsInput(
+        model_id="glm-5-3",
+        query="pricing evidence",
+        doc_kinds=(ProviderSourceKind.PRICING,),
+    )
+
+    result = asyncio.run(search_provider_docs(request, repository=repository, client=client))
+
+    assert result.ok
+    assert result.data is not None
+    assert client.calls == [initial_source.url, redirect_source.url, redirect_source.url]
+    assert [match.url for match in result.data.matches] == [initial_source.url, redirect_source.url]
+    assert all(match.kind == ProviderSourceKind.PRICING for match in result.data.matches)
+
+
 def test_provider_docs_timeout_is_typed_and_retryable(repository: LeaderboardRepository) -> None:
     source = repository.get_provider_sources("qwen-3-5", (ProviderSourceKind.LICENSE,))[0]
     client = _FakeDocumentClient({source.url: TimeoutError("deadline exceeded")})

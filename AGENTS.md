@@ -13,9 +13,10 @@ The ModelOps document is an approved implementation plan, not proof of implement
 - `src/data/benchmarks.ts` combines verified static observations with the generated Artificial Analysis snapshot.
 - `src/lib/score.ts` and `src/lib/editorial.ts` contain ranking semantics.
 - `scripts/sync-data.mjs` performs external-data synchronization and exact-version matching.
-- Python 3.12, Pydantic v2, and the low-level LangGraph graph API provide the offline ModelOps Agent core under `backend/`.
+- Python 3.12, Pydantic v2, FastAPI, and the low-level LangGraph graph API provide the ModelOps Agent backend under `backend/`.
 - `backend/app/repositories/leaderboard.py` strictly loads the committed generated JSON; `backend/app/tools/` contains five typed read-only/pure tools; `backend/app/graph/` contains state, nodes, routes, dependency injection, and tool orchestration.
-- `backend/app/services/model_gateway.py` currently exposes only the gateway protocol and deterministic fake. There is no concrete LLM gateway, HTTP provider-document client, FastAPI app, or SSE API yet.
+- `backend/app/services/model_gateway.py` keeps the gateway protocol and deterministic fake; `backend/app/services/openai_gateway.py` implements strict OpenAI Responses structured output, and `backend/app/services/provider_document_client.py` implements bounded exact-allowlist document fetching.
+- `backend/app/main.py` owns FastAPI configuration and lifespan dependencies; `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints. The React Agent Panel is not implemented yet.
 - `.github/workflows/sync-data.yml` prepares review PRs; `.github/workflows/deploy.yml` deploys merged `main` to GitHub Pages.
 
 ## Verified commands
@@ -42,12 +43,21 @@ python -m mypy app tests evals
 python evals/run.py
 ```
 
+Local API startup from `backend/` requires an exported key; `.env.example` is documentation and is not loaded automatically:
+
+```powershell
+$env:MODELOPS_OPENAI_API_KEY = "<OpenAI API key>"
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
 - `npm run build` is the current TypeScript and production-build gate.
 - `npm run test:modelops-data` is the focused shared-data contract and ranking-regression suite. There is no general frontend test or lint script yet.
 - `npm run modelops:data:check` is offline and must fail when the committed ModelOps JSON is missing or stale.
 - `npm run sync:data` requires network access; fresh Artificial Analysis data also requires `AA_API_KEY`.
 - `npm run sync:data:check` is currently a dry run only. It does not fail when generated output would change, so do not treat a zero exit code as proof that snapshots are current.
 - The backend tests and eval runner are offline. Keep their gateway and provider-document clients deterministic and injected; they must not require model-provider or document-site network access.
+- `GET /healthz` returns `503 unavailable` when runtime configuration or startup dependencies are unavailable. API wire fields are snake_case.
+- `POST /api/v1/agent/query` is a one-run SSE stream with monotonic event sequence, one terminal event, heartbeat comments, and disconnect cancellation. It does not provide persistence or replay.
 
 ## Product invariants
 
@@ -66,6 +76,7 @@ python evals/run.py
 - Only missing user-supplied fields route to clarification. Missing, stale, ambiguous, or conflicting evidence produces a completed evidence-bounded answer; unrecoverable internal failures terminate as `failed`.
 - Preserve candidate filter reasons and controlled provider deployment-region evidence through the final recommendation. A provider region still does not prove end-user country availability.
 - Provider-document search accepts only repository allowlist entries and an injected client; callers cannot supply arbitrary URLs. Returned excerpts must contain every normalized query term in one bounded window before they count as evidence.
+- Provider-document redirects must remain inside the exact repository allowlist and preserve the initial `(modelId, providerId, providerModelId, kind)` binding. Cross-binding redirects cannot become evidence.
 - Update-proposal citations with provider metadata must supply a complete provider/kind binding and match an exact provider pair registered for the target model.
 
 ## Generated data

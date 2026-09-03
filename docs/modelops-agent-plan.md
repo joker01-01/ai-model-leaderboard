@@ -264,7 +264,7 @@ Phase B 已落地：
 | `backend/app/graph/builder.py` | low-level `StateGraph` 装配 |
 | `backend/app/graph/tool_executor.py` | 五个工具的 async graph adapter |
 
-Phase C 仍计划新增：
+Phase C 已按以下范围落地：
 
 | 文件 | 作用 |
 | --- | --- |
@@ -272,7 +272,8 @@ Phase C 仍计划新增：
 | `backend/app/config.py` | 环境变量配置；不提交密钥 |
 | `backend/app/api/agent.py` | 流式与非流式 Agent 端点 |
 | `backend/app/api/sse.py` | typed event 序列化、heartbeat、断连取消 |
-| `backend/app/services/*_gateway.py` | 具体结构化输出模型 gateway 与 allowlisted HTTP provider-document client；保留测试 fake |
+| `backend/app/services/openai_gateway.py` | OpenAI Responses strict structured-output gateway；保留测试 fake |
+| `backend/app/services/provider_document_client.py` | exact allowlist、同证据绑定跳转、总时限和响应大小受限的 HTTP 文档客户端 |
 
 ### 8.2 新增/调整共享数据
 
@@ -309,7 +310,7 @@ Phase C 仍计划新增：
 | `backend/tests/unit/test_repository.py` | 生成快照加载、exact-only 解析、跨文件绑定和价格/来源契约 |
 | `backend/tests/unit/test_tools.py` | 五个工具的 schema、预算、allowlist、摘录、版本、provider pair 和提案只读性 |
 | `backend/tests/unit/test_graph_routes.py` | 纯条件边、排序、失败保态和 24 条 eval 的离线入口 |
-| `backend/tests/integration/test_api.py` | Phase C 计划：SSE 顺序、非流式响应、取消和错误契约 |
+| `backend/tests/integration/test_api.py` | SSE 顺序、唯一终止事件、heartbeat、非流式响应、CORS、取消和错误契约 |
 | `backend/evals/cases.jsonl` | 24 条确定性端到端场景 |
 | `backend/evals/run.py` | 使用 fake model gateway 和注入式文档客户端运行离线评估并逐例断言 |
 | `.github/workflows/ci.yml` | 前端 build、共享数据/漂移检查，以及 Python 3.12 pytest/Ruff/mypy/24-case eval；保持 `contents: read` |
@@ -388,11 +389,11 @@ git diff --check
 
 ### 阶段 C：FastAPI 与 SSE
 
-暴露流式/非流式接口，验证错误契约、事件顺序、取消和 CORS；不做持久化和断点续传。
+已于 2026-09-03 在工作树完成：FastAPI lifespan/CORS/health、snake_case 流式与非流式接口、typed SSE/heartbeat/断连取消、OpenAI Responses structured-output gateway，以及 exact-allowlist HTTP provider-document client。89 个 backend tests、Ruff、覆盖 app/tests/evals 的 mypy、24/24 eval 和现有前端/共享数据回归均通过；11 个精确 allowlist URL 的人工 provider-document live transport smoke 也全部返回 HTTP 200。未增加持久化、断点续传、认证或写入能力，真实 OpenAI 联调仍需授权 API key。
 
 ### 阶段 D：前端与交付
 
-增加 Agent Panel、引用和 proposal 预览，把 Phase C API/SSE 与 Phase D 前端测试纳入现有 CI，并完成全量验收。后端 pytest/Ruff/mypy/eval 门槛已在 Phase B 加入。
+增加 Agent Panel、引用和 proposal 预览，补 Phase D 前端测试并完成全量验收。现有 CI 的 backend pytest 已自动覆盖 Phase C API/SSE integration tests，Ruff/mypy/eval 门槛保持不变。
 
 方案已于 2026-09-02 确认。按 A → B → C → D 逐阶段实施，并在每阶段结束报告 diff 与验证结果。
 

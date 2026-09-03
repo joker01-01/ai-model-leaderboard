@@ -11,6 +11,7 @@ from app.domain.errors import RepositoryLookupError, ToolErrorCode, ToolName, To
 from app.domain.models import (
     Citation,
     DocumentMatch,
+    ProviderSource,
     ProviderSourceAttempt,
     SearchProviderDocsData,
     SearchProviderDocsInput,
@@ -79,6 +80,7 @@ async def _fetch_allowlisted(
     initial_url: str,
     *,
     allowlisted_urls: frozenset[str],
+    binding_allowlisted_urls: frozenset[str],
     client: ProviderDocumentClient,
 ) -> tuple[ProviderDocumentResponse | None, SourceAttemptStatus | None, str | None]:
     url = initial_url
@@ -86,6 +88,8 @@ async def _fetch_allowlisted(
     for _ in range(_MAX_REDIRECTS + 1):
         if url not in allowlisted_urls:
             return None, SourceAttemptStatus.SOURCE_NOT_ALLOWLISTED, "redirect_target_not_allowlisted"
+        if url not in binding_allowlisted_urls:
+            return None, SourceAttemptStatus.SOURCE_NOT_ALLOWLISTED, "redirect_target_metadata_mismatch"
         if url in visited:
             return None, SourceAttemptStatus.UNAVAILABLE, "redirect_loop"
         visited.add(url)
@@ -117,6 +121,15 @@ def _citation(match: DocumentMatch) -> Citation:
     )
 
 
+def _source_binding(source: ProviderSource) -> tuple[object, ...]:
+    return (
+        source.model_id,
+        source.provider_id,
+        source.provider_model_id,
+        source.kind,
+    )
+
+
 async def search_provider_docs(
     request: SearchProviderDocsInput,
     *,
@@ -140,9 +153,14 @@ async def search_provider_docs(
     matches: list[DocumentMatch] = []
     attempts: list[ProviderSourceAttempt] = []
     for source in ordered_sources:
+        source_binding = _source_binding(source)
+        binding_allowlisted_urls = frozenset(
+            candidate.url for candidate in ordered_sources if _source_binding(candidate) == source_binding
+        )
         response, failure_status, reason = await _fetch_allowlisted(
             source.url,
             allowlisted_urls=allowlisted_urls,
+            binding_allowlisted_urls=binding_allowlisted_urls,
             client=client,
         )
         if failure_status is not None:
@@ -197,11 +215,21 @@ async def search_provider_docs(
 
     statuses = {attempt.status for attempt in attempts}
     if SourceAttemptStatus.SOURCE_NOT_ALLOWLISTED in statuses:
+        blocked_reasons = {
+            attempt.reason
+            for attempt in attempts
+            if attempt.status == SourceAttemptStatus.SOURCE_NOT_ALLOWLISTED
+        }
+        blocked_reason = (
+            "redirect_target_metadata_mismatch"
+            if "redirect_target_metadata_mismatch" in blocked_reasons
+            else "redirect_target_not_allowlisted"
+        )
         return failure_result(
             ToolName.SEARCH_PROVIDER_DOCS,
             ToolErrorCode.SOURCE_NOT_ALLOWLISTED,
-            "A provider document redirected outside the approved source allowlist.",
-            details={"reason": "redirect_target_not_allowlisted"},
+            "A provider document redirected outside its approved source binding.",
+            details={"reason": blocked_reason},
             data=data,
             observed_at=observed_at,
         )
