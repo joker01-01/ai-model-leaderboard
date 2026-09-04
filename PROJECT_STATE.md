@@ -6,7 +6,7 @@ Upgrade the existing AI Model Leaderboard into the bounded ModelOps Agent MVP de
 
 ## Architecture
 
-Target repository architecture on the current feature branch. The existing conditional publication control plane is live; the source-native public AA fields now have their first keyed generated-data baseline and still require publication through `main`:
+Current deployed repository architecture. The conditional publication control plane and the source-native public AA board are live with their first keyed generated-data baseline on `main`:
 
 ```text
 React 19 + TypeScript + Vite static frontend
@@ -71,8 +71,8 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 64 benchmark observations, 17 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
 - Conditional publication is operational: the repository-scoped App, Actions credentials, strict `verify` requirement, protected `main`, trusted-`main` policy inspection, immutable SHA/provenance rechecks, anomaly retention, and guarded routine REST merge have passed live acceptance.
 - Pull requests and pushes to `main` are configured to run the offline generated-data drift check, policy tests, the complete frontend test set, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
-- The current feature worktree separates the source-native public path (`src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`) from the curated editorial path (`src/lib/entries.ts`, `src/components/Board.tsx`). Public ranks are computed before search filtering, so filtered rows retain their AA source rank; equal scores use competition ranking.
-- The public-AA implementation now carries a human-reviewed 20-entry `intelligenceLeaderboard` baseline from AA Intelligence Index version 4.1, observed on 2026-09-04. It remains unpublished until the feature pull request merges to `main` and Pages deployment completes.
+- The deployed frontend separates the source-native public path (`src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`) from the curated editorial path (`src/lib/entries.ts`, `src/components/Board.tsx`). Public ranks are computed before search filtering, so filtered rows retain their AA source rank; equal scores use competition ranking.
+- The public-AA implementation is published from `main` with a human-reviewed 20-entry `intelligenceLeaderboard` baseline from AA Intelligence Index version 4.1, observed on 2026-09-04. PR #12 merged as `1544fb2` and deployed through both GitHub Pages and Zeabur.
 
 ## Important Decisions
 
@@ -115,7 +115,7 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 
 ## Verification
 
-Current local worktree checks plus the earlier 2026-09-04 live conditional data-refresh acceptance:
+Current local, CI, and 2026-09-04 live acceptance:
 
 - `npm ci` succeeded.
 - `npm run modelops:data` generated the adapter successfully outside the managed sandbox.
@@ -128,6 +128,7 @@ Current local worktree checks plus the earlier 2026-09-04 live conditional data-
 - The first keyed public-AA refresh run `33865225568` failed closed because a low-ranked source row lacked a display name. Fix `364b0ef` keeps finite-score and global `sourceId` validation across all ranked rows while validating display metadata only for rows that can enter the first 20, including ties at the cutoff; the focused policy suite then passed 23/23.
 - Refresh run `33865744426` fetched all 643 AA rows and completed every data, frontend, build, backend, type, lint, and evaluation gate. App-authored, GitHub-signed PR #11 changed only the four allowed generated data/report files, and required verification run `33865823234` passed before human merge `475ba4d` into the feature branch.
 - The PR #11 baseline contains exactly 20 finite entries with 20 unique `sourceId` values, one valid observation date (`2026-09-04`), positive Intelligence Index version 4.1, deterministic score/tie ordering, and independent rows for distinct reasoning/effort configurations. Curated AA/Arena matched and unmatched sets and ModelOps evidence counts remained stable.
+- Public-board PR #12 passed required verification run `33866731280` and merged to `main` as `1544fb2`. Post-merge verification run `33866939805`, Pages run `33866939812`, GitHub Pages deployment `6263144207`, and Zeabur production deployment `6263146488` all completed successfully for that exact commit.
 - All four workflow YAML files parsed successfully. The guarded merge workflow, GitHub App, Actions credentials, branch protection, negative anomaly path, and positive routine path are live-verified.
 - Live `main` protection requires pull requests and the strict `verify` status check, applies to administrators, requires linear history, blocks force pushes and branch deletion, and requires zero human approvals. The data-sync App has no bypass entry. Repository Actions contains `DATA_SYNC_APP_CLIENT_ID`, `DATA_SYNC_APP_PRIVATE_KEY`, and `AA_API_KEY`; secret values were not read, and no credential value was written to the repository.
 - PR `#6` fixed snapshot-coupled tool/evaluation fixtures and ensured a verified data PR is still prepared when only downstream behavioral checks expose an upstream anomaly. Required run `33847160323` passed before merge commit `d004487`.
@@ -139,7 +140,7 @@ Current local worktree checks plus the earlier 2026-09-04 live conditional data-
 - The extracted alias data was deep-compared with the previous inline array: 20 model IDs, 21 AA aliases, and 40 Arena aliases were unchanged.
 - README and the public footer now describe the checked conditional publication boundary: routine refreshes auto-merge only after every gate passes, while anomalies remain open for human review.
 - `git diff --check`, an explicit trailing-whitespace scan covering untracked files, and a common secret-pattern scan over changed/untracked files reported no findings. The edited sync workflow also parsed as YAML.
-- A local browser check confirmed that the pre-baseline snapshot shows `AA 完整榜待同步`, an explicit unavailable public hero, no fabricated public rows/counts, and a still-functional curated editorial view. The keyed baseline is now generated; rendering of its real 20 public rows remains pending browser acceptance after deployment.
+- A live headless-browser DOM check of the published Pages URL rendered exactly 20 public rows from Claude Fable 5.1 Max through GPT-5.6 Sol xhigh, displayed the exact `公开评测榜 · 智能指数` title, v4.1, and `AA 完整榜已同步`, and contained no `Top 20`, `当前共`, or `196 个已排名模型` text. The editorial switch remained present. The published page and bundle, Zeabur root status page, and `/healthz` all returned HTTP 200.
 - The standalone local `npm run sync:data:check` remains dry-run-only and is not a fail-on-drift freshness gate. Live AA/Arena fetch, generated PR creation, anomaly retention, and routine automatic merge are separately verified by the recorded GitHub Actions runs.
 - `python -m pytest -q` from `backend/` passed all 92 tests after adding the browser-facing root status page, including its available/unavailable contracts, API integration tests, Responses structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding.
 - `python -m ruff check app tests evals` passed.
@@ -168,7 +169,6 @@ Current local worktree checks plus the earlier 2026-09-04 live conditional data-
 
 ## Next (separate milestones)
 
-1. Merge the verified public-AA implementation pull request into `main`, wait for Pages and Zeabur deployment, then perform browser acceptance without adding a count label.
-2. Verify a later stable-membership score/date/order refresh through the unattended policy path.
-3. Design authentication, rate limiting, or quota enforcement before materially broader public API exposure.
-4. Add broader leaderboard end-to-end interaction coverage and sustained-load/resource testing if usage justifies them.
+1. Verify a later stable-membership score/date/order refresh through the unattended policy path.
+2. Design authentication, rate limiting, or quota enforcement before materially broader public API exposure.
+3. Add broader leaderboard end-to-end interaction coverage and sustained-load/resource testing if usage justifies them.
