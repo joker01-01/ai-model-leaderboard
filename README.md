@@ -1,230 +1,167 @@
-# AI Model Leaderboard
+# AI 模型排行榜
 
 [![Stack: React 19](https://img.shields.io/badge/Stack-React%2019-149ECA?style=flat-square)](https://react.dev/)
 [![Language: TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square)](https://www.typescriptlang.org/)
 [![Build: Vite 7](https://img.shields.io/badge/Build-Vite%207-646CFF?style=flat-square)](https://vite.dev/)
 [![API: FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=flat-square)](https://fastapi.tiangolo.com/)
 [![Deploy: GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-222222?style=flat-square)](https://joker01-01.github.io/ai-model-leaderboard/)
-[![Data: Exact Version Match](https://img.shields.io/badge/Data-Exact%20Version%20Match-0A7E8C?style=flat-square)](#reliability-rules)
-[![Publish: Guarded Auto-Merge](https://img.shields.io/badge/Publish-Guarded%20Auto--Merge-2EA44F?style=flat-square)](#the-publish-pipeline)
+[![Publish: Guarded Auto-Merge](https://img.shields.io/badge/Publish-Guarded%20Auto--Merge-2EA44F?style=flat-square)](#数据更新与发布)
 
-> **What should a system do when the data doesn't line up?**
+一个基于 Artificial Analysis 完整源数据的 AI 模型能力、速度与价格排行榜。
 
-This project is an AI model evaluation platform built around one rule: **if the version cannot be verified, don't pretend the score belongs there.**
+当前前端以 `AI 模型排行榜` 为入口，提供：
 
-The public board follows the first 20 scored entries in the current Artificial Analysis Intelligence Index. Each source configuration remains its own row. A separate editorial board re-ranks a curated exact-version catalog by user-adjustable preferences. Routine generated-data refreshes publish automatically only after the trusted gate passes; anomalies remain open for human review.
+- `模型能力榜单`：综合智能、编程智能、智能体能力；
+- `模型速度榜单`：首字延迟与输出速度；
+- `模型价格榜单`：输入价格与输出价格；
+- `按需求选模型`：目前为下一阶段入口，推荐服务尚未接入。
 
-**Frontend:** https://joker01-01.github.io/ai-model-leaderboard/
+榜单保留 Artificial Analysis 的每个 `sourceId` 和独立配置，不按模型家族合并，也不把完整公开榜映射到内部精选目录。当前提交中的 AA 快照包含 643 个唯一源条目；不同榜单只展示具备该项有限数值的全部条目。
 
-`React 19` · `TypeScript` · `Vite 7` · `GitHub Actions` · `GitHub Pages`
+**线上地址：** https://joker01-01.github.io/ai-model-leaderboard/
 
-## Why I built it
+> 本地提交与线上版本是两个状态。未完成 push、PR 和 Pages 部署前，线上页面可能仍是旧版。
 
-Model leaderboards often collapse several different things into one number: different model versions, blind user preference, benchmark scores, and editorial judgment.
+## 设计原则
 
-That creates a simple reliability problem:
+- **源条目保持原样。** 公开榜以 AA `sourceId` 为身份，同一模型的推理模式、努力等级等配置分别成行。
+- **缺失值不猜。** 缺失指标不会用相似模型、同系列版本或推断值补齐。
+- **公开排行与精选证据分离。** 完整 AA 榜单不扩张 `src/data/models.ts` 中的精选目录。
+- **精选证据只做精确版本匹配。** 相似名称、未知版本和多候选继续保持未匹配或歧义。
+- **编辑分数不改变公开名次。** Arena 仅作为内部精选目录的参考证据。
+- **更新 PR 是发布边界。** 自动化只提交生成文件；结构异常和门禁失败必须人工审核。
 
-**when two names look similar, is “close enough” good enough?**
+详细产品约束见 [`DESIGN.md`](DESIGN.md)，阶段与验收见 [`FRONTEND_REFACTOR_PLAN.md`](FRONTEND_REFACTOR_PLAN.md)，当前状态见 [`PROJECT_STATE.md`](PROJECT_STATE.md)。
 
-Here, the answer is no.
+## 当前前端
 
-A missing or ambiguous match stays unresolved. I would rather leave a score blank than make one look more certain than it is.
+- React 19、TypeScript、Vite 7，使用无依赖 hash router。
+- 首页采用一个共边网格：能力榜横跨首行，速度榜与价格榜共边双栏，推荐入口横跨末行；窄屏按相同阅读顺序叠放。
+- 首页每个榜单预览真实的前 5 行，不显示排名数字。
+- 完整榜单不设 Top 20、分页或搜索框；提供固定开发者筛选。
+- 模型名称是展示层简写，原始名称与源 ID 保留在快照中。`Claude` 前缀会省略，冲突时推理模式简写为 `R` / `NR`。
+- 能力条使用固定 0–100 轴；速度和价格使用高于当前峰值的易读上限，因此第一名不会被强行归一化为满条。
+- 首次进入榜单和切换能力指标会播放一次数值/条形动画；筛选不会重复播放，并遵循 reduced-motion。
 
-## What it does
+当前提交快照的有效行数：
 
-The project exposes two deliberately separate views:
+| 榜单 | 行数 |
+| --- | ---: |
+| 综合智能 | 630 |
+| 编程智能 | 255 |
+| 智能体能力 | 197 |
+| 模型速度 | 332 |
+| 模型价格 | 440 |
 
-- **Public evaluation board** — displays the first 20 scored Artificial Analysis source entries in current Intelligence Index order. Reasoning, effort, and other configurations are not merged by model family.
-- **Editorial board** — re-ranks a curated catalog of 20 concrete model versions by configurable preferences such as intelligence, coding, tool use, reasoning/math, price, and open weights.
-
-Arena data is shown as user-preference reference in curated editorial model details. It does not appear in source-native public rows or determine the public ranking.
-
-The repository also contains the Phase C ModelOps Agent backend. It strictly loads the generated evidence JSON and runs five typed operations—catalog filtering, benchmark lookup, pricing, allowlisted provider-document search, and pure update proposals—inside a bounded LangGraph workflow. FastAPI exposes health, non-streaming invoke, and typed POST SSE endpoints; an OpenAI-compatible Responses gateway uses DeepSeek V4 Flash for intent extraction and validates its output locally, while ranking, evidence checks, and proposal decisions remain deterministic.
-
-Phase D adds a React evidence console backed by a typed, runtime-validated POST SSE client. It renders the real event sequence, exact-version resolution, recommendation evidence, pricing, gaps, exclusions, clarification, and review-only proposals; stopping or rejecting a malformed stream actively disconnects the request. The panel remains disabled when `VITE_AGENT_API_URL` is absent, so the leaderboard stays independently usable. The Pages workflow supplies the accepted Zeabur HTTPS origin after its focused Agent tests pass.
-
-## The publish pipeline
+## 数据更新与发布
 
 ```mermaid
 flowchart LR
-  aa[Paginated AA source]
-  arena[Arena source]
-  public[Finite Intelligence entries]
-  top[First 20 source rows]
-  match[Curated exact-version matching]
-  generated[Generated snapshots + report]
-  pr[Generated-data PR]
-  gate[Trusted policy gate]
-  human[Human review]
+  aa[AA 完整分页响应]
+  full[完整源条目快照]
+  public[能力 / 速度 / 价格榜]
+  curated[精选目录精确版本匹配]
+  arena[Arena 参考数据]
+  generated[生成文件与审查报告]
+  pr[App 签名的数据 PR]
+  gate[可信 main 策略门禁]
+  human[人工审核]
   main[main]
   pages[GitHub Pages]
   api[Zeabur API]
 
-  aa --> public --> top --> generated
-  aa --> match
-  arena --> match --> generated
-  generated --> pr --> gate
-  gate -->|routine + all checks| main
-  gate -->|anomaly / failed gate| human --> main
+  aa --> full --> public
+  aa --> curated
+  arena --> curated
+  full --> generated
+  curated --> generated --> pr --> gate
+  gate -->|例行更新且全部检查通过| main
+  gate -->|结构异常或检查失败| human --> main
   main --> pages
   main --> api
 ```
 
-Sources:
+每日北京时间 01:20 的同步工作流会读取 AA 的全部分页，生成完整公开快照，并继续维护旧版兼容快照、精选目录的 AA/Arena 精确匹配和 ModelOps JSON。工作流只创建或更新 PR，不直接写入 `main`。
 
-- **Artificial Analysis Data API** — benchmark source for the public board.
-- **LMArena leaderboard dataset** — blind-preference reference in the detail view.
+完整公开快照由三份语义一致、可审查的生成文件组成：
 
-The sync workflow runs daily at 01:20 Beijing time. It reads the complete paginated AA response, derives the source-native public leaderboard, and separately maintains exact-version evidence for the curated catalog. It updates generated snapshots and opens or updates a pull request; it never pushes directly to `main`. The trusted gate automatically merges only routine score/date/order refreshes with stable public membership, index version, curated exact identities, approved generated paths, verified provenance, and all required checks. Membership, version, identity, or evidence anomalies stay open for human review. A merge into `main` triggers GitHub Pages and the linked Zeabur deployment.
+- `src/data/generated/aaPublicSnapshot.ts`
+- `data/aa/generated/snapshot.json`
+- `data/aa/generated/sync-report.json`
 
-## Reliability rules
+首次完整快照必须人工审核。基线建立后，同结构的普通模型增删、指标值、日期和顺序变化可以在所有检查通过后自动合并；schema、wire fingerprint、指数版本、已有身份元数据异常、生成文件漂移、分页不完整或任一总量/指标覆盖下降超过 20% 会保留 PR 等待人工审核。
 
-- **Source rows stay source rows.** Public entries use AA `sourceId` identity; separate configurations are neither deduplicated nor projected into the curated catalog.
-- **Exact version matching for curated evidence only.** Similar names, unknown versions, or multiple hits remain unmatched in the editorial/Agent catalog.
-- **Ambiguity becomes data, not a guess.** Missing and ambiguous cases are written to `data/sync-report.json`.
-- **Public rank and editorial preference stay separate.** Editorial weights never rewrite the public benchmark rank.
-- **Arena is reference, not rank.** User preference does not get mixed into the headline public score.
-- **Generated snapshots are generated.** `src/data/generated/aaSnapshot.ts` and `arenaSnapshot.ts` should not be edited by hand.
-- **The pull request stays the publication boundary.** Routine refreshes may auto-merge only after every gate passes; anomalies require human review.
+运维细节见 [`docs/data-refresh-automation.md`](docs/data-refresh-automation.md)。
 
-## Project structure
+## 项目结构
 
-| Area | Key files |
+| 区域 | 关键文件 |
 | --- | --- |
-| Model metadata | `src/data/models.ts` |
-| Public AA leaderboard | `src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx` |
-| Curated benchmark mapping | `src/data/benchmarks.ts` |
-| Editorial scoring | `src/lib/editorial.ts` |
-| AA generated snapshot | `src/data/generated/aaSnapshot.ts` |
-| Arena generated snapshot | `src/data/generated/arenaSnapshot.ts` |
-| ModelOps reviewed/generated data | `data/modelops/` |
-| ModelOps data contracts/tests | `scripts/modelops-data-schema.ts`, `scripts/modelops-data.test.ts` |
-| Curated rows / sorting / rank | `src/components/Board.tsx`, `src/lib/entries.ts`, `src/lib/ranking.ts` |
-| Strict Python contracts/repository | `backend/app/domain/`, `backend/app/repositories/` |
-| Five typed ModelOps tools | `backend/app/tools/` |
-| LangGraph workflow/verifier | `backend/app/graph/`, `backend/app/services/` |
-| FastAPI and typed SSE boundary | `backend/app/main.py`, `backend/app/api/` |
-| Typed SSE client and Agent Panel | `src/features/agent/` |
-| Runtime configuration | `.env.example`, `backend/app/config.py` |
-| Zeabur backend deployment | `Dockerfile`, `.dockerignore`, `docs/backend-deployment-zeabur.md` |
-| Offline Agent evaluations | `backend/evals/` |
-| AA leaderboard generator | `scripts/aa-leaderboard.mjs` |
-| Sync / matching report | `scripts/sync-data.mjs`, `data/sync-report.json` |
-| Sync workflow | `.github/workflows/sync-data.yml` |
-| Routine-refresh policy / merge workflow | `scripts/data-update-policy.mjs`, `.github/workflows/auto-merge-data.yml` |
-| Deploy workflow | `.github/workflows/deploy.yml` |
+| 公共入口与路由 | `src/App.tsx`, `src/lib/hashRoute.ts` |
+| 首页与完整榜单 | `src/pages/`, `src/components/SingleMetricChart.tsx`, `src/components/DualMetricChart.tsx` |
+| 展示名称与开发者色彩 | `src/lib/modelPresentation.ts`, `src/components/CreatorIcon.tsx` |
+| 完整 AA 前端契约与排序 | `src/lib/aaPublicSnapshot.ts`, `src/lib/aaRankings.ts` |
+| 完整 AA 生成数据 | `src/data/generated/aaPublicSnapshot.ts`, `data/aa/generated/` |
+| 完整 AA 同步与验证 | `scripts/aa-public-snapshot.mjs`, `scripts/sync-data.mjs` |
+| 自动合并策略 | `scripts/data-update-policy.mjs`, `.github/workflows/auto-merge-data.yml` |
+| 精选模型与证据 | `src/data/models.ts`, `src/data/benchmarks.ts`, `data/modelops/` |
+| 旧版精选界面 | `src/components/Board.tsx`, `src/components/AaBoard.tsx` |
+| FastAPI / LangGraph 后端 | `backend/app/` |
+| 旧版 Agent SSE 客户端 | `src/features/agent/` |
+| 部署 | `.github/workflows/deploy.yml`, `Dockerfile`, `docs/backend-deployment-zeabur.md` |
 
-## Run it locally
-
-```bash
-npm install
-npm run dev
-npm run build
-npm run modelops:data:check
-npm run test:data-update-policy
-npm run test:modelops-data
-npm run test:agent
-npm run test:frontend
-```
-
-Manual sync:
+## 本地运行
 
 ```powershell
-$env:AA_API_KEY = "your Artificial Analysis API key"
-npm run sync:data
-npm run build
+npm ci
+npm run dev
 ```
 
-Without `AA_API_KEY`, the sync keeps the previous verified Artificial Analysis snapshot and can still process the Arena side.
+提交前的主要检查：
 
-Offline ModelOps Agent verification requires Python 3.12:
+```powershell
+npm run test:frontend
+npm run build
+npm run test:data-update-policy
+npm run test:modelops-data
+npm run modelops:data:check
+git diff --check
+```
+
+手动同步完整 AA 数据需要本地环境变量；不要把密钥写入仓库：
+
+```powershell
+$env:AA_API_KEY = "<Artificial Analysis API key>"
+npm run sync:data
+```
+
+只更新三份完整公开快照时使用：
+
+```powershell
+node scripts/sync-data.mjs --aa-public-only
+```
+
+默认同步缺少 `AA_API_KEY` 时会保留已有 AA 快照并继续其兼容流程；`--aa-public-only` 缺少密钥会在写文件前失败。
+
+## ModelOps 后端
+
+仓库保留已部署的 FastAPI/LangGraph ModelOps 后端。它读取精选目录的严格生成 JSON，提供健康检查、一次性 invoke 和断连感知的 POST SSE，并通过注入的 DeepSeek Responses gateway 完成结构化意图提取。排序、证据检查和更新提案仍由确定性代码完成；`prepare_data_update` 只生成待审核提案，不写文件或发布。
+
+本地启动前需导出后端密钥；`.env.example` 不会被自动加载：
 
 ```powershell
 cd backend
 python -m pip install -e ".[dev]"
-python -m pytest -q
-python -m ruff check app tests evals
-python -m mypy app tests evals
-python evals/run.py
-```
-
-These checks use committed generated data, `FakeModelGateway`, and injected provider-document responses. They do not call a model provider or fetch live provider documentation.
-
-To start the Phase C API locally, export the backend environment values and run Uvicorn from `backend/`. The repository does not auto-load `.env.example`:
-
-```powershell
 $env:MODELOPS_MODEL_API_KEY = "<DeepSeek API key>"
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Available endpoints:
+后端地址：[`https://modelops-agent-api.zeabur.app`](https://modelops-agent-api.zeabur.app)。部署与恢复步骤见 [`docs/backend-deployment-zeabur.md`](docs/backend-deployment-zeabur.md)。
 
-- `GET /` — browser-friendly service status and links to the public product, API docs, and readiness endpoint.
-- `GET /healthz` — runtime readiness.
-- `POST /api/v1/agent/query:invoke` — one structured response.
-- `POST /api/v1/agent/query` — typed SSE with monotonic sequence, heartbeat comments, one terminal event, and disconnect cancellation.
+## 当前边界与下一阶段
 
-The API is intentionally stateless: `session_id` is accepted as client context, but persistence and stream replay are not implemented.
-
-## Deploy the backend
-
-The backend runs as `modelops-agent-api` on a Zeabur-managed Tencent Cloud server in Singapore, with public origin `https://modelops-agent-api.zeabur.app`. Follow [`docs/backend-deployment-zeabur.md`](docs/backend-deployment-zeabur.md) for the verified configuration and recreation/rollback procedure. Keep the Docker build context at the repository root so the image contains both `backend/app/` and the committed ModelOps JSON under `data/modelops/generated/`.
-
-## Verification and remaining work
-
-`npm run test:modelops-data` checks the curated ModelOps adapter contracts, exact source/version bindings, and curated objective/editorial evidence equivalence. The public AA board has separate generator, parser, component, and refresh-policy tests. The 92-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, the browser landing page, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
-
-Phase D is published through GitHub Pages. The live browser DOM contains the configured Agent Panel and the public/editorial leaderboard views, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A fail-on-drift mode for the standalone local `sync:data:check` command and broader frontend interaction coverage remain separate future work.
-
-The conditional data-refresh control plane is operational: a repository-scoped GitHub App prepares the pull request, protected `main` requires the complete `verify` check, and trusted-main policy code performs the guarded merge. Live acceptance covered both an anomaly refresh retained for human review ([PR #7](https://github.com/joker01-01/ai-model-leaderboard/pull/7)) and a routine refresh merged automatically ([PR #9](https://github.com/joker01-01/ai-model-leaderboard/pull/9)). See [`docs/data-refresh-automation.md`](docs/data-refresh-automation.md).
-
-## Limitations
-
-- The public board is intentionally limited to the first 20 scored entries returned by the current AA Intelligence source snapshot; it is not the entire model market.
-- The separate editorial/Agent catalog is a curated set of 20 pinned versions. Public membership does not automatically become Agent evidence.
-- Scores are snapshots from selected public benchmark sources, not vendor-official conclusions.
-- Model versions, prices, context windows, and licenses change quickly.
-- Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
-- Structured prices currently cover only a small exact-version/provider subset; missing prices, end-user country availability, and latency stay unresolved instead of being inferred.
-- The Agent Panel is stateless and has no persistence, stream replay, authentication, or rate limiting. The Zeabur runtime has passed health/invoke/SSE/CORS checks, a bounded client-disconnect and endpoint-stability observation, and a recorded Git-revert deployment/recovery drill. Because the reverted Phase D commit did not change backend build inputs, the drill covers deployment switching and recovery rather than a behaviorally different backend image. The post-recovery service graph showed low-single-digit CPU percentages and roughly 65-75 MB memory, but this is a point-in-time operational snapshot rather than a sustained-load test.
-- The concrete clients are contract-tested with injected HTTP transports. The provider-document client passed a manual live transport smoke across all 11 distinct exact-allowlisted URLs, and the configured DeepSeek V4 Flash gateway accepted the complete structured intent schema in a live request.
-- Focused Agent parser and panel interaction tests exist; broad end-to-end coverage for the rest of the leaderboard does not.
-
-## Data principle
-
-Before recording a public score:
-
-1. Preserve each public entry's AA source ID, concrete configuration name, source slug, observation date, and index version.
-2. Rank only finite values from the current Artificial Analysis Intelligence Index.
-3. Keep distinct source configurations as distinct rows instead of deduplicating by model family.
-4. Apply exact-version matching separately when attaching evidence to the curated editorial/Agent catalog.
-5. Never mix editorial scores, sibling-version evidence, or inferred metadata into the public board.
-
-<details>
-<summary><strong>中文说明</strong></summary>
-
-<br>
-
-> **数据对不上时，一个系统应该怎么办？**
-
-这个项目围绕一个很简单的规则：**版本不能确认，就不要假装这个分数属于它。**
-
-公开榜直接展示 Artificial Analysis 当前 Intelligence Index 的前 20 个有分数源条目；同一模型的不同推理、努力等配置分别成行，不按模型家族合并。编辑推荐榜和 ModelOps Agent 继续使用独立的 20 个精确版本精选目录。数据每天自动同步并生成更新 PR；公开榜成员、指数版本、精选目录身份、文件范围、提交来源和全部检查均稳定的例行更新会自动合并，异常更新保留给人工审核。
-
-我更愿意留一个空白，也不愿意让一个分数看起来比它实际更确定。
-
-核心可靠性规则：
-
-- 公开榜按 AA `sourceId` 保留每个源配置，不去重、不套用精选目录资料。
-- 精选目录证据只接受精确版本匹配。
-- 相似名称、未知版本、多条候选都保持未匹配。
-- 缺失和歧义写入 `data/sync-report.json`，不偷偷补值。
-- Arena 只作用户偏好参考，不参与公开名次。
-- 编辑权重和公开榜分开。
-- 更新 PR 是发布边界：例行更新通过门禁后自动合并，异常更新仍需人工审核。
-
-当前已完成 Phase C 后端和 Phase D 前端实现：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、FastAPI health/invoke/SSE、DeepSeek V4 Flash gateway、受限 HTTP 文档客户端，以及带深层运行时契约校验的 React Agent Panel。SSE 保证递增 sequence、单一终止事件和断连取消；更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
-
-尚未实现持久化/断点续传、认证与限流；Zeabur 新加坡后端已通过 health、DeepSeek-backed invoke、POST SSE、GitHub Pages CORS、客户端主动断连、约 10 分钟端点稳定性检查，以及一次 Git-revert 部署切换/恢复演练。公开浏览器 DOM 已确认 Agent Panel 与原排行榜同时存在，三个 Agent 路径通过携带生产 Pages `Origin` 请求头的 HTTPS 传输检查。被回滚的 Phase D 提交没有改变后端构建输入，因此该演练验证的是 GitHub 到 Zeabur 的版本切换、健康连续性和恢复流程，而不是两个不同后端实现之间的回退。恢复后的服务图表显示 CPU 为低个位数百分比、内存约 65-75 MB，但这只是运维快照，不是持续负载测试。现有排行榜在 API 未配置时仍可独立运行；例行数据更新通过严格门禁后自动合并，异常更新仍须人工审核。
-
-</details>
+- `#/advisor` 目前只是入口；面向公众的一次性需求推荐、官方来源联网核验、限流与并发门禁尚未实现。
+- 首页社交页脚、Bilibili/GitHub/微信公众号入口、微信公众号二维码和正式品牌图标留在后续资产阶段。
+- 内部精选目录仍只有受控的精确版本集合；完整公开榜成员不会自动成为 ModelOps Agent 证据。
+- 指标是带观测日期的第三方快照，不是厂商官方结论；价格、速度和模型配置会变化。
+- 尚未对本地 Phase 1–3 重构执行 push、PR、Pages 或 Zeabur 发布验收；以 [`PROJECT_STATE.md`](PROJECT_STATE.md) 为准。

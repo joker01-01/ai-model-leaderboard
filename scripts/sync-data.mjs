@@ -3,13 +3,31 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { asyncBufferFromUrl, parquetReadObjects } from "hyparquet";
 import { buildAaLeaderboard } from "./aa-leaderboard.mjs";
+import { renderLegacySnapshotModule } from "./generated-snapshot-module.mjs";
+import {
+  AA_PUBLIC_SOURCE_URL,
+  buildAaPublicSnapshot,
+  renderAaPublicSnapshotModule,
+} from "./aa-public-snapshot.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dryRun = process.argv.includes("--check");
+const publicOnly = process.argv.includes("--aa-public-only");
 const now = new Date().toISOString();
+const observedAt = now.slice(0, 10);
+const jsonRequestTimeoutMs = 20_000;
+
+const supportedArguments = new Set(["--check", "--aa-public-only"]);
+const unknownArguments = process.argv.slice(2).filter((argument) => !supportedArguments.has(argument));
+if (unknownArguments.length > 0) {
+  throw new Error(`Unsupported sync argument(s): ${unknownArguments.join(", ")}`);
+}
 
 const paths = {
   aa: resolve(projectRoot, "src/data/generated/aaSnapshot.ts"),
+  aaPublic: resolve(projectRoot, "src/data/generated/aaPublicSnapshot.ts"),
+  aaPublicJson: resolve(projectRoot, "data/aa/generated/snapshot.json"),
+  aaPublicReport: resolve(projectRoot, "data/aa/generated/sync-report.json"),
   aliases: resolve(projectRoot, "data/modelops/model-aliases.json"),
   arena: resolve(projectRoot, "src/data/generated/arenaSnapshot.ts"),
   report: resolve(projectRoot, "data/sync-report.json"),
@@ -19,84 +37,99 @@ const paths = {
  * 映射只允许精确 ID / slug / 名称匹配，禁止模糊匹配或仅按模型家族猜测。
  * 新模型或匹配歧义会进入报告，由人复核后再补充别名。
  */
-const aliasConfig = JSON.parse(await readFile(paths.aliases, "utf8"));
-if (aliasConfig.schemaVersion !== 1 || !Array.isArray(aliasConfig.models)) {
-  throw new Error(`Unsupported model alias schema in ${paths.aliases}`);
-}
-const modelIds = new Set();
-const aliasOwners = {
-  aaSlugs: new Map(),
-  arenaNames: new Map(),
-  benchmarkVersionIds: new Map(),
-};
-const providerBindingOwners = new Map();
-const providerIds = new Set(["alibaba-cloud-model-studio", "anthropic", "deepseek", "openai", "qwen"]);
-const trackedModels = aliasConfig.models.map((entry, index) => {
-  const entryPath = `model alias entry ${index}`;
-  if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-    throw new Error(`${entryPath} must be an object`);
+let trackedModels = [];
+if (!publicOnly) {
+  const aliasConfig = JSON.parse(await readFile(paths.aliases, "utf8"));
+  if (aliasConfig.schemaVersion !== 1 || !Array.isArray(aliasConfig.models)) {
+    throw new Error(`Unsupported model alias schema in ${paths.aliases}`);
   }
-  const keys = Object.keys(entry).sort();
-  const expectedKeys = ["aaSlugs", "arenaNames", "modelId"];
-  if ("benchmarkVersionIds" in entry) expectedKeys.push("benchmarkVersionIds");
-  if ("providerModels" in entry) expectedKeys.push("providerModels");
-  if (keys.join("|") !== expectedKeys.sort().join("|")) {
-    throw new Error(`${entryPath} has missing or unexpected fields`);
-  }
-  if (
-    typeof entry.modelId !== "string"
-    || entry.modelId.trim() === ""
-    || entry.modelId.trim() !== entry.modelId
-    || modelIds.has(entry.modelId)
-  ) {
-    throw new Error(`${entryPath}.modelId must be a unique non-empty string`);
-  }
-  modelIds.add(entry.modelId);
-  for (const field of ["aaSlugs", "arenaNames", "benchmarkVersionIds"]) {
-    const aliases = entry[field] ?? [];
-    if (!Array.isArray(aliases) || aliases.some((alias) => typeof alias !== "string" || alias.trim() === "" || alias.trim() !== alias)) {
-      throw new Error(`${entryPath}.${field} must contain only non-empty strings`);
+  const modelIds = new Set();
+  const aliasOwners = {
+    aaSlugs: new Map(),
+    arenaNames: new Map(),
+    benchmarkVersionIds: new Map(),
+  };
+  const providerBindingOwners = new Map();
+  const providerIds = new Set(["alibaba-cloud-model-studio", "anthropic", "deepseek", "openai", "qwen"]);
+  trackedModels = aliasConfig.models.map((entry, index) => {
+    const entryPath = `model alias entry ${index}`;
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new Error(`${entryPath} must be an object`);
     }
-    for (const alias of aliases) {
-      const owner = aliasOwners[field].get(alias);
-      if (owner) throw new Error(`${field} alias ${JSON.stringify(alias)} is assigned to both ${owner} and ${entry.modelId}`);
-      aliasOwners[field].set(alias, entry.modelId);
+    const keys = Object.keys(entry).sort();
+    const expectedKeys = ["aaSlugs", "arenaNames", "modelId"];
+    if ("benchmarkVersionIds" in entry) expectedKeys.push("benchmarkVersionIds");
+    if ("providerModels" in entry) expectedKeys.push("providerModels");
+    if (keys.join("|") !== expectedKeys.sort().join("|")) {
+      throw new Error(`${entryPath} has missing or unexpected fields`);
     }
-  }
-  const providerModels = entry.providerModels ?? [];
-  if (!Array.isArray(providerModels)) throw new Error(`${entryPath}.providerModels must be an array`);
-  for (const [bindingIndex, binding] of providerModels.entries()) {
-    const bindingPath = `${entryPath}.providerModels[${bindingIndex}]`;
     if (
-      !binding
-      || typeof binding !== "object"
-      || Array.isArray(binding)
-      || Object.keys(binding).sort().join("|") !== "providerId|providerModelId"
-      || !providerIds.has(binding.providerId)
-      || typeof binding.providerModelId !== "string"
-      || binding.providerModelId.trim() === ""
-      || binding.providerModelId.trim() !== binding.providerModelId
+      typeof entry.modelId !== "string"
+      || entry.modelId.trim() === ""
+      || entry.modelId.trim() !== entry.modelId
+      || modelIds.has(entry.modelId)
     ) {
-      throw new Error(`${bindingPath} must contain one supported providerId and one non-empty providerModelId`);
+      throw new Error(`${entryPath}.modelId must be a unique non-empty string`);
     }
-    const key = `${binding.providerId}|${binding.providerModelId}`;
-    const owner = providerBindingOwners.get(key);
-    if (owner) throw new Error(`provider binding ${JSON.stringify(key)} is assigned to both ${owner} and ${entry.modelId}`);
-    providerBindingOwners.set(key, entry.modelId);
-  }
-  return entry;
-});
+    modelIds.add(entry.modelId);
+    for (const field of ["aaSlugs", "arenaNames", "benchmarkVersionIds"]) {
+      const aliases = entry[field] ?? [];
+      if (!Array.isArray(aliases) || aliases.some((alias) => typeof alias !== "string" || alias.trim() === "" || alias.trim() !== alias)) {
+        throw new Error(`${entryPath}.${field} must contain only non-empty strings`);
+      }
+      for (const alias of aliases) {
+        const owner = aliasOwners[field].get(alias);
+        if (owner) throw new Error(`${field} alias ${JSON.stringify(alias)} is assigned to both ${owner} and ${entry.modelId}`);
+        aliasOwners[field].set(alias, entry.modelId);
+      }
+    }
+    const providerModels = entry.providerModels ?? [];
+    if (!Array.isArray(providerModels)) throw new Error(`${entryPath}.providerModels must be an array`);
+    for (const [bindingIndex, binding] of providerModels.entries()) {
+      const bindingPath = `${entryPath}.providerModels[${bindingIndex}]`;
+      if (
+        !binding
+        || typeof binding !== "object"
+        || Array.isArray(binding)
+        || Object.keys(binding).sort().join("|") !== "providerId|providerModelId"
+        || !providerIds.has(binding.providerId)
+        || typeof binding.providerModelId !== "string"
+        || binding.providerModelId.trim() === ""
+        || binding.providerModelId.trim() !== binding.providerModelId
+      ) {
+        throw new Error(`${bindingPath} must contain one supported providerId and one non-empty providerModelId`);
+      }
+      const key = `${binding.providerId}|${binding.providerModelId}`;
+      const owner = providerBindingOwners.get(key);
+      if (owner) throw new Error(`provider binding ${JSON.stringify(key)} is assigned to both ${owner} and ${entry.modelId}`);
+      providerBindingOwners.set(key, entry.modelId);
+    }
+    return entry;
+  });
+}
 
 async function fetchJson(url, options = {}) {
   let lastError;
   for (let attempt = 0; attempt < 3; attempt += 1) {
+    let response;
     try {
-      const response = await fetch(url, { headers: { accept: "application/json", ...(options.headers ?? {}) } });
-      if (response.ok) return response.json();
-      lastError = new Error(`${response.status} ${response.statusText}: ${url}`);
-      if (![429, 500, 502, 503, 504].includes(response.status)) throw lastError;
+      response = await fetch(url, {
+        headers: { accept: "application/json", ...(options.headers ?? {}) },
+        redirect: "error",
+        signal: AbortSignal.timeout(jsonRequestTimeoutMs),
+      });
     } catch (error) {
       lastError = error;
+    }
+    if (response?.ok) {
+      try {
+        return await response.json();
+      } catch (error) {
+        lastError = error;
+      }
+    } else if (response) {
+      lastError = new Error(`${response.status} ${response.statusText}: ${url}`);
+      if (![429, 500, 502, 503, 504].includes(response.status)) throw lastError;
     }
     if (attempt < 2) await new Promise((resolveDelay) => setTimeout(resolveDelay, 800 * (attempt + 1)));
   }
@@ -189,17 +222,25 @@ function findAaMatch(models, entry) {
   return { match: matches[0], count: 1 };
 }
 
-async function syncArtificialAnalysis() {
+async function syncArtificialAnalysis({ requireKey = false, includeLegacy = true } = {}) {
   const key = process.env.AA_API_KEY;
-  if (!key) return { skipped: true, report: { matched: [], unmatched: trackedModels.map((model) => model.modelId), ambiguous: [] } };
+  if (!key) {
+    if (requireKey) throw new Error("AA_API_KEY is required for --aa-public-only");
+    return {
+      skipped: true,
+      public: null,
+      report: { matched: [], unmatched: trackedModels.map((model) => model.modelId), ambiguous: [] },
+    };
+  }
   // 当前免费 API 的正式入口。必须遍历分页，不能把第一页 200 条误当成完整模型目录。
+  const pages = [];
   const rows = [];
   const seenPages = new Set();
   let intelligenceIndexVersion = null;
   let expectedPageSize = null;
   let expectedTotalPages = null;
   for (let page = 1; page <= 50; page += 1) {
-    const url = new URL("https://artificialanalysis.ai/api/v2/language/models/free");
+    const url = new URL(AA_PUBLIC_SOURCE_URL);
     url.searchParams.set("page", String(page));
     const payload = await fetchJson(url, { headers: { "x-api-key": key } });
     const responseIndexVersion = payload.intelligence_index_version;
@@ -242,6 +283,7 @@ async function syncArtificialAnalysis() {
     const pageSignature = batch.map((model) => String(model.id ?? model.slug)).join("|");
     if (seenPages.has(pageSignature)) throw new Error(`AA page ${page} repeated an earlier page`);
     seenPages.add(pageSignature);
+    pages.push(payload);
     rows.push(...batch);
     if (!pagination.has_more) break;
   }
@@ -251,7 +293,15 @@ async function syncArtificialAnalysis() {
   if (seenPages.size !== expectedTotalPages) {
     throw new Error(`AA pagination stopped after ${seenPages.size} of ${expectedTotalPages} pages`);
   }
-  const intelligenceLeaderboard = buildAaLeaderboard(rows, now.slice(0, 10));
+  const publicSnapshot = buildAaPublicSnapshot(pages, {
+    observedAt,
+    sourceUrl: AA_PUBLIC_SOURCE_URL,
+  });
+  if (!includeLegacy) {
+    return { skipped: false, public: publicSnapshot };
+  }
+
+  const intelligenceLeaderboard = buildAaLeaderboard(rows, observedAt);
   const models = {};
   const matched = [];
   const unmatched = [];
@@ -274,7 +324,7 @@ async function syncArtificialAnalysis() {
       profile[kind] = {
         value,
         modelVersion: String(result.match.name ?? result.match.slug),
-        observedAt: now.slice(0, 10),
+        observedAt,
         sourceId: String(result.match.id),
         sourceSlug: String(result.match.slug),
       };
@@ -289,6 +339,7 @@ async function syncArtificialAnalysis() {
 
   return {
     skipped: false,
+    public: publicSnapshot,
     snapshot: {
       generatedAt: now,
       source: "Artificial Analysis Data API",
@@ -299,17 +350,6 @@ async function syncArtificialAnalysis() {
     },
     report: { matched, unmatched, ambiguous, rows: rows.length },
   };
-}
-
-function renderTs(constName, value) {
-  const kind = constName === "AA_SNAPSHOT" ? "AaSnapshot" : "ArenaSnapshot";
-  const comment = constName === "AA_SNAPSHOT"
-    ? "由 `npm run sync:data` 生成；请不要手工编辑。"
-    : "由 `npm run sync:data` 生成；Arena 分数不参与本站主榜排序。";
-  const interfaces = constName === "AA_SNAPSHOT"
-    ? `export interface SyncedAaMetric {\n  value: number;\n  modelVersion: string;\n  observedAt: string;\n  sourceId: string;\n  sourceSlug: string;\n}\n\nexport interface SyncedAaLeaderboardEntry {\n  sourceId: string;\n  sourceSlug: string;\n  modelVersion: string;\n  creatorId: string | null;\n  creatorName: string | null;\n  releaseDate: string | null;\n  value: number;\n  observedAt: string;\n}\n\nexport interface AaSnapshot {\n  generatedAt: string | null;\n  source: "Artificial Analysis Data API" | "manual";\n  sourceUrl: string;\n  intelligenceIndexVersion: number;\n  intelligenceLeaderboard: SyncedAaLeaderboardEntry[];\n  models: Record<string, Partial<Record<"intelligence" | "coding", SyncedAaMetric>>>;\n}`
-    : `export interface ArenaMetric {\n  value: number;\n  rank: number | null;\n  lower: number | null;\n  upper: number | null;\n  observations: number | null;\n  category: string;\n  observedAt: string;\n  modelVersion: string;\n}\n\nexport interface ArenaSnapshot {\n  generatedAt: string | null;\n  sourceUrl: string;\n  models: Record<string, Partial<Record<"text" | "webdev" | "agent", ArenaMetric>>>;\n}`;
-  return `/** ${comment} */\n${interfaces}\n\nexport const ${constName}: ${kind} = ${JSON.stringify(value, null, 2)};\n`;
 }
 
 async function writeOrCheck(path, content) {
@@ -323,19 +363,42 @@ async function writeOrCheck(path, content) {
   return true;
 }
 
-const [arena, aa] = await Promise.all([syncArena(), syncArtificialAnalysis()]);
-const report = {
-  generatedAt: now,
-  policy: "仅精确版本映射；匹配歧义和缺失不改榜单。Arena 仅作详情参考，不参与主榜。",
-  artificialAnalysis: aa.skipped ? { status: "skipped_missing_AA_API_KEY", ...aa.report } : { status: "updated", ...aa.report },
-  arena: { status: "updated", ...arena.report },
-};
+async function writeAaPublicArtifacts(result) {
+  return Promise.all([
+    writeOrCheck(paths.aaPublic, renderAaPublicSnapshotModule(result.snapshot)),
+    writeOrCheck(paths.aaPublicJson, `${JSON.stringify(result.snapshot, null, 2)}\n`),
+    writeOrCheck(paths.aaPublicReport, `${JSON.stringify(result.report, null, 2)}\n`),
+  ]);
+}
 
-const changes = [
-  await writeOrCheck(paths.arena, renderTs("ARENA_SNAPSHOT", arena.snapshot)),
-  await writeOrCheck(paths.report, `${JSON.stringify(report, null, 2)}\n`),
-];
-if (!aa.skipped) changes.push(await writeOrCheck(paths.aa, renderTs("AA_SNAPSHOT", aa.snapshot)));
+async function main() {
+  if (publicOnly) {
+    const aa = await syncArtificialAnalysis({ requireKey: true, includeLegacy: false });
+    const changes = await writeAaPublicArtifacts(aa.public);
+    console.log(`${dryRun ? "Checked" : "Updated"} ${changes.filter(Boolean).length} public AA file(s).`);
+    console.log(`AA public: ${aa.public.snapshot.models.length} source row(s).`);
+    return;
+  }
 
-console.log(`${dryRun ? "Checked" : "Updated"} ${changes.filter(Boolean).length} file(s).`);
-console.log(`AA: ${aa.skipped ? "skipped (AA_API_KEY missing)" : `${aa.report.matched.length} matched`}; Arena: ${arena.report.matched.length} matched.`);
+  const [arena, aa] = await Promise.all([syncArena(), syncArtificialAnalysis()]);
+  const report = {
+    generatedAt: now,
+    policy: "仅精确版本映射；匹配歧义和缺失不改榜单。Arena 仅作详情参考，不参与主榜。",
+    artificialAnalysis: aa.skipped ? { status: "skipped_missing_AA_API_KEY", ...aa.report } : { status: "updated", ...aa.report },
+    arena: { status: "updated", ...arena.report },
+  };
+
+  const changes = [
+    await writeOrCheck(paths.arena, renderLegacySnapshotModule("ARENA_SNAPSHOT", arena.snapshot)),
+    await writeOrCheck(paths.report, `${JSON.stringify(report, null, 2)}\n`),
+  ];
+  if (!aa.skipped) {
+    changes.push(await writeOrCheck(paths.aa, renderLegacySnapshotModule("AA_SNAPSHOT", aa.snapshot)));
+    changes.push(...await writeAaPublicArtifacts(aa.public));
+  }
+
+  console.log(`${dryRun ? "Checked" : "Updated"} ${changes.filter(Boolean).length} file(s).`);
+  console.log(`AA: ${aa.skipped ? "skipped (AA_API_KEY missing)" : `${aa.report.matched.length} matched`}; Arena: ${arena.report.matched.length} matched.`);
+}
+
+await main();

@@ -2,173 +2,236 @@
 
 ## Goal
 
-Upgrade the existing AI Model Leaderboard into the bounded ModelOps Agent MVP defined in `docs/modelops-agent-plan.md`, use the current Artificial Analysis Intelligence source entries for the public board, and preserve exact-version curated evidence, reviewable data-refresh pull requests, and controlled publication.
+Refactor the existing AI model leaderboard into the simple four-card product defined in `DESIGN.md`, backed by complete source-native Artificial Analysis metrics and a one-shot DeepSeek-assisted model advisor, while preserving the curated exact-version ModelOps domain and protected data-publication workflow.
 
-## Architecture
+## Current repository baseline
 
-Current deployed repository architecture. The conditional publication control plane and the source-native public AA board are live with their first keyed generated-data baseline on `main`:
+- Working directory: `D:\desktop\ai-model-leaderboard`.
+- Current branch: `main`; the refactor checkpoint is based on remote revision `f3c82ad9d5fb130d9bd66edafcdb491b73792f88`.
+- React 19, TypeScript, and Vite build the GitHub Pages frontend.
+- The published public board currently opens directly and renders the first 20 finite AA Intelligence entries from a complete paginated fetch.
+- The deployed frontend still contains the curated editorial board and technical Agent evidence console. The local Phase 1–3 checkpoint replaces their public entry points with the confirmed four-card directory while preserving the legacy implementations.
+- The current generated AA snapshot keeps the 20-row source-native Intelligence board separate from the curated exact-match `models` map.
+- The curated editorial and ModelOps paths use exact internal IDs, controlled AA/Arena/provider identifiers, reviewed evidence, deterministic export, and visible missing evidence.
+- The Python 3.12 FastAPI/LangGraph backend is deployed from `main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
+- The backend currently supports strict one-run invoke/SSE contracts, DeepSeek Responses structured intent extraction, exact-allowlisted provider-document fetching, deterministic tools, and review-only update proposals.
+- GitHub Actions verifies pull requests, deploys Pages, prepares App-signed data PRs, and conditionally auto-merges the current narrow class of routine generated refreshes.
 
-```text
-React 19 + TypeScript + Vite static frontend
-  <- source-native AA Intelligence entries -> public board
-  <- curated TypeScript model + exact benchmark evidence -> editorial board
-  <- deterministic curated ModelOps catalog/evidence JSON -> Agent
-  <- daily full-page AA/Arena sync + adapter export/tests
-  -> repository-scoped App-authored, GitHub-signed review PR
-  -> read-only pull-request verification
-  -> trusted-main policy gate
-     -> routine generated-data refresh: guarded merge
-     -> anomaly or failed gate: human review
-  -> GitHub Pages deployment
-  -> typed POST SSE client + Agent evidence console
-     (disabled when VITE_AGENT_API_URL is absent)
+These are current deployed implementation facts. The local checkpoint implements the data layer and ranking experience described below but is not yet pushed or published; the advisor and footer remain future phases.
 
-Python 3.12 Agent core
-  <- strict read-only repository over the same generated JSON
-  -> five typed read-only/pure tools
-  -> deterministic evidence verifier + bounded LangGraph workflow
-  -> typed AgentAnswer / awaiting_human_review proposal
-  <- DeepSeek V4 Flash through an OpenAI-compatible Responses structured-output gateway
-  <- bounded exact-allowlist HTTP provider-document client
+## Confirmed product target
 
-Independent FastAPI service
-  -> GET / as browser status/navigation
-  -> GET /healthz
-  -> POST /api/v1/agent/query:invoke
-  -> POST /api/v1/agent/query as typed SSE
-  -> disconnect cancellation; no persistence or replay
-```
+The product direction and Phase 1 design baseline are confirmed.
 
-Current deployed backend boundary:
+### Public information architecture
 
-```text
-GitHub Pages static leaderboard + Phase D Agent Panel
-  -> runtime-validated POST SSE over HTTPS
+- Home title: `AI 模型排行榜`.
+- Four cards only:
+  - `模型能力榜单`
+  - `模型速度榜单`
+  - `模型价格榜单`
+  - `按需求选模型`
+- Hash routes:
+  - `#/`
+  - `#/ability/intelligence`
+  - `#/ability/coding`
+  - `#/ability/agentic`
+  - `#/efficiency/speed`
+  - `#/efficiency/price`
+  - `#/advisor`
+- The curated board and technical Agent console remain in the repository but have no new public navigation entry.
 
-Public Zeabur HTTPS API
-  -> Zeabur HTTPS domain
-  -> independent FastAPI SSE API
-  -> current bounded LangGraph core and evidence/proposal views
-```
+### Public data
 
-The frontend remains usable when no Agent API is configured. The reviewed Pages workflow injects `https://modelops-agent-api.zeabur.app`; the independent backend is deployed as `modelops-agent-api` on a Zeabur-managed Tencent Cloud server in Singapore with 2 vCPU, 2 GB RAM, 40 GB SSD, and 512 GB monthly outbound transfer.
+- One validated full source-native AA record per `sourceId`.
+- The snapshot records its schema, exact source, observation date, selected Free v2 wire-contract projection fingerprint, AA Intelligence Index version, and complete-pagination proof; Coding/Agentic have no invented independent version. New `src/data/generated/aaPublicSnapshot.ts` and `data/aa/generated/snapshot.json` serialize the same validated object, with review evidence in `data/aa/generated/sync-report.json`.
+- The new public module exports `AA_PUBLIC_SNAPSHOT`; the Phase 3 working-tree UI consumes it directly. Existing `src/data/generated/aaSnapshot.ts` continues to export the legacy `AA_SNAPSHOT.models` curated exact matches and old 20-row compatibility field for preserved legacy consumers and the currently deployed pre-refactor revision.
+- Metrics: Intelligence, Coding, Agentic, input price, output price, first-answer time, and output tokens per second.
+- Each leaderboard includes all rows with its required finite values; no Top-20 cap, family merge, or public-page pagination. Sync still validates every upstream API page.
+- Ability sorts high to low; speed sorts by output speed high to low; price sorts by output price high to low.
+- Equal primary values sort by the deterministic name sort key, then `sourceId`; competition rank uses the primary value only.
+- Creator filtering preserves pre-filter global competition rank, while public charts communicate rank by order and omit visible rank numerals.
+- Simplified names are display-only and remove a leading `Claude` brand token. Collision-only reasoning qualifiers use `R` / `NR` and merge with effort as forms such as `High·R`; chart names use a single-line ellipsis with the full simplified label on hover. Nullable raw names/slugs and exact `sourceId` identity remain stored. Missing name/slug never drops a finite-metric row and uses the transparent fallback defined in `DESIGN.md`.
+- Public full-data membership remains independent from the curated exact-version catalog.
 
-## Current Status
+### Public advisor
 
-- Repository baseline and full ModelOps architecture have been reviewed.
-- `AGENTS.md` now records durable invariants, commands, generated-file rules, publication boundaries, and risk-proportionate review guidance.
-- `docs/modelops-agent-plan.md` contains the approved architecture, file-level scope, graph state, tool contracts, SSE contract, staged implementation plan, and acceptance criteria.
-- `docs/reuse-assessment.md` records why the MVP will extend this repository instead of forking a generic Agent template.
-- Phase A is implemented and verified: static benchmark versions, AA slugs, Arena names, and exact `(providerId, providerModelId)` pairs are shared; reviewed evidence is exported deterministically; focused tests cover strict failures plus curated objective/editorial evidence equivalence.
-- Phase B is implemented and verified: strict immutable Pydantic contracts, generated-data repository validation, five typed tools, deterministic evidence verification, a low-level LangGraph state machine, dependency-injected fake gateway/document client, and pure update proposals.
-- Phase C is implemented and verified: environment-backed configuration, FastAPI lifespan/CORS/health, snake_case streaming and non-streaming Agent endpoints, typed SSE sequencing/heartbeat/disconnect cancellation, a DeepSeek V4 Flash OpenAI-compatible Responses gateway, and a bounded HTTP provider-document client.
-- Phase D is implemented and published: a typed POST SSE client, deep runtime validation of nested wire data, an evidence-console React Panel, request stopping, disconnected fallback, and focused parser/component tests. CI and Pages deployment both gate the build on these tests; application recovery commit `bb9e31e` restored the Phase D tree after the drill.
-- Root-level Docker packaging and the Zeabur runbook are implemented. The `modelops-agent-api` service builds from GitHub `main`, runs the repository-root Dockerfile, uses a custom HTTP `/healthz` check, and exposes `https://modelops-agent-api.zeabur.app`. The root route now presents a browser-facing runtime status page while `/healthz` remains the machine health probe.
-- Live Phase C/D deployment acceptance passed for the browser-facing root status page, readiness, a real DeepSeek-backed non-streaming recommendation, all three POST SSE product paths through HTTPS checks carrying the production Pages `Origin` header, browser CORS, the published Agent Panel and static leaderboard in the live DOM, deployment recovery, and bounded single-replica stability. The secret remains in Zeabur service variables and is not stored in the repository.
-- The HTTP document boundary uses repository-owned exact URLs, total and per-operation timeouts, bounded identity-encoded text responses, and redirect binding to the same `(modelId, providerId, providerModelId, kind)` metadata. Cross-binding redirects cannot be misattributed as evidence.
-- The three graph intents are `recommend`, `explain_unranked`, and `prepare_update`. Missing user inputs end in `needs_clarification`; evidence gaps produce bounded completed answers; unrecoverable gateway/tool failures end in `failed`; valid proposals end in `awaiting_human_review` without writes.
-- The offline backend suite contains 92 repository/tool/graph/gateway/API tests, including available and unavailable root-page contracts. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
-- The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 64 benchmark observations, 17 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
-- Conditional publication is operational: the repository-scoped App, Actions credentials, strict `verify` requirement, protected `main`, trusted-`main` policy inspection, immutable SHA/provenance rechecks, anomaly retention, and guarded routine REST merge have passed live acceptance.
-- Pull requests and pushes to `main` are configured to run the offline generated-data drift check, policy tests, the complete frontend test set, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
-- The deployed frontend separates the source-native public path (`src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`) from the curated editorial path (`src/lib/entries.ts`, `src/components/Board.tsx`). Public ranks are computed before search filtering, so filtered rows retain their AA source rank; equal scores use competition ranking.
-- The public-AA implementation is published from `main` with a human-reviewed 20-entry `intelligenceLeaderboard` baseline from AA Intelligence Index version 4.1, observed on 2026-09-04. PR #12 merged as `1544fb2` and deployed through both GitHub Pages and Zeabur.
+- One-shot free-text form with optional region and progressive budget inputs.
+- DeepSeek extracts a strict intent contract.
+- Deterministic code selects five candidates from the full AA snapshot.
+- DeepSeek Responses built-in server-side web search verifies only those candidates against a reviewed creator-to-official-source registry.
+- AA-derived order remains fixed; official contradictions may remove a hard-constraint mismatch, then the first three survivors become one recommendation and up to two alternatives.
+- Result: one recommendation, two collapsed alternatives, relevant AA metrics, concise reason, collapsed sources, and an explicit verified/partial/AA-only state.
+- DeepSeek/search failure returns the deterministic AA result instead of an empty response.
+- Target transport: non-streaming JSON `POST /api/v1/advisor/recommend`.
+- Public controls: 5 advisor requests per IP per 10 minutes and at most 2 simultaneous web-backed recommendations across the one-replica/one-worker service. IP excess returns 429; web-capacity or provider failure returns deterministic AA fallback.
 
-## Important Decisions
+### Presentation
 
-- Preserve the existing TypeScript leaderboard instead of replacing it with a generic Agent starter.
-- Build the smallest project-specific FastAPI + LangGraph backend; do not add PostgreSQL, pgvector, authentication, persistence, MCP, or multi-Agent orchestration to the MVP.
-- Reuse existing model/benchmark data through deterministic generated JSON rather than maintaining an independent Python copy.
-- Keep model matching deterministic. LLM output may extract intent and constraints but cannot approve fuzzy version matches.
-- Keep Pydantic at the graph and tool boundaries, use `TypedDict` for graph state, and inject repositories/gateways/clients through immutable runtime context rather than graph state.
-- Use the low-level LangGraph graph API. The LLM gateway is limited to structured intent/constraint extraction; candidate filtering, evidence verification, ranking, routing, and terminal status are deterministic.
-- Use `deepseek-v4-flash` as the default intent-extraction model through `https://api.deepseek.com/responses`; disable reasoning for this bounded extraction call and enforce the final contract with strict local Pydantic validation.
-- Only missing user-fillable inputs cause clarification. Missing, stale, ambiguous, or conflicting repository evidence is explained as a bounded result, while unrecoverable internal failures terminate the run.
-- Missing price, region, license, or benchmark evidence remains missing; qualitative price tiers cannot prove a monthly-budget constraint.
-- Price offers use stable provider/region/offer IDs and per-request token intervals. A tool returns all matching offers in deterministic order and cannot silently select the cheapest one.
-- A pricing deployment region is positive evidence for that provider offer, not proof of end-user country availability. Absence is `missing_evidence`, not `unsupported_region`.
-- Reviewed prices must use an exact 30-calendar-day review window. The effective inclusive evidence cutoff is the earlier of `staleAfter` and a non-null provider `validThrough` date.
-- Agent recommendation order is AA Coding descending, AA Intelligence descending with missing values last, then exact model ID ascending. It is independent of the public leaderboard ranking.
-- The public board is the first 20 finite entries from the complete current AA Intelligence snapshot, keyed by `sourceId`. Separate reasoning/effort configurations remain separate rows; public membership does not expand the curated editorial/Agent catalog.
-- The UI keeps the existing `公开评测榜 · 智能指数` title and does not display the 20-entry limit, the AA source total, or curated coverage counts.
-- Provider-document input cannot contain arbitrary URLs. Only registered allowlist entries may be fetched through an injected client, and all normalized query terms must occur in one bounded excerpt before it counts as evidence.
-- Provider-document redirects may continue only through registered URLs with the same exact model/provider/provider-model/kind binding as the initial source.
-- `prepare_data_update` remains a pure, reviewable proposal operation. It cannot write files, call GitHub, merge, or publish.
-- Security review depth is proportional to the touched trust boundary; ordinary documentation/UI/pure-function work does not trigger a broad security audit.
-- Zeabur builds the backend from the repository root so the image preserves both `backend/app/` and `data/modelops/generated/`. Start with one Uvicorn worker and no database or persistent volume.
-- Zeabur's GitHub integration redeploys on pushes to its linked branch by default. Link only `main` so a pull-request merge remains the backend release trigger.
-- Conditional publication permits routine generated-data pull requests to auto-merge only when an explicit changed-file allowlist, stable public AA `sourceId` membership/identity metadata/index version, stable curated exact-match membership/source identity, unchanged curated/static evidence, App-authored GitHub-signed commit provenance, immutable SHAs, and all required verification pass. Public value/date/score-order changes may be routine; membership, metadata, index-version, evidence-loss, missing/ambiguous/conflicting match, source-mapping, or non-data changes remain open for human review. Scheduled refreshes never push directly to `main`, and the Agent `prepare_data_update` path remains a pure proposal that is never auto-published.
+- Black canvas, thin rules, system fonts, no decorative marketing hero or glass-card wall.
+- Home uses a centered up-to-approximately-1480px data canvas with one shared square-edged grid: ability spans the first row, speed and price share the second row, and the advisor spans the final row. Mobile stacks all four cards in that order.
+- Home uses cyan Intelligence bars, blue output-speed bars, amber output-price bars, and a purple advisor accent. Full efficiency rows use a fixed blue/amber legend and two same-direction vertically stacked bars to the right of one model identity.
+- Home previews show exactly five real rows and remain static. Ability uses its absolute 0–100 scale; speed and price use deterministic readable ceilings above their observed maxima, so the first row does not fill the axis endpoint.
+- Detail entry and ability-metric switches replay one chart-level 600ms count/bar animation; creator filtering and active-tab clicks do not.
+- Ability/efficiency detail headers center the title and description while keeping the back control left. Detail pages omit search, result summaries, and repeated source/date lines.
+- Only the ability page has internal metric tabs. Speed and price are independent detail pages with separate titles and no cross-leaderboard switch. Ability tabs and the six fixed creator controls are centered. The creator controls use 2px distinct exact-ID borders and expose no `更多` menu; home-preview and every full-chart model name use the corresponding creator color, unregistered names use the fallback pink tone, ability bars remain cyan, and speed/price bars keep blue/amber metric colors. Full leaderboard rows have no horizontal dividers.
+- Full ability names and values use 15px type. Names are bounded and right-aligned before their icons; ability scores use a fixed 0-100 scale, so each bar endpoint matches its displayed score and the exact value follows with an 8px gap. Full ability bars use 18px height in 44px desktop rows and home previews use 20px; both are square-left/rounded-right, omit the dark remainder track, and place values 8px after the fill endpoint.
+- Full speed and price names and values also use 15px type. Names use the same fixed right-aligned identity column; both 18px metric bars omit the dark remainder track, end in a right semicircle, and place each value 8px after its own endpoint. Their two-bar rows use a compact non-overlapping rhythm, deterministic readable ceilings strictly above the observed maxima, and five solid guides labelled with compact blue/amber real-scale value pairs.
+- Footer appears on home only: `WS`, GitHub, Bilibili, WeChat account `23号切片`, AA attribution, and AA observation date.
+- The supplied WeChat QR will be copied from `D:\qrcode1788526628636.jpg` into a local frontend asset during the asset phase.
 
-## Known Problems
+## Phase status
 
-- Structured prices currently cover only exact Qwen3.5-397B-A17B and ZHIPU/GLM-5.3 offers on Alibaba Cloud Model Studio. Other models remain missing rather than inheriting family-level prices.
-- DeepSeek V4 Pro/Flash prices are time-band dependent and are intentionally omitted because the Phase A offer schema does not model time bands.
-- Structured negative availability, end-user country availability, and latency evidence are not modeled yet; provider deployment regions alone cannot answer all geographic constraints.
-- `npm run sync:data:check` does not fail when generated data would drift.
-- PR #7/#9 live acceptance covers the earlier curated refresh gate. PR #11 supplies the human-reviewed public membership/index-version baseline; a later stable-membership routine refresh is still required before the new unattended public-membership path can be called live-verified.
-- Focused Agent Panel tests exist, but the rest of the leaderboard still lacks broad end-to-end interaction coverage.
-- The public backend has no authentication or rate limiting. CORS limits browser origins but does not prevent direct scripted requests, so broader exposure needs a separately approved access-control or quota milestone.
-- A real client transport disconnect, bounded endpoint-stability observation, and Git-revert deployment/recovery drill have been exercised against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies revision switching, health continuity, and recovery rather than rollback between behaviorally different backend images. Online logs have not independently proven internal graph-task cancellation; the offline API integration test covers that contract. The control-plane resource graph is a snapshot, not a sustained-load test.
-- A local Docker or Podman runtime remains unavailable. Zeabur's remote image build and runtime are verified, but local container reproduction is not.
-- In the current managed Windows sandbox, `tsx` can fail before project code with `uv_os_get_passwd ... ENOMEM`; the same commands succeed outside that sandbox, so no repository-specific workaround was added.
-- The dev extra temporarily caps AnyIO below 4.15 because the current Starlette TestClient still uses an alias deprecated by AnyIO 4.15. Revisit the cap after Starlette migrates the alias.
+### Existing ModelOps milestones
 
-## Verification
+- Phases A–D of the earlier ModelOps plan are implemented and previously verified: reviewed generated data, strict backend contracts/tools/graph, FastAPI/DeepSeek transport, and the current frontend evidence console.
+- Zeabur repository-root packaging, health endpoint, GitHub integration, Pages deployment, and guarded data refresh flow have prior live acceptance evidence.
+- Those milestones are preserved; they do not prove the new product refactor.
 
-Current local, CI, and 2026-09-04 live acceptance:
+### New full-product refactor
 
-- `npm ci` succeeded.
-- `npm run modelops:data` generated the adapter successfully outside the managed sandbox.
-- `npm run modelops:data:check` passed outside the managed sandbox; a deliberate generated-file mutation was also proven to make it exit nonzero before the file was regenerated.
-- `npm run test:modelops-data` passed 12/12 focused tests outside the managed sandbox, including exact provider-pair and source-version binding, invalid tier/freshness/currency rejection, evidence cutoff boundaries, provider-host restriction, numeric tier ordering, curated objective/editorial equivalence, and competition-rank behavior.
-- `npm run build` succeeded with TypeScript checking for the frontend and ModelOps scripts plus a Vite production build.
-- `npm run test:agent` passed 30 focused runtime-contract, SSE parser, cancellation, and React Panel tests; malformed streams cancel their response reader and partial failed output is not presented as a completed result.
-- `npm run test:frontend` passed 50/50 tests across eight files, including the source-native public parser/rows, source-rank preservation after search, nullable AA metadata, public/editorial control separation, missing full-snapshot state, all prior sort/rank behavior, and Agent tests.
-- `npm run test:data-update-policy` passed 23/23 cases covering the AA source-row generator, distinct configurations, strict 20-row/version/date contracts, cutoff candidate validation, deterministic score order, routine score/date/order changes, human-review membership/identity/version changes, strict path/status allowlisting, curated match stability, immutable static evidence, malformed inputs, and CLI exit behavior.
-- The first keyed public-AA refresh run `33865225568` failed closed because a low-ranked source row lacked a display name. Fix `364b0ef` keeps finite-score and global `sourceId` validation across all ranked rows while validating display metadata only for rows that can enter the first 20, including ties at the cutoff; the focused policy suite then passed 23/23.
-- Refresh run `33865744426` fetched all 643 AA rows and completed every data, frontend, build, backend, type, lint, and evaluation gate. App-authored, GitHub-signed PR #11 changed only the four allowed generated data/report files, and required verification run `33865823234` passed before human merge `475ba4d` into the feature branch.
-- The PR #11 baseline contains exactly 20 finite entries with 20 unique `sourceId` values, one valid observation date (`2026-09-04`), positive Intelligence Index version 4.1, deterministic score/tie ordering, and independent rows for distinct reasoning/effort configurations. Curated AA/Arena matched and unmatched sets and ModelOps evidence counts remained stable.
-- Public-board PR #12 passed required verification run `33866731280` and merged to `main` as `1544fb2`. Post-merge verification run `33866939805`, Pages run `33866939812`, GitHub Pages deployment `6263144207`, and Zeabur production deployment `6263146488` all completed successfully for that exact commit.
-- All four workflow YAML files parsed successfully. The guarded merge workflow, GitHub App, Actions credentials, branch protection, negative anomaly path, and positive routine path are live-verified.
-- Live `main` protection requires pull requests and the strict `verify` status check, applies to administrators, requires linear history, blocks force pushes and branch deletion, and requires zero human approvals. The data-sync App has no bypass entry. Repository Actions contains `DATA_SYNC_APP_CLIENT_ID`, `DATA_SYNC_APP_PRIVATE_KEY`, and `AA_API_KEY`; secret values were not read, and no credential value was written to the repository.
-- PR `#6` fixed snapshot-coupled tool/evaluation fixtures and ensured a verified data PR is still prepared when only downstream behavioral checks expose an upstream anomaly. Required run `33847160323` passed before merge commit `d004487`.
-- PR `#8` corrected commit provenance checks to require one App-authored, GitHub-signed commit with `web-flow` as committer, a fixed message, valid verification, one expected parent, and the exact verified head SHA. Required run `33848800831` passed before merge commit `5a8a3f0`.
-- App refresh run `33857550307` updated PR `#7`; required run `33858046203` passed, while trusted policy run `33858519972` correctly retained it because GLM-5.3 gained an exact AA match and DeepSeek V4 Flash lost an Arena observation. After human review, the accepted baseline merged as `223b1c3`.
-- Routine refresh run `33858638289` opened PR `#9` with four allowed generated-file changes. Required run `33859147546` passed; trusted policy run `33859611973` classified it as routine, rechecked immutable inputs, and automatically merged exact head `44a3f9d` as `ce49c8e`. The remote refresh branch was deleted after merge.
-- Post-merge `main` verification run `33859647251` and Pages deployment run `33859647300` passed. The public leaderboard, Zeabur status page, and `/healthz` returned HTTP 200. A live DeepSeek-backed invoke resolved `GLM-5.3` exactly and reported its same-version AA Intelligence observation, confirming that the Zeabur backend loaded the accepted data snapshot.
-- `node --check` succeeded for `scripts/sync-data.mjs`, `scripts/data-update-policy.mjs`, and `scripts/aa-leaderboard.mjs`; the sync validates stable index version, total pages, page size, non-final page length, and repeated pages before deriving the public rows.
-- The extracted alias data was deep-compared with the previous inline array: 20 model IDs, 21 AA aliases, and 40 Arena aliases were unchanged.
-- README and the public footer now describe the checked conditional publication boundary: routine refreshes auto-merge only after every gate passes, while anomalies remain open for human review.
-- `git diff --check`, an explicit trailing-whitespace scan covering untracked files, and a common secret-pattern scan over changed/untracked files reported no findings. The edited sync workflow also parsed as YAML.
-- A live headless-browser DOM check of the published Pages URL rendered exactly 20 public rows from Claude Fable 5.1 Max through GPT-5.6 Sol xhigh, displayed the exact `公开评测榜 · 智能指数` title, v4.1, and `AA 完整榜已同步`, and contained no `Top 20`, `当前共`, or `196 个已排名模型` text. The editorial switch remained present. The published page and bundle, Zeabur root status page, and `/healthz` all returned HTTP 200.
-- The standalone local `npm run sync:data:check` remains dry-run-only and is not a fail-on-drift freshness gate. Live AA/Arena fetch, generated PR creation, anomaly retention, and routine automatic merge are separately verified by the recorded GitHub Actions runs.
-- `python -m pytest -q` from `backend/` passed all 92 tests after adding the browser-facing root status page, including its available/unavailable contracts, API integration tests, Responses structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding.
-- `python -m ruff check app tests evals` passed.
-- `python -m mypy app tests evals` passed for 41 source files.
-- `python evals/run.py` passed 24/24 deterministic cases with no model-provider or provider-document network calls.
-- Before the provider-only change, a clean Python 3.12 virtual environment installed `.[dev]`, reported no broken requirements from `python -m pip check`, passed the then-current 89 tests and 24 evals, and was removed after verification. No dependency changed in the DeepSeek update.
-- A manual live smoke through `HttpProviderDocumentClient` reached all 11 distinct exact-allowlisted provider-document URLs represented by 12 source bindings with HTTP 200; there were no redirects, non-200 responses, timeouts, or unavailable responses. Response bodies were not retained or reported.
-- A direct live smoke through the configured `deepseek-v4-flash` Responses gateway reached `https://api.deepseek.com/responses`, accepted the complete Pydantic-derived JSON Schema, and returned a locally validated `recommend` intent. The key and response body were not written to the repository or reported.
-- `npm run modelops:data:check`, `npm run test:modelops-data` (11/11), and `npm run build` passed outside the managed sandbox after the sandbox-only `tsx` ENOMEM failure reproduced.
-- GitHub-hosted `Verify pull request` run `33689799358` passed for implementation commit `173d0e9`, including generated-data checks, frontend build, pytest, Ruff, mypy, and all deterministic Agent evaluations.
-- GitHub-hosted `Deploy to GitHub Pages` run `33689799362` passed for implementation commit `173d0e9`.
-- Zeabur built an OCI image from the GitHub `main` source and started one healthy `modelops-agent-api` replica. At the recovery checkpoint, the dashboard reported `Reapply "feat: add ModelOps Agent panel"` as the running revision and `1/1` replicas; later documentation-only commits may trigger another equivalent image build from `main`.
-- Zeabur persisted a custom HTTP `GET /healthz` check on port 8080. The public endpoint returned HTTP 200 with `{"status":"ok"}`.
-- Landing-page commit `a80321b` passed GitHub Verify run `33838256321` and Pages run `33838256266`. Zeabur redeployed it from `main`; the public root changed from FastAPI's HTTP 404 JSON to HTTP 200 `text/html`, reported `data-status="ok"`, linked the public leaderboard, `/docs`, and `/healthz`, and sent `Cache-Control: no-store`. The public `/healthz` endpoint remained HTTP 200.
-- The public non-streaming endpoint returned HTTP 200 with `run_id`, `trace_id`, and `answer.status=completed`, proving the deployed service can make a real request through the configured DeepSeek gateway.
-- The public POST SSE endpoint returned `text/event-stream`, began with `run.started`, emitted continuous sequence values 1 through 27, and ended with exactly one `run.completed` terminal event.
-- A browser preflight from `https://joker01-01.github.io` returned HTTP 200 and the exact `access-control-allow-origin` value. Runtime logs show normal Uvicorn startup and successful health/invoke/SSE requests with no `agent_runtime_unavailable`, OOM, or restart event.
-- After adding the root Docker packaging, `python -m pytest -q` passed all 91 tests, Ruff passed, mypy passed for 41 source files, and `python evals/run.py` passed 24/24 deterministic cases.
-- `npm run build` passed. `npm run modelops:data:check` and `npm run test:modelops-data` first hit the documented sandbox-only `tsx` ENOMEM failure, then passed outside the managed sandbox with all 11 focused tests successful.
-- Neither Docker nor Podman is installed in the current local environment; Zeabur's remote build, image startup, custom health check, and live API runtime now provide the container verification evidence.
-- Phase D implementation commit `ec65297` passed GitHub `Verify pull request` run `33794793373` and `Deploy to GitHub Pages` run `33794793308`. The published HTML and JavaScript returned HTTP 200, the browser DOM contained the API-configured Evidence Console and the existing leaderboard, and the production bundle contained the intended Zeabur origin without private service identifiers or secrets.
-- HTTPS transport checks carrying the production Pages `Origin` header covered all three paths. The constrained recommendation emitted 15 monotonically sequenced events and one `run.completed`; exact-version explanation emitted 10 events with an exact resolution and one terminal event; the review-only update emitted 10 events including `proposal.ready` and ended `awaiting_human_review` without a write.
-- Rollback commit `2226205` passed GitHub Verify run `33796127335` and Pages run `33796127339`. Zeabur showed that revision as `Running`; 12 consecutive health checks remained HTTP 200 through the switch, and a complete recommendation SSE emitted sequence 1 through 15 with exactly one `run.completed`. Commit `ec65297` changed no files under `backend/`, `Dockerfile`, or `data/modelops/`, so this is deployment-control evidence rather than a behaviorally different backend rollback.
-- Recovery commit `bb9e31e` passed GitHub Verify run `33796618760` and Pages run `33796618658`. Zeabur then showed the recovery revision as `Running`; another 12 consecutive health checks remained HTTP 200, the restored Pages HTML/JavaScript returned HTTP 200, and the post-recovery recommendation SSE completed with 27 monotonically sequenced events and one terminal event.
-- The post-recovery 12-hour Zeabur Usage graph showed low-single-digit CPU percentages and service memory around 65-75 MB for the single replica. Dedicated-server network metrics were unavailable in that view. This is a bounded control-plane snapshot, not sustained-load evidence or a whole-server capacity measurement.
+1. **Documentation baseline — approved and maintained in the working tree.**
+   - `DESIGN.md`
+   - `FRONTEND_REFACTOR_PLAN.md`
+   - `AGENTS.md`
+   - `PROJECT_STATE.md`
+2. **Full AA data layer — implementation, credentialed baseline generation, local verification, and explicit human baseline approval complete.**
+   - strict full Free v2 normalization and review report;
+   - isolated `--aa-public-only` generation/check mode;
+   - strict frontend parser and five pure ranking selectors;
+   - first-baseline/manual-review and later routine-refresh policy gates;
+   - sync and auto-merge workflow integration;
+   - first full Free v2 baseline: 643 unique source rows across four complete pages, observed 2026-09-04.
+3. **Four-card home and ranking pages — implementation, automated/browser verification, and user visual acceptance complete.**
+   - dependency-free hash routes for home, three ability views, two efficiency views, and the advisor shell;
+   - confirmed home target: a full-width ability card, common-edge speed and price cards, and a full-width advisor card, with three static real-data five-row single-bar previews;
+   - confirmed full-efficiency target: one model identity per row, a fixed blue/amber legend, and two same-direction metric bars stacked vertically to its right;
+   - complete 630/255/197/332/440-row leaderboard views;
+   - deterministic simplified names without a redundant leading `Claude` token, compact collision-only `R` / `NR` mode markers, global creator-ID filters, non-visible competition-rank semantics, and responsive single-bar/stacked-pair charts;
+   - one chart-level 600ms detail animation with reduced-motion support;
+   - legacy editorial board and technical Agent console preserved in the repository but removed from public navigation.
+4. **One-shot advisor and official web verification — not started.**
+5. **Footer and social assets — not started; ranking-page responsive layout is complete.**
+6. **Full verification, documentation, and publication — the Phase 1–3 local checkpoint is verified and documented; push, pull request, and publication are not started.**
 
-## Next (separate milestones)
+The commit containing this state file is the local Phase 1–3 checkpoint. No push, pull request, or deployment has been performed for this refactor.
 
-1. Verify a later stable-membership score/date/order refresh through the unattended policy path.
-2. Design authentication, rate limiting, or quota enforcement before materially broader public API exposure.
-3. Add broader leaderboard end-to-end interaction coverage and sustained-load/resource testing if usage justifies them.
+## Frozen decisions
+
+- Extend this repository; do not replace it with a generic Agent starter.
+- Use AA source-native rows directly for public rankings and recommendation candidates.
+- Keep public rows keyed by `sourceId`; separate reasoning/effort configurations remain separate.
+- Keep curated exact-version evidence and editorial scoring as an independent internal domain.
+- Use a dependency-free hash router and code-native bars; add no router, chart, motion, UI, state, or remote-font dependency.
+- Use the deterministic display-name collision rules in `DESIGN.md`.
+- Use output price high-to-low on the public price leaderboard even though the advisor normally prefers lower price.
+- Use AA for score/order and live search only for current official supplemental evidence.
+- No public accounts, persistence, conversation history, or visible trace console.
+- The user reports that the necessary AA redistribution authorization has been obtained; preserve attribution and store no private agreement material.
+- After one human-reviewed full-data baseline, ordinary generated model additions/removals and metric value/date/order changes may auto-merge. Structural anomalies remain review-gated.
+- Review depth stays proportional: focused correctness for docs/UI/pure selectors; targeted boundary checks for provider keys, untrusted input, web search, rate limits, GitHub automation, and deployment.
+
+## Phase 1–3 checkpoint contents
+
+At the Phase 1 checkpoint, the following files contained pre-existing changes from the superseded default-board frontend direction:
+
+- `index.html`
+- `src/App.test.tsx`
+- `src/App.tsx`
+- `src/components/AaBoard.tsx`
+- `src/components/Board.tsx`
+- `src/styles.css`
+
+Phase 3 reconciled `index.html`, `src/App.tsx`, `src/App.test.tsx`, and `src/styles.css` into the confirmed public shell. It preserved the pre-existing `AaBoard.tsx` and `Board.tsx` implementation changes; those files remain in the repository but are no longer imported by the public App.
+
+Phase 1 updates `AGENTS.md` and `PROJECT_STATE.md`, and adds `DESIGN.md` and `FRONTEND_REFACTOR_PLAN.md`.
+
+Phase 2 adds or modifies:
+
+- `scripts/aa-public-snapshot.mjs`, `scripts/generated-snapshot-module.mjs`, and their contract coverage;
+- `scripts/sync-data.mjs` and `scripts/sync-data.public.test.mjs`;
+- `src/lib/aaPublicSnapshot.ts`, `src/lib/aaRankings.ts`, and their tests;
+- `scripts/data-update-policy.mjs` and its tests;
+- `.github/workflows/sync-data.yml`, `.github/workflows/auto-merge-data.yml`, and the aggregate test command in `package.json`.
+- generated `src/data/generated/aaPublicSnapshot.ts`, `data/aa/generated/snapshot.json`, and `data/aa/generated/sync-report.json` from one credentialed public-only run.
+
+The credential was supplied through a masked local prompt, used only in the sync subprocess, and cleared from that process after completion. It was not printed or written into the repository.
+
+Phase 3 adds or modifies:
+
+- `src/App.tsx`, `src/App.test.tsx`, `index.html`, and scoped public styles in `src/styles.css`;
+- `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, and their tests;
+- `src/hooks/useChartProgress.ts` and its test;
+- `src/pages/HomePage.tsx`, `AbilityPage.tsx`, `EfficiencyPage.tsx`, `AdvisorPage.tsx`, and page tests;
+- `src/components/LeaderboardLayout.tsx`, `SingleMetricChart.tsx`, `DualMetricChart.tsx`, `ModelIdentity.tsx`, `CreatorIcon.tsx`, and component tests.
+
+## Remaining after the Phase 1–3 checkpoint
+
+- Creator identities currently use stable circular initials. Licensed local brand SVGs, the home-only social footer, and the WeChat QR dialog remain Phase 5 work.
+- The current Agent task model and UI are narrower and more technical than the confirmed arbitrary-needs advisor.
+- DeepSeek is not currently configured to use server-side web search in this repository.
+- The reviewed `data/aa/official-sources.json` creator/source registry does not yet exist.
+- There is no public advisor rate limiter or global web-search concurrency gate.
+- README and operational docs now describe the verified local Phase 1–3 checkpoint while explicitly distinguishing it from the still-unpublished online revision.
+- A single-process in-memory limiter is adequate only while Zeabur runs one worker/replica; horizontal scaling would require a shared limiter before being enabled.
+
+## Verification record
+
+Consolidated Phase 1–3 verification after the readable-axis ceiling correction:
+
+- `npm run test:frontend`: 138/138 passing across 21 files, including strict headroom above observed maxima, inverse TTFA alignment, paired real-value ticks, all-zero finite-axis handling, routing, filtering, responsive chart contracts, and preserved legacy frontend regressions;
+- `npm run build`: TypeScript and Vite production build passing;
+- focused browser checks confirm the live home fills are 65.7% for ability, 82.541% for output speed, and 75% for output price; the full speed output ceiling is 2k and the full price ceilings are `$200/$800`, so neither observed first-ranked primary value fills its endpoint;
+- `npm run test:data-update-policy`: 38/38 passing;
+- `npm run modelops:data:check`: current;
+- the live 643-row presentation index produces 643 unique display labels with no collision, including the required `Fable 5.1 (Max)` form without the redundant leading `Claude` token; trailing configuration groups use half-width punctuation so visible name endings align optically;
+- browser verification rendered exactly 630 Intelligence, 255 Coding, 197 Agentic, 332 Speed, and 440 Price rows with no search control, result summary, repeated source/date line, page-level horizontal overflow, or row divider;
+- all five fixed creator IDs matched their home-preview and full-ability model-name colors to their 2px filter borders, unregistered names retained the fallback pink tone without exposing a fallback filter, every ability bar remained cyan, and speed/price bars retained only the fixed blue/amber metric gradients;
+- focused browser verification after the latest micro-edits confirmed that `65.7` fills exactly 65.7% of the fixed 0-100 ability scale with its value 8px beyond the endpoint, the six fixed creator controls render with declared 2px borders, no `更多` control remains, and the checked home route has no horizontal overflow;
+- the full ability chart rendered 15px names and values, 18px bars, 44px desktop rows, `0 / 25 / 50 / 75 / 100` labels with aligned vertical guides, and square-left/rounded-right fills; sampled desktop and narrow rows shared one exact model-name right edge, each value followed its actual fill endpoint with an exact 8px gap, and the narrow route retained zero page-level overflow;
+- home-preview focused checks render 20px square-left/rounded-right fills without dark remainder tracks; values follow their actual endpoints with an 8px gap;
+- the checked home and full leaderboard routes render zero visible public-rank nodes and zero display names beginning with `Claude`; long simplified names remain one line, ellipsize at their boundary, and expose the full simplified value through the name title;
+- browser checks at 320, 390, 430, 768, 1024, 1025, 1440, and 1600 CSS-pixel widths found no page-level horizontal overflow. At 1025px and above the speed/price cards share an exact edge; at 1024px and below all four cards stack in reading order with usable bar widths;
+- at 1600px, the ability/left-speed bar-start delta is exactly 0px and the ability/right-price bar-end delta is below 0.001px; all three home previews use the same 180px identity column and 112px value column to preserve these baselines;
+- speed and price detail checks at 320, 390, 430, 768, 1440, and 1600 widths confirmed one identity and two same-origin, vertically stacked bars per row, one two-item page legend, square-left/right-rounded fills, and no horizontal overflow;
+- rendered detail and home names and values use the system sans stack at 15px/600 with tabular numerals and visually quieter unit spans;
+- hash navigation resets detail pages to the top, and the six fixed creator controls remain visible and horizontally scrollable when the viewport cannot contain them;
+
+Phase 2 data-layer verification retained by the same working tree:
+
+- `npm run test:data-update-policy`: 38/38 passing, including optional identity whitespace normalization, a positive sandboxed public-only sync, and missing-key fail-before-write coverage;
+- `npm run test:frontend`: 66/66 passing;
+- `npm run test:agent`: 30/30 passing;
+- `npm run test:modelops-data`: 12/12 passing;
+- `npm run modelops:data:check`: current;
+- `npm run build`: TypeScript and Vite production build passing;
+- new Node modules pass syntax checks and both modified workflow YAML files parse successfully;
+- the sandboxed public-only test fetched both fixture pages, generated only the three public artifacts, proved TypeScript/JSON semantic equality, then reported zero changes in check mode while legacy and ModelOps sentinels remained byte-identical;
+- the sandboxed default sync without `AA_API_KEY` preserved all three public artifacts and the legacy AA/ModelOps inputs while retaining the expected AA-skip report and Arena refresh behavior;
+- trusted policy parsing accepts LF/CRLF canonical generator output for all three TypeScript snapshots and rejects executable prefix injection;
+- the credentialed public-only run fetched 643 unique rows in four pages (`200 + 200 + 200 + 43`), generated exactly the three public artifacts, and left legacy AA/Arena, combined-report, and ModelOps generated artifacts unchanged;
+- live coverage counts are Intelligence 630, Coding 255, Agentic 197, input/output price 440 each, and first-answer/output-speed 332 each; all five identity-missing counts are zero;
+- the generated TypeScript and backend JSON are semantically equal; all stored IDs, dates, nullable metrics, and non-negative price/performance values passed the strict validators, and the generated files contain no credential markers;
+- live selector sizes are Intelligence 630, Coding 255, Agentic 197, Speed 332, and Price 440; competition ranks and pre-filter global ranks were independently checked;
+- Node syntax, workflow YAML, tracked/untracked whitespace, `git diff --check`, and production build checks pass.
+
+Not yet verified:
+
+- commit, PR checks, auto-merge baseline rejection on GitHub, Pages, or Zeabur behavior for this refactor.
+
+The last recorded pre-refactor production baseline also includes:
+
+- frontend suite: 51/51 passing;
+- data-update policy suite: 23/23 passing;
+- backend pytest: 92 passing;
+- deterministic backend evaluations: 24/24 passing;
+- TypeScript/Vite build, Ruff, and mypy passing;
+- protected PR verification, Pages deployment, Zeabur health, DeepSeek invoke/SSE, App-authored refresh, anomaly retention, and routine auto-merge live acceptance.
+
+Those older production results describe the deployed architecture and must not be cited as verification of the new target.
+
+## Next
+
+1. Begin Phase 4 one-shot advisor and official-source web verification from the accepted Phase 1–3 checkpoint.
+2. Implement the Phase 5 footer/social assets and responsive polish after the advisor acceptance gate.
+3. Run Phase 6 publication checks and push/deploy only when separately requested.

@@ -2,24 +2,27 @@
 
 ## Overview
 
-This repository is an AI model leaderboard being incrementally upgraded toward the ModelOps Agent described in the approved `docs/modelops-agent-plan.md`. Preserve the working leaderboard and its evidence boundaries while making small, reviewable changes.
+This repository is an AI model leaderboard with a React/Vite frontend and FastAPI/LangGraph backend. The user-confirmed full-product direction is defined in `DESIGN.md` and staged in `FRONTEND_REFACTOR_PLAN.md`.
 
-The ModelOps document is an approved implementation plan, not proof of implemented behavior. Do not describe FastAPI, LangGraph, SSE, Agent tools, backend tests, or evaluation results as existing until repository evidence confirms them.
+Those documents describe intended behavior, not proof that it exists. Use `PROJECT_STATE.md`, the current code, generated data, tests, and deployed revision before claiming a phase is implemented or published.
 
-## Stack and structure
+Preserve the working product and its evidence boundaries through small, phase-scoped changes. Do not start a later phase while an earlier phase is awaiting user review.
 
-- React 19, TypeScript, and Vite provide the static GitHub Pages frontend.
-- `src/data/models.ts` contains the curated catalog used by the editorial board and ModelOps Agent.
-- `src/data/benchmarks.ts` combines verified static observations with exact-version Artificial Analysis evidence for that curated catalog.
-- `src/lib/aaLeaderboard.ts` and `src/components/AaBoard.tsx` validate and render the source-native public Artificial Analysis leaderboard without projecting it into the curated catalog.
-- `src/lib/score.ts` and `src/lib/editorial.ts` contain ranking semantics.
-- `scripts/sync-data.mjs` performs external-data synchronization, builds the current Artificial Analysis Intelligence leaderboard, and separately performs exact-version matching for curated evidence.
-- Python 3.12, Pydantic v2, FastAPI, and the low-level LangGraph graph API provide the ModelOps Agent backend under `backend/`.
-- `backend/app/repositories/leaderboard.py` strictly loads the committed generated JSON; `backend/app/tools/` contains five typed read-only/pure tools; `backend/app/graph/` contains state, nodes, routes, dependency injection, and tool orchestration.
-- `backend/app/services/model_gateway.py` keeps the gateway protocol and deterministic fake; `backend/app/services/openai_gateway.py` implements locally validated OpenAI-compatible Responses structured output with DeepSeek V4 Flash as the default provider model, and `backend/app/services/provider_document_client.py` implements bounded exact-allowlist document fetching.
-- `backend/app/main.py` owns FastAPI configuration, lifespan dependencies, and the browser-facing service status page; `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints. `src/features/agent/` contains the typed SSE client, runtime wire validation, and React evidence-console panel; without `VITE_AGENT_API_URL`, the static leaderboard remains usable and the panel stays disconnected.
-- The selected independent backend target is Zeabur on a managed Tencent Cloud Singapore server. The root `Dockerfile` packages `backend/app/` together with `data/modelops/generated/`; Zeabur must build from the repository root with Root Directory left empty.
-- `.github/workflows/sync-data.yml` prepares App-signed review PRs; `.github/workflows/auto-merge-data.yml` evaluates successful PR verification from trusted `main` and merges only routine generated-data refreshes; `.github/workflows/deploy.yml` deploys merged `main` to GitHub Pages.
+## Current stack and structure
+
+- React 19, TypeScript, and Vite provide the GitHub Pages frontend.
+- The currently deployed public AA path is implemented by `src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`, and generated `src/data/generated/aaSnapshot.ts`.
+- `src/data/models.ts`, `src/data/benchmarks.ts`, `src/lib/score.ts`, and `src/lib/editorial.ts` implement the separate curated editorial/ModelOps domain.
+- `scripts/sync-data.mjs` owns external synchronization. `scripts/aa-public-snapshot.mjs` validates and normalizes the full Free v2 AA projection; `scripts/generated-snapshot-module.mjs` is the canonical legacy TypeScript renderer used by sync and trusted auto-merge parsing. `src/lib/aaPublicSnapshot.ts` and `src/lib/aaRankings.ts` provide the strict frontend contract and pure selectors. The first credentialed 643-row generated baseline was explicitly approved on 2026-09-04.
+- The public frontend uses `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, `src/pages/`, and the public chart components for the four-card home and five complete leaderboard views. `#/advisor` remains a disabled shell until its separate phase is implemented.
+- Python 3.12, Pydantic v2, FastAPI, and the low-level LangGraph graph API provide the backend under `backend/`.
+- `backend/app/repositories/leaderboard.py` loads committed generated ModelOps JSON. `backend/app/tools/` contains typed read-only/pure tools. `backend/app/graph/` owns state, nodes, routes, dependency injection, and orchestration.
+- `backend/app/services/openai_gateway.py` provides locally validated DeepSeek Responses structured output. `provider_document_client.py` provides bounded exact-allowlist fetching for the legacy evidence flow.
+- `backend/app/main.py` owns configuration/lifespan and the service status page. `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints.
+- The backend deploys to Zeabur from repository-root `Dockerfile`; it must include both Python code and required generated JSON. The service remains linked to `main`.
+- GitHub workflows prepare App-signed data PRs, evaluate routine data updates from trusted `main`, verify pull requests, and deploy merged `main` to GitHub Pages.
+
+The public ranking pages consume the full source-native AA snapshot. The advisor must not consume it until its implementation is verified. Both remain independent from curated exact-version ModelOps data.
 
 ## Verified commands
 
@@ -48,79 +51,134 @@ python -m mypy app tests evals
 python evals/run.py
 ```
 
-Local API startup from `backend/` requires an exported key; `.env.example` is documentation and is not loaded automatically:
+Local API startup requires an exported key; `.env.example` is documentation and is not loaded automatically:
 
 ```powershell
 $env:MODELOPS_MODEL_API_KEY = "<DeepSeek API key>"
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-- `npm run build` is the current TypeScript and production-build gate.
-- `npm run test:modelops-data` is the focused curated shared-data contract and ranking-regression suite. `npm run test:data-update-policy` covers the source-native AA generator plus the fail-closed routine-refresh gate for both public membership and curated matches. `npm run test:agent` covers the typed SSE parser and Agent Panel interactions; `npm run test:frontend` runs all frontend tests, including the independent public board. There is no general frontend lint script yet.
-- `npm run modelops:data:check` is offline and must fail when the committed ModelOps JSON is missing or stale.
-- `npm run sync:data` requires network access; fresh Artificial Analysis data also requires `AA_API_KEY`.
-- `npm run sync:data:check` is currently a dry run only. It does not fail when generated output would change, so do not treat a zero exit code as proof that snapshots are current.
-- The backend tests and eval runner are offline. Keep their gateway and provider-document clients deterministic and injected; they must not require model-provider or document-site network access.
-- `GET /` is a browser-facing HTML service boundary that mirrors runtime availability and links to the public product, API docs, and health endpoint. `GET /healthz` remains the machine-readable readiness check; both return `503` when runtime configuration or startup dependencies are unavailable. API wire fields are snake_case.
-- `POST /api/v1/agent/query` is a one-run SSE stream with monotonic event sequence, one terminal event, heartbeat comments, and disconnect cancellation. It does not provide persistence or replay.
+- `npm run build` is the TypeScript and production frontend gate.
+- `npm run sync:data` requires network access and fresh AA data requires `AA_API_KEY`.
+- `npm run sync:data:check` is dry-run-only and does not prove the committed snapshot is current.
+- `npm run modelops:data:check` is offline and must fail when generated ModelOps JSON is missing or stale.
+- Backend tests and evaluations must remain deterministic and injected; ordinary verification must not require provider or document-site network access.
+- `GET /` is the browser status boundary and `GET /healthz` is the machine readiness check. Both return 503 when required startup/runtime dependencies are unavailable. Browser/API wire fields remain snake_case.
+- `POST /api/v1/agent/query` currently provides one-run SSE with monotonic sequence, one terminal event, heartbeat comments, and disconnect cancellation. It has no persistence or replay.
 
-## Product invariants
+## Confirmed public-product invariants
 
-- The public board contains exactly the first 20 finite Artificial Analysis Intelligence entries from the complete paginated source snapshot. `sourceId` is the row identity; reasoning, effort, and other source configurations remain separate even when their family names match.
-- The public board must not infer curated metadata, merge source rows by family, or display a `Top 20`, source-total, or curated-coverage count. Its visible title remains `公开评测榜 · 智能指数`.
-- The editorial board and ModelOps Agent continue to use the curated exact-version catalog; public-board membership must not expand that catalog or generated Agent evidence.
-- Similar names, unknown versions, missing evidence, and multiple matches remain unmatched or ambiguous. Never infer a match from model family or naming similarity.
-- Editorial scoring stays separate from public ranking.
-- Arena data is reference-only and must not affect public rank.
-- Preserve the source URL, observation date, benchmark identity, and concrete model version for published evidence.
-- Missing evidence must remain visible; do not replace it with guessed or sibling-version data.
-- Reviewed provider evidence must use a registered `(providerId, providerModelId)` pair for the internal model ID. Provider IDs cannot be swapped even when the provider-model string is identical. A missing region is missing evidence, not proof of unavailability.
-- Static benchmark versions, AA source slugs, and Arena model names must each match their controlled exact-version registry; display labels are not interchangeable with source identifiers.
-- Price selection uses the per-request token interval and stable offer ID. Do not select a tier from monthly aggregate tokens or silently choose the cheapest provider offer.
-- Price lookup uses total per-request input (`input + cached input`) for tier selection. The inclusive freshness cutoff is the earlier of `staleAfter` and non-null `validThrough`; cached usage without a cached-input price is missing evidence, not zero-cost usage.
-- Backend boundary contracts use strict, immutable Pydantic models with unknown fields rejected. LangGraph state remains a `TypedDict`, and runtime dependencies are supplied through `GraphContext`; do not place clients or repositories in serializable state.
-- Recommendation ordering is deterministic: AA Coding descending, then AA Intelligence descending with missing values last, then exact model ID ascending. This Agent ordering must not change the public leaderboard.
-- Only missing user-supplied fields route to clarification. Missing, stale, ambiguous, or conflicting evidence produces a completed evidence-bounded answer; unrecoverable internal failures terminate as `failed`.
-- Preserve candidate filter reasons and controlled provider deployment-region evidence through the final recommendation. A provider region still does not prove end-user country availability.
-- Provider-document search accepts only repository allowlist entries and an injected client; callers cannot supply arbitrary URLs. Returned excerpts must contain every normalized query term in one bounded window before they count as evidence.
-- Provider-document redirects must remain inside the exact repository allowlist and preserve the initial `(modelId, providerId, providerModelId, kind)` binding. Cross-binding redirects cannot become evidence.
-- Update-proposal citations with provider metadata must supply a complete provider/kind binding and match an exact provider pair registered for the target model.
+- Home is a four-card directory headed `AI 模型排行榜`; it does not open a leaderboard by default.
+- The cards are `模型能力榜单`, `模型速度榜单`, `模型价格榜单`, and `按需求选模型`. Use the exact hash routes defined in `DESIGN.md`.
+- The home directory uses an up-to-approximately-1480px centered canvas and one shared square-edged grid. On desktop, ability spans the first row, speed and price form a common-edge two-column second row, and the advisor spans the final row; mobile stacks all four cards in that order. Do not separate them into floating rounded cards or add decorative header chrome.
+- Home card headings use natural Chinese character spacing and deliberate vertical breathing room. Public chart identities place the creator icon after the model name and align the identity directly beside its bar. On desktop, the full-width ability bars share their left baseline with the speed bars and their right baseline with the price bars. Home preview fills are vivid same-family gradients at 20px, square on the left and semicircular on the right. Single-metric charts have no dark remainder track, and each value follows the actual fill endpoint with an 8px gap. The shared directory outline/dividers remain clearly visible against black.
+- Ability views directly use AA Intelligence, Coding, and Agentic metrics.
+- Efficiency views use AA first-answer time plus output speed, and input price plus output price. Each model identity appears once per row; its two bars share a left origin and stack vertically to the right under a fixed blue/amber legend.
+- Speed and price are independent detail pages with the titles `模型速度榜单` and `模型价格榜单`; do not add an internal speed/price switch. Only the ability detail page exposes metric tabs.
+- A full view contains every AA source row with the finite values required for that view. Do not impose a Top-20 limit, paginate the public page, infer missing values, or merge model-family/configuration rows. The sync job must consume and validate every upstream API page.
+- `sourceId` is the public row identity. Raw AA name/source metadata remains stored; simplified labels are display-only.
+- Compute metric order and competition rank before creator filtering, but do not render rank numerals in public charts. Preserve competition-rank semantics for ties and assistive text.
+- Ability sorts high to low. Speed sorts by output tokens per second high to low. Price sorts by output price high to low.
+- Equal primary values use the deterministic name sort key from `DESIGN.md`, then `sourceId` ascending for stable display; those tie-breakers do not alter the competition rank.
+- Missing values stay missing and are omitted from the affected chart. A genuine numeric zero remains valid.
+- Raw AA name and source slug may be absent. Keep any row with a valid `sourceId` and required finite metric, report missing identity text, and use `rawName ?? sourceSlug ?? "未命名模型 " + sourceId` as the transparent display/sort base. Never guess a name or drop the row.
+- Public display labels remove a leading `Claude` brand token; the adjacent creator icon carries the Anthropic identity. When needed for collision disambiguation, reasoning modes render as `R` / `NR` and merge with an effort label as `High·R` / `High·NR`. Chart names remain single-line ellipsized with the complete simplified label available on hover. Raw names remain unchanged for evidence.
+- Public rankings never project curated metadata into an AA row and never expand the curated catalog.
+- Each home ranking preview contains exactly five deterministically ordered rows; ties do not expand it.
+- All three home ranking previews use the same single-bar grammar. Ability previews Intelligence in cyan on its absolute 0–100 scale; speed previews output speed in blue and price previews output price in amber against deterministic readable ceilings strictly above the observed maxima. A first-ranked observed value must not define or fill a speed/price axis endpoint. Full efficiency routes show both metrics as two same-direction vertically stacked bars, not as two copies of the model identity.
+- Creator-filter changes do not replay chart animation. First detail entry and actual metric switches use one chart-level 600ms animation and respect reduced motion.
+- The public navigation does not expose the curated editorial board or technical Agent console. Preserve those implementations until a scoped cleanup proves they can be removed.
+- Detail headers center the title and concise description, with the back control pinned left. Detail pages omit search, result-count summaries, and repeated source/date lines; attribution and update date stay in the home footer.
+- Ability metric tabs and the six visible creator-filter pills (`全部`, OpenAI, Anthropic, Google, DeepSeek, xAI) are centered. Do not add a `更多` creator menu. Creator-pill borders are 2px, and each fixed creator pill has a distinct exact-ID-derived border color. Null and unregistered model names use the fallback pink tone even though no fallback filter is exposed. Model-name text uses the matching creator tone on the home previews and all full views; bars and creator icons do not inherit it. Ability bars remain cyan, while speed and price bars retain their fixed blue/amber metric colors.
+- Full leaderboard rows use whitespace rather than horizontal row divider lines.
+- Full ability names and values use 15px type. Names are bounded in one fixed right-aligned identity column before the icon, and overflow ellipsizes within that column. Trailing configuration groups use half-width parentheses so visible text edges align with names that have no qualifier. Ability indexes use a fixed `0 / 25 / 50 / 75 / 100` scale: a score such as `65.7` fills exactly 65.7% of the plot. Exact values follow their animated bar endpoints with an 8px gap. Ability bars use an 18px height, a square left edge, a rounded right edge, and 44px desktop rows.
+- Full speed and price views reuse that 15px fixed right-aligned identity treatment. Their two 18px bars have transparent remainder space, square left edges, rounded right edges, and exact values 8px after each animated endpoint; keep the two-bar row compact without overlap. Each metric uses a deterministic readable ceiling strictly above its observed maximum. Use five solid vertical guides labelled as compact color-matched `blue value / amber value` pairs from those scales; do not reuse the ability page's 0–100 labels.
+- During iterative UI tuning, use focused component/browser checks for each small adjustment and defer the full frontend test/build suite until the current group of visual changes is complete.
+- The footer appears on home only and contains `WS`, the specified GitHub/Bilibili/WeChat controls, AA attribution, and the AA observation date.
+
+## Advisor invariants
+
+- The public advisor is one-shot and has no account, conversation history, database, or visible graph/tool trace.
+- DeepSeek may extract a strict intent/constraint contract but does not choose or rank arbitrary models.
+- Its output is limited to ordered ability enums, one promoted objective, and reviewed hard-requirement enums; deployment region/budget/token values come from validated form fields. Reject model-provided URLs, candidate/provider IDs, unknown fields, and unsupported enums.
+- Deterministic code selects a five-row verification pool from the validated full AA snapshot using the eligibility, monthly-cost, priority, missing-value, and tie-break rules in `DESIGN.md`.
+- AA remains authoritative for ability, price, speed, and ordering. Live search can supplement or validate only the selected five.
+- DeepSeek Responses built-in `web_search` is accessed through an injected server-side adapter. It accepts evidence only from a reviewed `creatorId` registry of official site/docs/pricing domains, official GitHub organizations, and AA. User input, model output, summaries without accepted citations, or redirects cannot introduce evidence URLs.
+- Search preserves AA-derived order. It may eliminate a row only when accepted official evidence explicitly contradicts a hard constraint; missing region evidence remains unverified rather than unsupported. Return the first three survivors as one recommendation plus up to two alternatives.
+- An unregistered creator remains eligible from AA data but cannot receive the fully verified status.
+- Deployment-region text is a verification requirement, not proof of availability.
+- Missing required evidence cannot be described as a complete or budget-compatible match.
+- The response must distinguish fully verified, partially verified, and AA-only fallback states. Provider/search failure still returns the deterministic AA result.
+- The public boundary is the non-streaming JSON `POST /api/v1/advisor/recommend`, per-IP 5 advisor requests per 10 minutes, and at most 2 simultaneous web-backed recommendations service-wide. Use a trusted proxy configuration before accepting forwarded client IP headers.
+- The sixth request returns 429 with `Retry-After`. When web capacity is occupied or the provider fails, return HTTP 200 deterministic AA fallback rather than queueing indefinitely. Client cancellation must abort the JSON request.
+- Keep Zeabur at one replica and one Uvicorn worker while the limiter is in process. Horizontal or multi-worker scaling requires a reviewed shared limiter first.
+- Provider keys remain server-side environment variables. Never place them in generated data, client bundles, logs, tests, docs, or commits.
+
+## Curated ModelOps invariants
+
+- The editorial board and legacy Agent use the curated exact-version catalog, not public source-family inference.
+- Similar names, unknown versions, missing evidence, and multiple matches remain unmatched or ambiguous.
+- Static benchmark versions, AA slugs, Arena names, and `(providerId, providerModelId)` pairs each use their controlled exact identifiers. Display labels are not identifiers.
+- Arena data remains reference-only and does not affect public AA rank.
+- Preserve source URL, observation date, benchmark identity, concrete model version, and visible missing evidence.
+- Price selection uses per-request token intervals and stable offer IDs. Total request input is input plus cached input. Never infer a tier from monthly aggregate usage or silently choose the cheapest offer.
+- The inclusive freshness cutoff is the earlier of `staleAfter` and non-null `validThrough`. Missing cached-input price remains missing rather than zero.
+- Provider deployment region is positive evidence for one offer, not proof of end-user country support. Absence is missing evidence.
+- Reviewed prices use an exact 30-calendar-day review window.
+- Strict immutable Pydantic boundary models reject unknown fields. LangGraph state remains a `TypedDict`; runtime clients/repositories belong in immutable context, not serializable state.
+- The current legacy recommendation order—AA Coding descending, AA Intelligence descending with missing last, then exact model ID—applies only to the existing legacy Agent path until the confirmed advisor selector replaces that public experience.
+- Only missing user-fillable inputs route to clarification. Evidence gaps produce a bounded completed answer; unrecoverable internal failures terminate as failed.
+- Preserve candidate filter reasons and controlled provider-region evidence through the legacy final recommendation.
+- Provider-document excerpts count only when every normalized query term occurs in one bounded window.
+- Provider-document redirects must remain in the exact allowlist and preserve the initial model/provider/provider-model/kind binding.
+- Update-proposal citations with provider metadata must provide a complete provider/kind binding and match an exact registered provider pair for the target model.
+- `prepare_data_update` remains pure and review-only unless a separately approved milestone adds writes.
 
 ## Generated data
 
-- Do not hand-edit `src/data/generated/aaSnapshot.ts`, `src/data/generated/arenaSnapshot.ts`, `data/modelops/generated/*.json`, or any future file explicitly marked as generated.
-- The generated AA snapshot stores both the source-native `intelligenceLeaderboard` and the curated exact-match `models` map. Keep those two consumers independent.
-- Change source mappings or generator logic, regenerate, then review the resulting snapshots and `data/sync-report.json`.
-- Change ModelOps reviewed inputs or exporter logic, run `npm run modelops:data`, inspect both generated JSON files, then run `npm run test:modelops-data` and `npm run modelops:data:check`.
-- Treat `data/sync-report.json` as generated review evidence. Do not hide missing or ambiguous entries.
+- Never hand-edit `src/data/generated/aaPublicSnapshot.ts`, `data/aa/generated/snapshot.json`, `data/aa/generated/sync-report.json`, `src/data/generated/aaSnapshot.ts`, `src/data/generated/arenaSnapshot.ts`, `data/modelops/generated/*.json`, `data/sync-report.json`, or any future generated file.
+- The full public AA collection and existing curated exact-match map are separate consumers. Public membership must not mutate curated matches or ModelOps evidence.
+- Generated modules are distinct: `src/data/generated/aaPublicSnapshot.ts` exports full source-native `AA_PUBLIC_SNAPSHOT`, while legacy `src/data/generated/aaSnapshot.ts` exports `AA_SNAPSHOT` and its curated exact-match `models` map. Never reinterpret or overwrite the legacy `models` property.
+- `scripts/sync-data.mjs --aa-public-only` may write only the public TypeScript snapshot, public backend JSON, and public sync report. It must not run Arena or rewrite the legacy AA snapshot, legacy Arena snapshot, combined sync report, or ModelOps generated data. Default scheduled sync may refresh both domains in its existing reviewed workflow.
+- Public-only sync without `AA_API_KEY` must fail before writing. Default scheduled sync without the key must preserve all three committed public artifacts and keep its documented legacy AA-skip behavior.
+- The `/language/models/free` endpoint accepts Free, Pro, or Commercial keys while retaining the Free response shape. Accept only those three `tier` values, require one stable tier across all pages, and do not store the caller's subscription tier in the public snapshot.
+- The public snapshot records schema version, source URL, observation date, a fingerprint of the selected Free v2 wire-contract projection, the positive finite AA Intelligence Index version, complete-pagination proof, and normalized model rows. Coding and Agentic are derived indices and have no invented version fields. Its TypeScript and backend JSON forms come from one validated object and must be semantically equal.
+- At the external AA boundary, trim optional name/slug/creator text and convert a blank result to `null`; never trim or infer the required `sourceId`. Generated snapshots and downstream parsers continue to accept only canonical `null` or non-empty trimmed optional text.
+- Public price/latency/speed values are nullable, finite, and non-negative; zero remains valid. Ability indices must satisfy the inspected AA contract.
+- `data/aa/official-sources.json` is a reviewed input, not generated data. Changes to creator/domain/GitHub bindings require human review.
+- Change public mappings or generator logic, regenerate, inspect all generated diffs and `data/aa/generated/sync-report.json`, and prove the public-only mode left legacy artifacts unchanged before running the relevant contract tests.
+- Change reviewed ModelOps inputs/exporter logic, run `npm run modelops:data`, inspect generated JSON, then run `npm run test:modelops-data` and `npm run modelops:data:check`.
+- Treat both public `data/aa/generated/sync-report.json` and legacy `data/sync-report.json` as review evidence for their respective domains. Do not hide missing, ambiguous, conflicting, malformed, or dropped data.
 
-## Publication boundary
+## Data publication boundary
 
-- Scheduled refreshes must prepare or update a pull request; they must not push data changes directly to `main`.
-- A data-refresh pull request may auto-merge only after the repository gate proves that changed paths are limited to approved generated data/report files, the public AA leaderboard membership/index version and curated exact source identities/matched sets remain stable, no new missing/ambiguous/conflicting evidence or loss of previously matched evidence appears, and every required data contract, test, and build check passes.
-- Any anomaly, failed or missing required check, or change to code, workflows, dependencies, documentation, or reviewed source mappings remains subject to human approval. Preserve the pull request as the review and audit boundary.
-- Do not enable conditional auto-merge until `main` has appropriate rules or protection and the required pull-request checks cannot be bypassed.
-- The data-sync GitHub App must be installed only on this repository, hold only Contents and Pull requests write access, sign its refresh commits, and remain outside every required-check bypass list. Automatic merge must revalidate the App author/signature plus immutable PR, head, base, and current-`main` SHAs.
-- ModelOps tools remain read-only or pure proposal operations unless an explicitly approved milestone adds writes.
-- Zeabur GitHub services redeploy on pushes to their linked branch by default. Keep the backend service linked to `main` so a pull-request merge remains the backend release trigger.
+- Scheduled refreshes prepare or update a pull request; they never push generated changes directly to `main`.
+- The first full source-native AA snapshot is human reviewed.
+- After that baseline, ordinary model additions/removals and metric value/date/order changes may auto-merge only when changed paths are generated-data/report allowlisted, pagination and contracts are complete, IDs are unique, structural/index assumptions are stable, curated exact matches/evidence do not regress, and every required check passes.
+- Percentage gates run only against current `main` with the same public schema. Compare fetched total rows and each of the seven finite-value row counts independently. The current Free v2 API has no declared total-row field; schema version 1 keeps that value null and proves completeness from pagination. Any future upstream total-row field requires a reviewed schema change before use. For a nonzero base, `headCount < baseCount * 0.8` requires human review; a zero base skips only that comparison.
+- Duplicate IDs, incomplete pagination, schema/index/methodology changes, a greater-than-20% gated drop, new malformed/conflicting evidence, generated-policy failure, or non-generated changes require human review.
+- Code, workflow, dependency, documentation, source-mapping, and reviewed-input changes never use the routine data auto-merge path.
+- Trusted auto-merge parsing must compare every allowlisted generated TypeScript module against its canonical full-file renderer after CRLF-to-LF normalization; parsing only the exported JSON initializer is insufficient because executable prefix/suffix code must be rejected.
+- Preserve protected `main`, required checks, immutable head/base/current-main SHA validation, App author/signature validation, and least-privilege App permissions. The App stays outside bypass lists.
+- Zeabur remains linked to `main`, so a protected merge is the backend release trigger.
 
 ## Risk-proportionate review
 
-These rules apply to every coding model used on this repository, including Sol.
-
-- Match review depth to the trust boundaries touched by the requested change. Do not turn ordinary work into a general security audit.
-- Documentation, styling, presentation-only UI, and deterministic pure-function changes normally need focused correctness and regression checks, not a repository-wide security review.
-- Do not run broad vulnerability scans, dependency audits, threat-model exercises, or unrelated hardening unless the user requests them or concrete evidence makes them necessary for the task.
-- Perform targeted security checks when a change touches authentication or authorization, secrets, untrusted or external input, network requests, dependencies, filesystem or Git writes, GitHub/PR automation, release/deployment, or another trust boundary.
-- Limit targeted checks to relevant risks: secret exposure, schema/input validation, source or URL allowlists, unsafe writes, dependency provenance, least-privilege workflow permissions, and approval bypasses.
-- Risk proportionality never permits skipping a necessary check, weakening the exact-version policy, or bypassing the controlled publication boundary.
+- Match review depth to the trust boundary touched. Documentation, styling, presentation-only UI, and deterministic pure functions normally need focused correctness/regression checks, not a repository-wide security audit.
+- Do not run broad vulnerability scans, dependency audits, or unrelated threat-model/hardening work unless the user requests it or concrete evidence requires it.
+- For advisor/network work, target only relevant risks: server-side key handling, strict schemas, prompt/tool output validation, official-domain allowlists, redirect binding, timeouts, response bounds, proxy/IP trust, rate/concurrency limits, and safe fallback.
+- For sync/GitHub work, target only relevant risks: source validation, safe generated writes, changed-path controls, least-privilege permissions, provenance, immutable SHAs, and approval bypasses.
+- Proportional review never permits weakening exact-version rules, hiding missing evidence, or bypassing protected publication.
 
 ## Change and verification rules
 
-- Read callers, related data, workflows, and existing documentation before changing an interface or behavior.
-- Keep diffs narrow. Do not refactor unrelated ranking, data, or UI code while implementing a scoped task.
-- Preserve user-authored and uncommitted changes.
-- For frontend or TypeScript changes, run `npm run build`.
-- For sync changes, run the smallest relevant check, inspect generated diffs, `data/sync-report.json`, and the ModelOps adapter, then run `npm run build`.
-- Before delivery, run `git diff --check`, explicitly check untracked files for whitespace, and inspect the final diff for unintended files, secrets, generated-file edits, and publication-boundary changes.
-- Report implemented, verified, inferred, and unverified claims separately when the distinction matters.
+- Read callers, related tests, generated-data contracts, workflows, `DESIGN.md`, and `PROJECT_STATE.md` before changing behavior.
+- Work one approved phase at a time and stop at its review gate.
+- Keep diffs narrow; preserve user-authored and uncommitted work, including superseded changes, until reconciled deliberately.
+- Do not add React Router, chart, animation, state-management, UI-framework, or remote-font dependencies for the confirmed frontend.
+- For frontend/TypeScript changes, run focused tests and `npm run build`.
+- For sync changes, inspect generated diffs and the applicable public/legacy sync reports, verify public-only write isolation, run focused policy/data checks, and run `npm run build`.
+- For backend changes, run focused pytest first, then full pytest, Ruff, mypy, and deterministic evals as appropriate.
+- Before delivery, run `git diff --check`, scan tracked and untracked changed files for trailing whitespace and secrets, and inspect the final diff for unrelated changes or generated-file hand edits.
+- Update `PROJECT_STATE.md` after meaningful state changes. Update README/operational docs only after behavior is implemented and verified.
+- Report implemented, verified, inferred, and unverified claims separately whenever the distinction matters.

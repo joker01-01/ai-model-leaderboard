@@ -2,16 +2,84 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { AA_LEADERBOARD_LIMIT } from "./aa-leaderboard.mjs";
+import { renderAaPublicSnapshotModule } from "./aa-public-snapshot.mjs";
+import { renderLegacySnapshotModule } from "./generated-snapshot-module.mjs";
 
 export const ALLOWED_DATA_UPDATE_PATHS = Object.freeze([
+  "data/aa/generated/snapshot.json",
+  "data/aa/generated/sync-report.json",
   "data/modelops/generated/catalog.json",
   "data/modelops/generated/evidence.json",
   "data/sync-report.json",
+  "src/data/generated/aaPublicSnapshot.ts",
   "src/data/generated/aaSnapshot.ts",
   "src/data/generated/arenaSnapshot.ts",
 ]);
 
 const ALLOWED_PATHS = new Set(ALLOWED_DATA_UPDATE_PATHS);
+const AA_PUBLIC_DATA_UPDATE_PATHS = Object.freeze([
+  "data/aa/generated/snapshot.json",
+  "data/aa/generated/sync-report.json",
+  "src/data/generated/aaPublicSnapshot.ts",
+]);
+const AA_PUBLIC_PATHS = new Set(AA_PUBLIC_DATA_UPDATE_PATHS);
+const AA_PUBLIC_METRICS = Object.freeze([
+  "intelligence",
+  "coding",
+  "agentic",
+  "inputPricePerMillion",
+  "outputPricePerMillion",
+  "timeToFirstAnswerSeconds",
+  "outputTokensPerSecond",
+]);
+const AA_PUBLIC_NON_NEGATIVE_METRICS = new Set([
+  "inputPricePerMillion",
+  "outputPricePerMillion",
+  "timeToFirstAnswerSeconds",
+  "outputTokensPerSecond",
+]);
+const AA_PUBLIC_IDENTITY_FIELDS = Object.freeze([
+  "sourceSlug",
+  "rawName",
+  "creatorId",
+  "creatorName",
+  "releaseDate",
+]);
+const AA_PUBLIC_SNAPSHOT_FIELDS = Object.freeze(["models", "schemaVersion", "source"]);
+const AA_PUBLIC_SOURCE_FIELDS = Object.freeze([
+  "intelligenceIndexVersion",
+  "observedAt",
+  "pagination",
+  "schemaFingerprint",
+  "url",
+]);
+const AA_PUBLIC_PAGINATION_FIELDS = Object.freeze([
+  "declaredTotalRows",
+  "fetchedRowCount",
+  "pageSize",
+  "totalPages",
+]);
+const AA_PUBLIC_MODEL_FIELDS = Object.freeze([
+  ...AA_PUBLIC_METRICS,
+  ...AA_PUBLIC_IDENTITY_FIELDS,
+  "observedAt",
+  "sourceId",
+].sort());
+const AA_PUBLIC_REPORT_FIELDS = Object.freeze([
+  "finiteMetricCounts",
+  "missingIdentity",
+  "pagination",
+  "rowCount",
+  "schemaVersion",
+  "source",
+]);
+const AA_PUBLIC_REPORT_SOURCE_FIELDS = Object.freeze([
+  "intelligenceIndexVersion",
+  "observedAt",
+  "schemaFingerprint",
+  "url",
+]);
+const AA_PUBLIC_MISSING_IDENTITY_ENTRY_FIELDS = Object.freeze(["count", "sourceIds"]);
 const AA_BENCHMARK_IDS = new Set(["aa-coding", "aa-intelligence"]);
 const AA_METRICS = new Set(["coding", "intelligence"]);
 const AA_LEADERBOARD_FIELDS = [
@@ -25,6 +93,7 @@ const AA_LEADERBOARD_FIELDS = [
   "value",
 ];
 const MODIFIED_STATUSES = new Set(["M", "modified"]);
+const ADDED_STATUSES = new Set(["A", "added"]);
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -53,7 +122,17 @@ export function parseGeneratedSnapshotModule(source, constantName) {
   if (equalsIndex === -1) throw new Error(`missing ${constantName} initializer`);
   const initializer = source.slice(equalsIndex + 1).trim();
   if (!initializer.endsWith(";")) throw new Error(`${constantName} initializer must end with a semicolon`);
-  return JSON.parse(initializer.slice(0, -1));
+  const parsed = JSON.parse(initializer.slice(0, -1));
+  const canonicalSource = constantName === "AA_PUBLIC_SNAPSHOT"
+    ? renderAaPublicSnapshotModule(parsed)
+    : new Set(["AA_SNAPSHOT", "ARENA_SNAPSHOT"]).has(constantName)
+      ? renderLegacySnapshotModule(constantName, parsed)
+      : null;
+  const normalizedSource = source.replaceAll("\r\n", "\n");
+  if (canonicalSource !== null && normalizedSource !== canonicalSource) {
+    throw new Error(`${constantName} module must match the canonical generated form`);
+  }
+  return parsed;
 }
 
 function readStringSet(value, path, reasons) {
@@ -96,6 +175,41 @@ function isNullableFiniteNumber(value) {
   return value === null || isFiniteNumber(value);
 }
 
+function hasExactFields(value, fields, path, reasons) {
+  if (!isObject(value)) {
+    addReason(reasons, `${path} must be an object`);
+    return false;
+  }
+  const actual = Object.keys(value).sort();
+  if (canonicalJson(actual) !== canonicalJson([...fields].sort())) {
+    addReason(reasons, `${path} has missing or unexpected fields`);
+    return false;
+  }
+  return true;
+}
+
+function isNonEmptyTrimmedString(value) {
+  return typeof value === "string" && value.trim() !== "" && value.trim() === value;
+}
+
+function isPlainHttpsUrl(value) {
+  if (!isNonEmptyTrimmedString(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:"
+      && url.username === ""
+      && url.password === ""
+      && url.search === ""
+      && url.hash === "";
+  } catch {
+    return false;
+  }
+}
+
+function getChangePath(change) {
+  return typeof change?.path === "string" ? change.path : change?.filename;
+}
+
 function checkChanges(changes, reasons) {
   if (!Array.isArray(changes) || changes.length === 0) {
     addReason(reasons, "changes must contain at least one modified generated file");
@@ -108,7 +222,7 @@ function checkChanges(changes, reasons) {
       addReason(reasons, `changes[${index}] must be an object`);
       continue;
     }
-    const path = typeof change.path === "string" ? change.path : change.filename;
+    const path = getChangePath(change);
     if (typeof path !== "string" || path === "") {
       addReason(reasons, `changes[${index}] must include path or filename`);
       continue;
@@ -116,8 +230,324 @@ function checkChanges(changes, reasons) {
     if (seen.has(path)) addReason(reasons, `duplicate changed path: ${path}`);
     seen.add(path);
     if (!ALLOWED_PATHS.has(path)) addReason(reasons, `changed path is not allowed: ${path}`);
-    if (!MODIFIED_STATUSES.has(change.status)) {
+    const allowedStatus = MODIFIED_STATUSES.has(change.status)
+      || (AA_PUBLIC_PATHS.has(path) && ADDED_STATUSES.has(change.status));
+    if (!allowedStatus) {
       addReason(reasons, `changed path must be modified, not ${String(change.status)}: ${path}`);
+    }
+  }
+}
+
+function validateAaPublicPagination(pagination, path, reasons) {
+  if (!hasExactFields(pagination, AA_PUBLIC_PAGINATION_FIELDS, path, reasons)) return null;
+
+  if (!Number.isSafeInteger(pagination.pageSize) || pagination.pageSize <= 0) {
+    addReason(reasons, `${path}.pageSize must be a positive safe integer`);
+  }
+  if (!Number.isSafeInteger(pagination.totalPages) || pagination.totalPages <= 0 || pagination.totalPages > 50) {
+    addReason(reasons, `${path}.totalPages must be a safe integer from 1 through 50`);
+  }
+  if (!Number.isSafeInteger(pagination.fetchedRowCount) || pagination.fetchedRowCount <= 0) {
+    addReason(reasons, `${path}.fetchedRowCount must be a positive safe integer`);
+  }
+  if (pagination.declaredTotalRows !== null) {
+    addReason(reasons, `${path}.declaredTotalRows must be null for Free v2`);
+  }
+
+  if (
+    Number.isSafeInteger(pagination.pageSize)
+    && pagination.pageSize > 0
+    && Number.isSafeInteger(pagination.totalPages)
+    && pagination.totalPages > 0
+    && Number.isSafeInteger(pagination.fetchedRowCount)
+    && pagination.fetchedRowCount >= 0
+  ) {
+    const maximumRows = pagination.pageSize * pagination.totalPages;
+    const minimumRows = pagination.totalPages === 1
+      ? 0
+      : pagination.pageSize * (pagination.totalPages - 1) + 1;
+    if (pagination.fetchedRowCount < minimumRows || pagination.fetchedRowCount > maximumRows) {
+      addReason(reasons, `${path} does not prove complete pagination`);
+    }
+  }
+
+  return pagination;
+}
+
+function validateAaPublicSnapshot(snapshot, path, reasons) {
+  if (!hasExactFields(snapshot, AA_PUBLIC_SNAPSHOT_FIELDS, path, reasons)) return null;
+
+  if (!Number.isInteger(snapshot.schemaVersion) || snapshot.schemaVersion <= 0) {
+    addReason(reasons, `${path}.schemaVersion must be a positive integer`);
+  }
+
+  const sourcePath = `${path}.source`;
+  const source = hasExactFields(snapshot.source, AA_PUBLIC_SOURCE_FIELDS, sourcePath, reasons)
+    ? snapshot.source
+    : null;
+  if (source) {
+    if (!isPlainHttpsUrl(source.url)) {
+      addReason(reasons, `${sourcePath}.url must be HTTPS without credentials, query, or fragment`);
+    }
+    if (!isIsoDate(source.observedAt)) {
+      addReason(reasons, `${sourcePath}.observedAt must be an ISO date`);
+    }
+    if (!isNonEmptyTrimmedString(source.schemaFingerprint)) {
+      addReason(reasons, `${sourcePath}.schemaFingerprint must be a non-empty string`);
+    }
+    if (!isFiniteNumber(source.intelligenceIndexVersion) || source.intelligenceIndexVersion <= 0) {
+      addReason(reasons, `${sourcePath}.intelligenceIndexVersion must be a positive finite number`);
+    }
+  }
+
+  const pagination = source
+    ? validateAaPublicPagination(source.pagination, `${sourcePath}.pagination`, reasons)
+    : null;
+  if (!Array.isArray(snapshot.models)) {
+    addReason(reasons, `${path}.models must be an array`);
+    return null;
+  }
+
+  const finiteMetricCounts = Object.fromEntries(AA_PUBLIC_METRICS.map((metric) => [metric, 0]));
+  const missingIdentity = Object.fromEntries(AA_PUBLIC_IDENTITY_FIELDS.map((field) => [field, []]));
+  const metadataBySourceId = new Map();
+  const sourceIds = new Set();
+  let previousSourceId = null;
+
+  for (const [index, model] of snapshot.models.entries()) {
+    const modelPath = `${path}.models[${index}]`;
+    if (!hasExactFields(model, AA_PUBLIC_MODEL_FIELDS, modelPath, reasons)) continue;
+
+    if (!isNonEmptyTrimmedString(model.sourceId)) {
+      addReason(reasons, `${modelPath}.sourceId must be a non-empty string`);
+    } else {
+      if (sourceIds.has(model.sourceId)) {
+        addReason(reasons, `${path}.models contains duplicate sourceId ${JSON.stringify(model.sourceId)}`);
+      }
+      sourceIds.add(model.sourceId);
+      if (previousSourceId !== null && previousSourceId > model.sourceId) {
+        addReason(reasons, `${path}.models must be ordered by sourceId`);
+      }
+      previousSourceId = model.sourceId;
+    }
+
+    for (const field of ["sourceSlug", "rawName", "creatorId", "creatorName"]) {
+      if (model[field] !== null && !isNonEmptyTrimmedString(model[field])) {
+        addReason(reasons, `${modelPath}.${field} must be a non-empty string or null`);
+      }
+      if (model[field] === null && isNonEmptyTrimmedString(model.sourceId)) {
+        missingIdentity[field].push(model.sourceId);
+      }
+    }
+    if (model.releaseDate !== null && !isIsoDate(model.releaseDate)) {
+      addReason(reasons, `${modelPath}.releaseDate must be an ISO date or null`);
+    }
+    if (model.releaseDate === null && isNonEmptyTrimmedString(model.sourceId)) {
+      missingIdentity.releaseDate.push(model.sourceId);
+    }
+    if (!isIsoDate(model.observedAt)) {
+      addReason(reasons, `${modelPath}.observedAt must be an ISO date`);
+    } else if (source && model.observedAt !== source.observedAt) {
+      addReason(reasons, `${modelPath}.observedAt must equal ${sourcePath}.observedAt`);
+    }
+
+    for (const metric of AA_PUBLIC_METRICS) {
+      const value = model[metric];
+      if (!isNullableFiniteNumber(value)) {
+        addReason(reasons, `${modelPath}.${metric} must be null or finite`);
+        continue;
+      }
+      if (isFiniteNumber(value)) {
+        finiteMetricCounts[metric] += 1;
+        if (AA_PUBLIC_NON_NEGATIVE_METRICS.has(metric) && value < 0) {
+          addReason(reasons, `${modelPath}.${metric} must be non-negative`);
+        }
+      }
+    }
+
+    if (isNonEmptyTrimmedString(model.sourceId)) {
+      metadataBySourceId.set(model.sourceId, canonicalJson(Object.fromEntries(
+        AA_PUBLIC_IDENTITY_FIELDS.map((field) => [field, model[field]]),
+      )));
+    }
+  }
+
+  if (pagination && pagination.fetchedRowCount !== snapshot.models.length) {
+    addReason(reasons, `${sourcePath}.pagination.fetchedRowCount must equal models.length`);
+  }
+
+  if (!source || !pagination) return null;
+
+  return {
+    finiteMetricCounts,
+    metadataBySourceId,
+    missingIdentity,
+    pagination,
+    rowCount: snapshot.models.length,
+    snapshot,
+  };
+}
+
+function validateAaPublicReport(report, snapshotSummary, path, reasons) {
+  if (!hasExactFields(report, AA_PUBLIC_REPORT_FIELDS, path, reasons)) return;
+  if (!snapshotSummary) {
+    addReason(reasons, `${path} cannot be checked without a valid public AA snapshot`);
+    return;
+  }
+
+  const { snapshot } = snapshotSummary;
+  if (report.schemaVersion !== snapshot.schemaVersion) {
+    addReason(reasons, `${path}.schemaVersion must equal the public AA snapshot schemaVersion`);
+  }
+  if (!hasExactFields(report.source, AA_PUBLIC_REPORT_SOURCE_FIELDS, `${path}.source`, reasons)) return;
+  const expectedReportSource = {
+    intelligenceIndexVersion: snapshot.source.intelligenceIndexVersion,
+    observedAt: snapshot.source.observedAt,
+    schemaFingerprint: snapshot.source.schemaFingerprint,
+    url: snapshot.source.url,
+  };
+  if (canonicalJson(report.source) !== canonicalJson(expectedReportSource)) {
+    addReason(reasons, `${path}.source is inconsistent with the public AA snapshot`);
+  }
+
+  if (!hasExactFields(report.pagination, AA_PUBLIC_PAGINATION_FIELDS, `${path}.pagination`, reasons)) return;
+  if (canonicalJson(report.pagination) !== canonicalJson(snapshot.source.pagination)) {
+    addReason(reasons, `${path}.pagination is inconsistent with the public AA snapshot`);
+  }
+  if (!Number.isSafeInteger(report.rowCount) || report.rowCount < 0) {
+    addReason(reasons, `${path}.rowCount must be a non-negative safe integer`);
+  } else if (report.rowCount !== snapshotSummary.rowCount) {
+    addReason(reasons, `${path}.rowCount is inconsistent with the public AA snapshot`);
+  }
+
+  if (!hasExactFields(report.finiteMetricCounts, AA_PUBLIC_METRICS, `${path}.finiteMetricCounts`, reasons)) return;
+  for (const metric of AA_PUBLIC_METRICS) {
+    const value = report.finiteMetricCounts[metric];
+    if (!Number.isSafeInteger(value) || value < 0) {
+      addReason(reasons, `${path}.finiteMetricCounts.${metric} must be a non-negative safe integer`);
+    } else if (value !== snapshotSummary.finiteMetricCounts[metric]) {
+      addReason(reasons, `${path}.finiteMetricCounts.${metric} is inconsistent with the public AA snapshot`);
+    }
+  }
+
+  if (!hasExactFields(report.missingIdentity, AA_PUBLIC_IDENTITY_FIELDS, `${path}.missingIdentity`, reasons)) return;
+  for (const field of AA_PUBLIC_IDENTITY_FIELDS) {
+    const entryPath = `${path}.missingIdentity.${field}`;
+    const entry = report.missingIdentity[field];
+    if (!hasExactFields(entry, AA_PUBLIC_MISSING_IDENTITY_ENTRY_FIELDS, entryPath, reasons)) continue;
+    if (!Number.isSafeInteger(entry.count) || entry.count < 0) {
+      addReason(reasons, `${entryPath}.count must be a non-negative safe integer`);
+    }
+    const sourceIds = readStringSet(entry.sourceIds, `${entryPath}.sourceIds`, reasons);
+    if (sourceIds && canonicalJson([...sourceIds]) !== canonicalJson([...sourceIds].sort())) {
+      addReason(reasons, `${entryPath}.sourceIds must be ordered by sourceId`);
+    }
+    const expectedIds = snapshotSummary.missingIdentity[field];
+    if (entry.count !== expectedIds.length || !sourceIds || !sameSet(sourceIds, new Set(expectedIds))) {
+      addReason(reasons, `${entryPath} is inconsistent with the public AA snapshot`);
+    }
+  }
+}
+
+function compareAaPublicMetadata(baseSummary, headSummary, reasons) {
+  for (const [sourceId, baseMetadata] of baseSummary.metadataBySourceId) {
+    const headMetadata = headSummary.metadataBySourceId.get(sourceId);
+    if (headMetadata !== undefined && headMetadata !== baseMetadata) {
+      addReason(reasons, `public AA identity metadata changed: ${sourceId}`);
+    }
+  }
+}
+
+function checkAaPublicArtifacts(base, head, reasons) {
+  const baseArtifactsExist = isObject(base.aaPublicSnapshot)
+    && isObject(base.aaPublicJson)
+    && isObject(base.aaPublicReport);
+  if (!baseArtifactsExist) {
+    addReason(reasons, "public AA baseline is missing from base; first full snapshot requires human review");
+  }
+  const headArtifactsExist = isObject(head.aaPublicSnapshot)
+    && isObject(head.aaPublicJson)
+    && isObject(head.aaPublicReport);
+  if (!headArtifactsExist) {
+    addReason(reasons, "public AA snapshot, backend JSON, and sync report must exist in head");
+  }
+
+  const baseTsSummary = isObject(base.aaPublicSnapshot)
+    ? validateAaPublicSnapshot(base.aaPublicSnapshot, "base.aaPublicSnapshot", reasons)
+    : null;
+  const baseJsonSummary = isObject(base.aaPublicJson)
+    ? validateAaPublicSnapshot(base.aaPublicJson, "base.aaPublicJson", reasons)
+    : null;
+  const headTsSummary = isObject(head.aaPublicSnapshot)
+    ? validateAaPublicSnapshot(head.aaPublicSnapshot, "head.aaPublicSnapshot", reasons)
+    : null;
+  const headJsonSummary = isObject(head.aaPublicJson)
+    ? validateAaPublicSnapshot(head.aaPublicJson, "head.aaPublicJson", reasons)
+    : null;
+
+  if (
+    isObject(base.aaPublicSnapshot)
+    && isObject(base.aaPublicJson)
+    && canonicalJson(base.aaPublicSnapshot) !== canonicalJson(base.aaPublicJson)
+  ) {
+    addReason(reasons, "base public AA TypeScript snapshot and backend JSON are not semantically equal");
+  }
+  if (
+    isObject(head.aaPublicSnapshot)
+    && isObject(head.aaPublicJson)
+    && canonicalJson(head.aaPublicSnapshot) !== canonicalJson(head.aaPublicJson)
+  ) {
+    addReason(reasons, "head public AA TypeScript snapshot and backend JSON are not semantically equal");
+  }
+
+  if (isObject(base.aaPublicReport)) {
+    validateAaPublicReport(base.aaPublicReport, baseJsonSummary ?? baseTsSummary, "base.aaPublicReport", reasons);
+  }
+  if (isObject(head.aaPublicReport)) {
+    validateAaPublicReport(head.aaPublicReport, headJsonSummary ?? headTsSummary, "head.aaPublicReport", reasons);
+  }
+
+  const baseSummary = baseJsonSummary ?? baseTsSummary;
+  const headSummary = headJsonSummary ?? headTsSummary;
+  if (!baseSummary || !headSummary) return;
+
+  if (baseSummary.snapshot.schemaVersion !== headSummary.snapshot.schemaVersion) {
+    addReason(reasons, "public AA schema version changed; human review required");
+    return;
+  }
+  if (baseSummary.snapshot.source.url !== headSummary.snapshot.source.url) {
+    addReason(reasons, "public AA source URL changed; human review required");
+  }
+  if (baseSummary.snapshot.source.schemaFingerprint !== headSummary.snapshot.source.schemaFingerprint) {
+    addReason(reasons, "public AA schema fingerprint changed; human review required");
+  }
+  if (
+    baseSummary.snapshot.source.intelligenceIndexVersion
+    !== headSummary.snapshot.source.intelligenceIndexVersion
+  ) {
+    addReason(reasons, "public AA Intelligence Index version changed; human review required");
+  }
+  if (baseSummary.pagination.pageSize !== headSummary.pagination.pageSize) {
+    addReason(reasons, "public AA pagination pageSize changed; human review required");
+  }
+
+  compareAaPublicMetadata(baseSummary, headSummary, reasons);
+  const countPairs = [
+    ["fetchedRowCount", baseSummary.pagination?.fetchedRowCount, headSummary.pagination?.fetchedRowCount],
+    ...AA_PUBLIC_METRICS.map((metric) => [
+      `finiteMetricCounts.${metric}`,
+      baseSummary.finiteMetricCounts[metric],
+      headSummary.finiteMetricCounts[metric],
+    ]),
+  ];
+  for (const [label, baseCount, headCount] of countPairs) {
+    if (
+      Number.isSafeInteger(baseCount)
+      && baseCount > 0
+      && Number.isSafeInteger(headCount)
+      && headCount < baseCount * 0.8
+    ) {
+      addReason(reasons, `public AA ${label} dropped by more than 20%`);
     }
   }
 }
@@ -649,6 +1079,10 @@ export function evaluateDataUpdatePolicy(input) {
     addReason(reasons, "base and head must be objects");
     return { eligible: false, reasons };
   }
+
+  const publicAaTouched = Array.isArray(input.changes)
+    && input.changes.some((change) => AA_PUBLIC_PATHS.has(getChangePath(change)));
+  if (publicAaTouched) checkAaPublicArtifacts(base, head, reasons);
 
   if (!isObject(base.catalog) || !isObject(head.catalog)) {
     addReason(reasons, "catalog must exist in base and head");
