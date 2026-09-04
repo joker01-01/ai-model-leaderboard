@@ -11,7 +11,16 @@ afterEach(cleanup);
 
 describe("Board", () => {
   it("shows competition ranks for exact editorial ties", () => {
-    const entries = sortEntries(buildEntries(DEFAULT_WEIGHTS), "editorial", "openness");
+    const opennessScores = [100, 100, 0, 0];
+    const entries = sortEntries(
+      buildEntries(DEFAULT_WEIGHTS).slice(0, opennessScores.length).map((entry, index) => ({
+        ...entry,
+        editorialScore: 50,
+        editorialDims: { ...entry.editorialDims, openness: opennessScores[index] },
+      })),
+      "editorial",
+      "openness",
+    );
     const { container } = render(
       <Board
         mode="editorial"
@@ -30,11 +39,11 @@ describe("Board", () => {
     ));
 
     const openRows = rowsByScore("100.0");
-    expect(openRows).toHaveLength(6);
-    expect(openRows.map((row) => row.querySelector(".rank")?.textContent)).toEqual(Array(6).fill("01"));
+    expect(openRows).toHaveLength(2);
+    expect(openRows.map((row) => row.querySelector(".rank")?.textContent)).toEqual(["01", "01"]);
 
     const closedRows = rowsByScore("0.0");
-    expect(closedRows).toHaveLength(10);
-    expect(closedRows.map((row) => row.querySelector(".rank")?.textContent)).toEqual(Array(10).fill("07"));
+    expect(closedRows).toHaveLength(2);
+    expect(closedRows.map((row) => row.querySelector(".rank")?.textContent)).toEqual(["03", "03"]);
   });
 });
