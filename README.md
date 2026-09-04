@@ -6,13 +6,13 @@
 [![API: FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=flat-square)](https://fastapi.tiangolo.com/)
 [![Deploy: GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-222222?style=flat-square)](https://joker01-01.github.io/ai-model-leaderboard/)
 [![Data: Exact Version Match](https://img.shields.io/badge/Data-Exact%20Version%20Match-0A7E8C?style=flat-square)](#reliability-rules)
-[![Review: Human in the Loop](https://img.shields.io/badge/Review-Human%20in%20the%20Loop-2EA44F?style=flat-square)](#the-publish-pipeline)
+[![Publish: Guarded Auto-Merge](https://img.shields.io/badge/Publish-Guarded%20Auto--Merge-2EA44F?style=flat-square)](#the-publish-pipeline)
 
 > **What should a system do when the data doesn't line up?**
 
 This project is an AI model evaluation platform built around one rule: **if the version cannot be verified, don't pretend the score belongs there.**
 
-The public board ranks same-version scores from Artificial Analysis. A separate editorial board can re-rank by user-adjustable preferences. Data sync runs automatically, but publication still waits for human review.
+The public board ranks same-version scores from Artificial Analysis. A separate editorial board can re-rank by user-adjustable preferences. Routine generated-data refreshes publish automatically only after the trusted gate passes; anomalies remain open for human review.
 
 **Frontend:** https://joker01-01.github.io/ai-model-leaderboard/
 
@@ -51,12 +51,18 @@ flowchart LR
   sync[Sync script]
   match[Exact version matching]
   report[Validation report]
-  pr[Review PR]
+  pr[Generated-data PR]
+  gate[Trusted policy gate]
   human[Human review]
   main[main]
   pages[GitHub Pages]
+  api[Zeabur API]
 
-  src --> sync --> match --> report --> pr --> human --> main --> pages
+  src --> sync --> match --> report --> pr --> gate
+  gate -->|routine + all checks| main
+  gate -->|anomaly / failed gate| human --> main
+  main --> pages
+  main --> api
 ```
 
 Sources:
@@ -64,7 +70,7 @@ Sources:
 - **Artificial Analysis Data API** — benchmark source for the public board.
 - **LMArena leaderboard dataset** — blind-preference reference in the detail view.
 
-The sync workflow runs daily at 01:20 Beijing time. It updates generated snapshots and opens or updates a review PR. It does **not** publish directly. Merging into `main` triggers the Pages deployment workflow.
+The sync workflow runs daily at 01:20 Beijing time. It updates generated snapshots and opens or updates a pull request; it never pushes directly to `main`. The trusted gate automatically merges only routine refreshes with stable exact identities, approved generated paths, verified provenance, and all required checks. Anomalies stay open for human review. A merge into `main` triggers GitHub Pages and the linked Zeabur deployment.
 
 ## Reliability rules
 
@@ -73,7 +79,7 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 - **Public rank and editorial preference stay separate.** Editorial weights never rewrite the public benchmark rank.
 - **Arena is reference, not rank.** User preference does not get mixed into the headline public score.
 - **Generated snapshots are generated.** `src/data/generated/aaSnapshot.ts` and `arenaSnapshot.ts` should not be edited by hand.
-- **Human review stays in the loop.** Automated sync prepares a change; a person decides whether it is publishable.
+- **The pull request stays the publication boundary.** Routine refreshes may auto-merge only after every gate passes; anomalies require human review.
 
 ## Project structure
 
@@ -156,13 +162,13 @@ The API is intentionally stateless: `session_id` is accepted as client context, 
 
 The backend runs as `modelops-agent-api` on a Zeabur-managed Tencent Cloud server in Singapore, with public origin `https://modelops-agent-api.zeabur.app`. Follow [`docs/backend-deployment-zeabur.md`](docs/backend-deployment-zeabur.md) for the verified configuration and recreation/rollback procedure. Keep the Docker build context at the repository root so the image contains both `backend/app/` and the committed ModelOps JSON under `data/modelops/generated/`.
 
-## What is not automated yet
+## Verification and remaining work
 
 `npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 92-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, the browser landing page, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
-Phase D is published through GitHub Pages. The live browser DOM contains both the configured Agent Panel and the existing leaderboard, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A network-backed sync freshness gate and broader frontend interaction coverage remain separate future work.
+Phase D is published through GitHub Pages. The live browser DOM contains both the configured Agent Panel and the existing leaderboard, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A fail-on-drift mode for the standalone local `sync:data:check` command and broader frontend interaction coverage remain separate future work.
 
-The repository now contains a fail-closed conditional data-refresh policy and merge workflow, but that automation remains inactive until the repository-scoped GitHub App, its Actions variable/secret, and protected required checks on `main` are configured and verified. Until that control-plane acceptance is complete, publication still requires human review. See [`docs/data-refresh-automation.md`](docs/data-refresh-automation.md).
+The conditional data-refresh control plane is operational: a repository-scoped GitHub App prepares the pull request, protected `main` requires the complete `verify` check, and trusted-main policy code performs the guarded merge. Live acceptance covered both an anomaly refresh retained for human review ([PR #7](https://github.com/joker01-01/ai-model-leaderboard/pull/7)) and a routine refresh merged automatically ([PR #9](https://github.com/joker01-01/ai-model-leaderboard/pull/9)). See [`docs/data-refresh-automation.md`](docs/data-refresh-automation.md).
 
 ## Limitations
 
@@ -194,7 +200,7 @@ Before recording a public score:
 
 这个项目围绕一个很简单的规则：**版本不能确认，就不要假装这个分数属于它。**
 
-公开榜按同版本 Artificial Analysis Intelligence Index 排名；编辑推荐榜再根据用户偏好重排。数据每天自动同步，但不会自动发布，先生成审核 PR，人工确认后才进入 `main` 并部署到 GitHub Pages。
+公开榜按同版本 Artificial Analysis Intelligence Index 排名；编辑推荐榜再根据用户偏好重排。数据每天自动同步并生成更新 PR；精确身份、文件范围、提交来源和全部检查均稳定的例行更新会自动合并，异常更新保留给人工审核。
 
 我更愿意留一个空白，也不愿意让一个分数看起来比它实际更确定。
 
@@ -205,10 +211,10 @@ Before recording a public score:
 - 缺失和歧义写入 `data/sync-report.json`，不偷偷补值。
 - Arena 只作用户偏好参考，不参与公开名次。
 - 编辑权重和公开榜分开。
-- 自动同步之后仍保留人工审核门。
+- 更新 PR 是发布边界：例行更新通过门禁后自动合并，异常更新仍需人工审核。
 
 当前已完成 Phase C 后端和 Phase D 前端实现：严格 Pydantic 契约、只读 JSON repository、五个 typed 工具、确定性 verifier、LangGraph 状态图、FastAPI health/invoke/SSE、DeepSeek V4 Flash gateway、受限 HTTP 文档客户端，以及带深层运行时契约校验的 React Agent Panel。SSE 保证递增 sequence、单一终止事件和断连取消；更新工具只生成 `awaiting_human_review` 提案，不写文件、不操作 Git，也不发布。
 
-尚未实现持久化/断点续传、认证与限流；Zeabur 新加坡后端已通过 health、DeepSeek-backed invoke、POST SSE、GitHub Pages CORS、客户端主动断连、约 10 分钟端点稳定性检查，以及一次 Git-revert 部署切换/恢复演练。公开浏览器 DOM 已确认 Agent Panel 与原排行榜同时存在，三个 Agent 路径通过携带生产 Pages `Origin` 请求头的 HTTPS 传输检查。被回滚的 Phase D 提交没有改变后端构建输入，因此该演练验证的是 GitHub 到 Zeabur 的版本切换、健康连续性和恢复流程，而不是两个不同后端实现之间的回退。恢复后的服务图表显示 CPU 为低个位数百分比、内存约 65-75 MB，但这只是运维快照，不是持续负载测试。现有排行榜在 API 未配置时仍可独立运行，发布仍须人工合并审核 PR。
+尚未实现持久化/断点续传、认证与限流；Zeabur 新加坡后端已通过 health、DeepSeek-backed invoke、POST SSE、GitHub Pages CORS、客户端主动断连、约 10 分钟端点稳定性检查，以及一次 Git-revert 部署切换/恢复演练。公开浏览器 DOM 已确认 Agent Panel 与原排行榜同时存在，三个 Agent 路径通过携带生产 Pages `Origin` 请求头的 HTTPS 传输检查。被回滚的 Phase D 提交没有改变后端构建输入，因此该演练验证的是 GitHub 到 Zeabur 的版本切换、健康连续性和恢复流程，而不是两个不同后端实现之间的回退。恢复后的服务图表显示 CPU 为低个位数百分比、内存约 65-75 MB，但这只是运维快照，不是持续负载测试。现有排行榜在 API 未配置时仍可独立运行；例行数据更新通过严格门禁后自动合并，异常更新仍须人工审核。
 
 </details>
