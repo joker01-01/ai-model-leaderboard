@@ -32,6 +32,7 @@ describe("App leaderboard modes", () => {
     expect(container.textContent).not.toMatch(/Top\s*20/i);
     expect(container.textContent).not.toContain("当前共");
     expect(container.textContent).not.toContain("个模型有同版本智能指数");
+    expect(screen.getByText("公开评测榜 · 智能指数")).toBeTruthy();
     expect(screen.getByText(
       AA_INTELLIGENCE_LEADERBOARD.length === AA_LEADERBOARD_LIMIT ? "AA 完整榜已同步" : "AA 完整榜待同步",
     )).toBeTruthy();

@@ -214,7 +214,7 @@ function AaChampion({ entry, altName, onAltSwitch }: {
   }
   return (
     <article className="champion champion-objective">
-      <p className="eyebrow">公开评测榜 · 智能指数当前第一</p>
+      <p className="eyebrow">公开评测榜 · 智能指数</p>
       <div className="champion-main">
         <div className="champion-primary">
           <div className="champion-id">
