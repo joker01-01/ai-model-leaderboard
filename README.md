@@ -86,6 +86,7 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | Arena generated snapshot | `src/data/generated/arenaSnapshot.ts` |
 | ModelOps reviewed/generated data | `data/modelops/` |
 | ModelOps data contracts/tests | `scripts/modelops-data-schema.ts`, `scripts/modelops-data.test.ts` |
+| Leaderboard rows / sorting / rank | `src/components/Board.tsx`, `src/lib/entries.ts`, `src/lib/ranking.ts` |
 | Strict Python contracts/repository | `backend/app/domain/`, `backend/app/repositories/` |
 | Five typed ModelOps tools | `backend/app/tools/` |
 | LangGraph workflow/verifier | `backend/app/graph/`, `backend/app/services/` |
@@ -96,6 +97,7 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | Offline Agent evaluations | `backend/evals/` |
 | Sync / matching report | `data/sync-report.json` |
 | Sync workflow | `.github/workflows/sync-data.yml` |
+| Routine-refresh policy / merge workflow | `scripts/data-update-policy.mjs`, `.github/workflows/auto-merge-data.yml` |
 | Deploy workflow | `.github/workflows/deploy.yml` |
 
 ## Run it locally
@@ -105,8 +107,10 @@ npm install
 npm run dev
 npm run build
 npm run modelops:data:check
+npm run test:data-update-policy
 npm run test:modelops-data
 npm run test:agent
+npm run test:frontend
 ```
 
 Manual sync:
@@ -156,7 +160,9 @@ The backend runs as `modelops-agent-api` on a Zeabur-managed Tencent Cloud serve
 
 `npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 92-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, the browser landing page, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
-Phase D is published through GitHub Pages. The live browser DOM contains both the configured Agent Panel and the existing leaderboard, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A network-backed sync freshness gate and broader frontend interaction coverage remain separate future work. Publication still requires human review.
+Phase D is published through GitHub Pages. The live browser DOM contains both the configured Agent Panel and the existing leaderboard, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A network-backed sync freshness gate and broader frontend interaction coverage remain separate future work.
+
+The repository now contains a fail-closed conditional data-refresh policy and merge workflow, but that automation remains inactive until the repository-scoped GitHub App, its Actions variable/secret, and protected required checks on `main` are configured and verified. Until that control-plane acceptance is complete, publication still requires human review. See [`docs/data-refresh-automation.md`](docs/data-refresh-automation.md).
 
 ## Limitations
 

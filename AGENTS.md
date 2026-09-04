@@ -18,7 +18,7 @@ The ModelOps document is an approved implementation plan, not proof of implement
 - `backend/app/services/model_gateway.py` keeps the gateway protocol and deterministic fake; `backend/app/services/openai_gateway.py` implements locally validated OpenAI-compatible Responses structured output with DeepSeek V4 Flash as the default provider model, and `backend/app/services/provider_document_client.py` implements bounded exact-allowlist document fetching.
 - `backend/app/main.py` owns FastAPI configuration, lifespan dependencies, and the browser-facing service status page; `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints. `src/features/agent/` contains the typed SSE client, runtime wire validation, and React evidence-console panel; without `VITE_AGENT_API_URL`, the static leaderboard remains usable and the panel stays disconnected.
 - The selected independent backend target is Zeabur on a managed Tencent Cloud Singapore server. The root `Dockerfile` packages `backend/app/` together with `data/modelops/generated/`; Zeabur must build from the repository root with Root Directory left empty.
-- `.github/workflows/sync-data.yml` prepares review PRs; `.github/workflows/deploy.yml` deploys merged `main` to GitHub Pages.
+- `.github/workflows/sync-data.yml` prepares App-signed review PRs; `.github/workflows/auto-merge-data.yml` evaluates successful PR verification from trusted `main` and merges only routine generated-data refreshes; `.github/workflows/deploy.yml` deploys merged `main` to GitHub Pages.
 
 ## Verified commands
 
@@ -28,8 +28,10 @@ npm run dev
 npm run build
 npm run modelops:data
 npm run modelops:data:check
+npm run test:data-update-policy
 npm run test:modelops-data
 npm run test:agent
+npm run test:frontend
 npm run sync:data
 npm run sync:data:check
 git diff --check
@@ -53,7 +55,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 - `npm run build` is the current TypeScript and production-build gate.
-- `npm run test:modelops-data` is the focused shared-data contract and ranking-regression suite. `npm run test:agent` covers the typed SSE parser and Agent Panel interactions. There is no general frontend lint script yet.
+- `npm run test:modelops-data` is the focused shared-data contract and ranking-regression suite. `npm run test:data-update-policy` covers the fail-closed routine-refresh gate. `npm run test:agent` covers the typed SSE parser and Agent Panel interactions; `npm run test:frontend` runs all frontend tests. There is no general frontend lint script yet.
 - `npm run modelops:data:check` is offline and must fail when the committed ModelOps JSON is missing or stale.
 - `npm run sync:data` requires network access; fresh Artificial Analysis data also requires `AA_API_KEY`.
 - `npm run sync:data:check` is currently a dry run only. It does not fail when generated output would change, so do not treat a zero exit code as proof that snapshots are current.
@@ -90,11 +92,13 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ## Publication boundary
 
-- Automated refresh may prepare or update a review PR only.
-- Merging to `main` remains the human approval gate before GitHub Pages deployment.
-- Do not add automatic merge, direct publication, production-data writes, or broader workflow permissions without explicit user authorization and a separately reviewed design.
+- Scheduled refreshes must prepare or update a pull request; they must not push data changes directly to `main`.
+- A data-refresh pull request may auto-merge only after the repository gate proves that changed paths are limited to approved generated data/report files, exact source identities and matched sets remain stable, no new missing/ambiguous/conflicting evidence or loss of previously matched evidence appears, and every required data contract, test, and build check passes.
+- Any anomaly, failed or missing required check, or change to code, workflows, dependencies, documentation, or reviewed source mappings remains subject to human approval. Preserve the pull request as the review and audit boundary.
+- Do not enable conditional auto-merge until `main` has appropriate rules or protection and the required pull-request checks cannot be bypassed.
+- The data-sync GitHub App must be installed only on this repository, hold only Contents and Pull requests write access, sign its refresh commits, and remain outside every required-check bypass list. Automatic merge must revalidate the App author/signature plus immutable PR, head, base, and current-`main` SHAs.
 - ModelOps tools remain read-only or pure proposal operations unless an explicitly approved milestone adds writes.
-- Zeabur GitHub services redeploy on pushes to their linked branch by default. Keep the backend service linked to `main` so the human merge remains the backend release gate.
+- Zeabur GitHub services redeploy on pushes to their linked branch by default. Keep the backend service linked to `main` so a pull-request merge remains the backend release trigger.
 
 ## Risk-proportionate review
 
@@ -105,7 +109,7 @@ These rules apply to every coding model used on this repository, including Sol.
 - Do not run broad vulnerability scans, dependency audits, threat-model exercises, or unrelated hardening unless the user requests them or concrete evidence makes them necessary for the task.
 - Perform targeted security checks when a change touches authentication or authorization, secrets, untrusted or external input, network requests, dependencies, filesystem or Git writes, GitHub/PR automation, release/deployment, or another trust boundary.
 - Limit targeted checks to relevant risks: secret exposure, schema/input validation, source or URL allowlists, unsafe writes, dependency provenance, least-privilege workflow permissions, and approval bypasses.
-- Risk proportionality never permits skipping a necessary check, weakening the exact-version policy, or bypassing the human publication boundary.
+- Risk proportionality never permits skipping a necessary check, weakening the exact-version policy, or bypassing the controlled publication boundary.
 
 ## Change and verification rules
 

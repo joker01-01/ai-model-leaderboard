@@ -7,8 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: leaderboard-data-sync
@@ -17,13 +16,24 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          cache: npm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
+      - name: Install backend dependencies
+        run: python -m pip install -e './backend[dev]'
       - name: Fetch official snapshots
         run: npm run sync:data
         env:
@@ -31,20 +41,56 @@ jobs:
           AA_API_KEY: ${{ secrets.AA_API_KEY }}
       - name: Export ModelOps evidence adapter
         run: npm run modelops:data
+      - name: Check generated ModelOps data
+        run: npm run modelops:data:check
+      - name: Test routine data-update policy
+        run: npm run test:data-update-policy
       - name: Verify ModelOps data contract
         run: npm run test:modelops-data
+      - name: Test frontend
+        run: npm run test:frontend
       - name: Verify generated data builds
         run: npm run build
-      - name: Open data review pull request
-        uses: peter-evans/create-pull-request@v7
+      - name: Test backend tools and graph
+        working-directory: backend
+        run: python -m pytest -q
+      - name: Lint backend
+        working-directory: backend
+        run: python -m ruff check app tests evals
+      - name: Type-check backend
+        working-directory: backend
+        run: python -m mypy app tests evals
+      - name: Run deterministic Agent evaluations
+        working-directory: backend
+        run: python evals/run.py
+      - name: Create the repository-scoped data-sync App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          client-id: ${{ vars.DATA_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DATA_SYNC_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Open data review pull request
+        id: data-pull-request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
           branch: chore/refresh-leaderboard-data
           delete-branch: true
+          add-paths: |
+            data/modelops/generated/catalog.json
+            data/modelops/generated/evidence.json
+            data/sync-report.json
+            src/data/generated/aaSnapshot.ts
+            src/data/generated/arenaSnapshot.ts
           commit-message: "chore: refresh official leaderboard snapshots"
           title: "chore: refresh official leaderboard snapshots"
           body: |
-            这是定时同步生成的数据更新，请在合并前检查：
+            这是定时同步生成的数据更新：
             - `data/sync-report.json` 中的匹配、缺失和歧义
             - AA 仅更新精确版本匹配的 Intelligence / Coding 指数
             - Arena 只作详情中的用户偏好参考，不改变主榜名次
+            - 只有允许的生成文件、精确匹配集合与来源身份保持稳定，且所有检查通过时才会自动合并
+            - 新增或丢失匹配、歧义、来源身份变化及其他异常会保留此 PR，等待人工审核

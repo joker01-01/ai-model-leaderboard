@@ -2,19 +2,23 @@
 
 ## Goal
 
-Upgrade the existing AI Model Leaderboard into the bounded ModelOps Agent MVP defined in `docs/modelops-agent-plan.md`, while preserving exact-version matching, current ranking behavior, automated review PRs, and the human publication gate.
+Upgrade the existing AI Model Leaderboard into the bounded ModelOps Agent MVP defined in `docs/modelops-agent-plan.md`, while preserving exact-version matching, current ranking behavior, reviewable data-refresh pull requests, and controlled publication.
 
 ## Architecture
 
-Current verified system:
+Current repository architecture; the conditional-automation code is verified locally, while GitHub control-plane activation is still pending:
 
 ```text
 React 19 + TypeScript + Vite static frontend
   <- curated TypeScript model and benchmark data
   <- generated Artificial Analysis and Arena snapshots
   <- deterministic ModelOps catalog/evidence JSON adapter
-  <- daily Node.js sync + adapter export/tests that prepare a review PR
-  -> human merge to main
+  <- daily Node.js sync + adapter export/tests
+  -> repository-scoped App-signed review PR
+  -> read-only pull-request verification
+  -> trusted-main policy gate
+     -> routine generated-data refresh: guarded merge
+     -> anomaly or failed gate: human review
   -> GitHub Pages deployment
   -> typed POST SSE client + Agent evidence console
      (disabled when VITE_AGENT_API_URL is absent)
@@ -65,8 +69,9 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - The three graph intents are `recommend`, `explain_unranked`, and `prepare_update`. Missing user inputs end in `needs_clarification`; evidence gaps produce bounded completed answers; unrecoverable gateway/tool failures end in `failed`; valid proposals end in `awaiting_human_review` without writes.
 - The offline backend suite contains 92 repository/tool/graph/gateway/API tests, including available and unavailable root-page contracts. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
 - The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 62 benchmark observations, 18 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
-- The scheduled sync now regenerates and tests the ModelOps adapter before it can prepare a review PR; merge to `main` remains the publication gate.
-- Pull requests and pushes to `main` are configured to run the offline generated-data drift check, focused TypeScript data and Agent UI tests, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
+- The repository now implements an App-signed refresh PR, a strict five-file routine-update policy, trusted-`main` `workflow_run` inspection, verified App-commit provenance, immutable SHA checks, and guarded REST merge. The GitHub App credentials and protected required check are not configured yet, so live publication still uses human merge.
+- Pull requests and pushes to `main` are configured to run the offline generated-data drift check, policy tests, the complete frontend test set, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
+- Leaderboard entry construction and row/details rendering are separated into `src/lib/entries.ts` and `src/components/Board.tsx`. Both boards now use exact-score competition ranking; sorting places finite dimension scores before missing values so equal missing values remain contiguous.
 
 ## Important Decisions
 
@@ -88,7 +93,8 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - `prepare_data_update` remains a pure, reviewable proposal operation. It cannot write files, call GitHub, merge, or publish.
 - Security review depth is proportional to the touched trust boundary; ordinary documentation/UI/pure-function work does not trigger a broad security audit.
 - Zeabur builds the backend from the repository root so the image preserves both `backend/app/` and `data/modelops/generated/`. Start with one Uvicorn worker and no database or persistent volume.
-- Zeabur's GitHub integration redeploys on pushes to its linked branch by default. Link only `main` so the human merge remains the backend release gate.
+- Zeabur's GitHub integration redeploys on pushes to its linked branch by default. Link only `main` so a pull-request merge remains the backend release trigger.
+- The approved publication direction is conditional automation: routine generated-data pull requests may auto-merge only when an explicit changed-file allowlist, stable exact-match membership and source identity, unchanged curated/static evidence, App-signed commit provenance, immutable SHAs, and all required verification pass. Evidence loss, new missing/ambiguous/conflicting matches, source-mapping changes, or non-data changes remain open for human review. The repository implementation exists; GitHub control-plane activation and live acceptance remain pending. Scheduled refreshes never push directly to `main`, and the Agent `prepare_data_update` path remains a pure proposal.
 
 ## Known Problems
 
@@ -96,6 +102,7 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - DeepSeek V4 Pro/Flash prices are time-band dependent and are intentionally omitted because the Phase A offer schema does not model time bands.
 - Structured negative availability, end-user country availability, and latency evidence are not modeled yet; provider deployment regions alone cannot answer all geographic constraints.
 - `npm run sync:data:check` does not fail when generated data would drift.
+- Conditional data-refresh automation is not operational yet: the dedicated GitHub App is not installed/configured, `DATA_SYNC_APP_CLIENT_ID` and `DATA_SYNC_APP_PRIVATE_KEY` are absent, and `main` has no protected required `verify` check. Existing PR `#3` was created by `github-actions[bot]`; it must be closed and its fixed refresh branch deleted before the App creates a replacement.
 - Focused Agent Panel tests exist, but the rest of the leaderboard still lacks broad end-to-end interaction coverage.
 - The public backend has no authentication or rate limiting. CORS limits browser origins but does not prevent direct scripted requests, so broader exposure needs a separately approved access-control or quota milestone.
 - A real client transport disconnect, bounded endpoint-stability observation, and Git-revert deployment/recovery drill have been exercised against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies revision switching, health continuity, and recovery rather than rollback between behaviorally different backend images. Online logs have not independently proven internal graph-task cancellation; the offline API integration test covers that contract. The control-plane resource graph is a snapshot, not a sustained-load test.
@@ -110,9 +117,12 @@ Verified through 2026-09-04 after deploying the Zeabur backend boundary:
 - `npm ci` succeeded.
 - `npm run modelops:data` generated the adapter successfully outside the managed sandbox.
 - `npm run modelops:data:check` passed outside the managed sandbox; a deliberate generated-file mutation was also proven to make it exit nonzero before the file was regenerated.
-- `npm run test:modelops-data` passed 11/11 focused tests, including exact provider-pair and source-version binding, invalid tier/freshness/currency rejection, evidence cutoff boundaries, provider-host restriction, numeric tier ordering, and ranking-result equivalence.
+- `npm run test:modelops-data` passed 12/12 focused tests, including exact provider-pair and source-version binding, invalid tier/freshness/currency rejection, evidence cutoff boundaries, provider-host restriction, numeric tier ordering, ranking-result equivalence, and competition-rank behavior.
 - `npm run build` succeeded with TypeScript checking for the frontend and ModelOps scripts plus a Vite production build.
 - `npm run test:agent` passed 30 focused runtime-contract, SSE parser, cancellation, and React Panel tests; malformed streams cancel their response reader and partial failed output is not presented as a completed result.
+- `npm run test:frontend` passed 41/41 tests across five files, including all sort dimensions, missing-score placement, competition ranking, row rendering, and the existing Agent tests.
+- `npm run test:data-update-policy` passed 15/15 cases covering routine refreshes, strict path/status allowlisting, skipped/ambiguous sources, stable match sets and AA/Arena identities, immutable static evidence, malformed inputs, and CLI exit behavior. A smoke using the current committed snapshot shapes accepted a synchronized AA value refresh and rejected an Arena source-identity mutation.
+- All four workflow YAML files parsed successfully. The guarded merge workflow and GitHub App prerequisites are not yet live-verified.
 - `node --check scripts/sync-data.mjs` succeeded.
 - The extracted alias data was deep-compared with the previous inline array: 20 model IDs, 21 AA aliases, and 40 Arena aliases were unchanged.
 - README publication claims and the human merge boundary still match the checked GitHub Actions workflows.
@@ -145,6 +155,6 @@ Verified through 2026-09-04 after deploying the Zeabur backend boundary:
 
 ## Next (separate milestones)
 
-1. Add a network-backed sync freshness gate if external AA/Arena drift must block publication.
+1. Create and install the repository-scoped data-sync GitHub App, configure its variable/private-key secret, protect `main` with required `verify`, close PR `#3` and delete its old refresh branch, then live-test one routine refresh and one rejected anomaly as described in `docs/data-refresh-automation.md`.
 2. Design authentication, rate limiting, or quota enforcement before materially broader public API exposure.
 3. Add broader leaderboard end-to-end interaction coverage and sustained-load/resource testing if usage justifies them.

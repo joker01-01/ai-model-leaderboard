@@ -9,14 +9,15 @@
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "modelops:data": "tsx scripts/export-modelops-data.ts",
     "modelops:data:check": "tsx scripts/export-modelops-data.ts --check",
+    "test:data-update-policy": "node --test scripts/data-update-policy.test.mjs",
     "test:agent": "vitest run src/features/agent",
+    "test:frontend": "vitest run src",
     "test:modelops-data": "tsx --test scripts/modelops-data.test.ts",
     "preview": "vite preview",
     "sync:data": "node scripts/sync-data.mjs",
     "sync:data:check": "node scripts/sync-data.mjs --check"
   },
   "dependencies": {
-    "hyparquet": "^1.28.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -27,6 +28,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "hyparquet": "^1.28.2",
     "jsdom": "^30.0.1",
     "tsx": "^4.23.13",
     "typescript": "~5.9.0",

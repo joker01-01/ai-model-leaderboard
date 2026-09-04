@@ -1,0 +1,226 @@
+name: Auto-merge routine data refresh
+
+on:
+  workflow_run:
+    workflows:
+      - Verify pull request
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: data-refresh-auto-merge-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      eligible: ${{ steps.inspect.outputs.eligible }}
+      pull-request-number: ${{ steps.inspect.outputs.pull-request-number }}
+      head-sha: ${{ steps.inspect.outputs.head-sha }}
+      base-sha: ${{ steps.inspect.outputs.base-sha }}
+    steps:
+      - name: Check out the trusted policy from main
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.pull_requests[0].base.sha }}
+          persist-credentials: false
+      - name: Inspect the verified data pull request
+        id: inspect
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          EXPECTED_BASE_REF: main
+          EXPECTED_HEAD_REF: chore/refresh-leaderboard-data
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const path = require("node:path");
+            const { pathToFileURL } = require("node:url");
+            const policy = await import(pathToFileURL(path.join(
+              process.env.GITHUB_WORKSPACE,
+              "scripts/data-update-policy.mjs",
+            )).href);
+
+            core.setOutput("eligible", "false");
+            const run = context.payload.workflow_run;
+            const runPullRequests = run.pull_requests ?? [];
+            if (runPullRequests.length !== 1) {
+              core.notice(`Expected one pull request, found ${runPullRequests.length}; leaving it for review.`);
+              return;
+            }
+
+            const eventPullRequest = runPullRequests[0];
+            const pullNumber = eventPullRequest.number;
+            const expectedHeadSha = run.head_sha;
+            const expectedBaseSha = eventPullRequest.base.sha;
+            const { owner, repo } = context.repo;
+            const { data: pull } = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
+            const currentMain = await github.rest.git.getRef({ owner, repo, ref: "heads/main" });
+
+            const metadataChecks = [
+              [pull.state === "open", "pull request is not open"],
+              [pull.draft === false, "pull request is a draft"],
+              [pull.base.ref === process.env.EXPECTED_BASE_REF, "unexpected base branch"],
+              [pull.head.ref === process.env.EXPECTED_HEAD_REF, "unexpected head branch"],
+              [pull.head.repo?.full_name === `${owner}/${repo}`, "head branch is not in this repository"],
+              [pull.base.sha === expectedBaseSha, "pull-request base changed after verification"],
+              [pull.head.sha === expectedHeadSha, "pull-request head changed after verification"],
+              [currentMain.data.object.sha === expectedBaseSha, "main changed after verification"],
+            ];
+            const metadataReasons = metadataChecks.filter(([ok]) => !ok).map(([, reason]) => reason);
+            if (metadataReasons.length > 0) {
+              for (const reason of metadataReasons) core.notice(`${reason}; leaving PR #${pullNumber} for review.`);
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number: pullNumber,
+              per_page: 100,
+            });
+
+            async function readTextAtRef(filePath, ref) {
+              const response = await github.rest.repos.getContent({ owner, repo, path: filePath, ref });
+              const data = response.data;
+              if (Array.isArray(data) || data.type !== "file" || typeof data.content !== "string") {
+                throw new Error(`${filePath} at ${ref} is not a readable file`);
+              }
+              return Buffer.from(data.content.replace(/\n/g, ""), data.encoding).toString("utf8");
+            }
+
+            async function readJsonAtRef(filePath, ref) {
+              return JSON.parse(await readTextAtRef(filePath, ref));
+            }
+
+            const [
+              baseCatalog,
+              headCatalog,
+              baseAaSource,
+              headAaSource,
+              baseArenaSource,
+              headArenaSource,
+              baseReport,
+              headReport,
+              baseEvidence,
+              headEvidence,
+            ] = await Promise.all([
+              readJsonAtRef("data/modelops/generated/catalog.json", expectedBaseSha),
+              readJsonAtRef("data/modelops/generated/catalog.json", expectedHeadSha),
+              readTextAtRef("src/data/generated/aaSnapshot.ts", expectedBaseSha),
+              readTextAtRef("src/data/generated/aaSnapshot.ts", expectedHeadSha),
+              readTextAtRef("src/data/generated/arenaSnapshot.ts", expectedBaseSha),
+              readTextAtRef("src/data/generated/arenaSnapshot.ts", expectedHeadSha),
+              readJsonAtRef("data/sync-report.json", expectedBaseSha),
+              readJsonAtRef("data/sync-report.json", expectedHeadSha),
+              readJsonAtRef("data/modelops/generated/evidence.json", expectedBaseSha),
+              readJsonAtRef("data/modelops/generated/evidence.json", expectedHeadSha),
+            ]);
+
+            const result = policy.evaluateDataUpdatePolicy({
+              changes: files.map((file) => ({ filename: file.filename, status: file.status })),
+              base: {
+                catalog: baseCatalog,
+                aaSnapshot: policy.parseGeneratedSnapshotModule(baseAaSource, "AA_SNAPSHOT"),
+                arenaSnapshot: policy.parseGeneratedSnapshotModule(baseArenaSource, "ARENA_SNAPSHOT"),
+                syncReport: baseReport,
+                evidence: baseEvidence,
+              },
+              head: {
+                catalog: headCatalog,
+                aaSnapshot: policy.parseGeneratedSnapshotModule(headAaSource, "AA_SNAPSHOT"),
+                arenaSnapshot: policy.parseGeneratedSnapshotModule(headArenaSource, "ARENA_SNAPSHOT"),
+                syncReport: headReport,
+                evidence: headEvidence,
+              },
+            });
+
+            if (!result.eligible) {
+              for (const reason of result.reasons) core.notice(`${reason}; leaving PR #${pullNumber} for review.`);
+              return;
+            }
+
+            core.setOutput("eligible", "true");
+            core.setOutput("pull-request-number", String(pullNumber));
+            core.setOutput("head-sha", expectedHeadSha);
+            core.setOutput("base-sha", expectedBaseSha);
+            core.notice(`PR #${pullNumber} is a routine generated-data refresh and is eligible for automatic merge.`);
+
+  merge:
+    needs: inspect
+    if: needs.inspect.outputs.eligible == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create the repository-scoped data-sync App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.DATA_SYNC_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DATA_SYNC_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Recheck immutable merge inputs and merge
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          EXPECTED_APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          EXPECTED_BASE_SHA: ${{ needs.inspect.outputs.base-sha }}
+          EXPECTED_HEAD_SHA: ${{ needs.inspect.outputs.head-sha }}
+          PULL_REQUEST_NUMBER: ${{ needs.inspect.outputs.pull-request-number }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pullNumber = Number(process.env.PULL_REQUEST_NUMBER);
+            const expectedHeadSha = process.env.EXPECTED_HEAD_SHA;
+            const expectedBaseSha = process.env.EXPECTED_BASE_SHA;
+            const expectedAuthor = `${process.env.EXPECTED_APP_SLUG}[bot]`;
+            const { data: pull } = await github.rest.pulls.get({ owner, repo, pull_number: pullNumber });
+            const currentMain = await github.rest.git.getRef({ owner, repo, ref: "heads/main" });
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner,
+              repo,
+              pull_number: pullNumber,
+              per_page: 100,
+            });
+            const commitsAreSignedByApp = commits.length > 0 && commits.every((commit) => (
+              commit.author?.login === expectedAuthor
+              && commit.committer?.login === expectedAuthor
+              && commit.commit.verification?.verified === true
+            ));
+
+            const checks = [
+              [Number.isInteger(pullNumber), "invalid pull-request number"],
+              [pull.state === "open", "pull request is not open"],
+              [pull.draft === false, "pull request is a draft"],
+              [pull.user?.login === expectedAuthor, `pull request author is not ${expectedAuthor}`],
+              [pull.base.ref === "main", "unexpected base branch"],
+              [pull.base.sha === expectedBaseSha, "pull-request base changed after inspection"],
+              [pull.head.ref === "chore/refresh-leaderboard-data", "unexpected head branch"],
+              [pull.head.repo?.full_name === `${owner}/${repo}`, "head branch is not in this repository"],
+              [pull.head.sha === expectedHeadSha, "pull-request head changed after inspection"],
+              [currentMain.data.object.sha === expectedBaseSha, "main changed after inspection"],
+              [commitsAreSignedByApp, `pull-request commits are not verified signatures from ${expectedAuthor}`],
+            ];
+            const failures = checks.filter(([ok]) => !ok).map(([, reason]) => reason);
+            if (failures.length > 0) throw new Error(failures.join("; "));
+
+            const { data: merge } = await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: pullNumber,
+              merge_method: "squash",
+              sha: expectedHeadSha,
+              commit_title: "chore: refresh official leaderboard snapshots",
+            });
+            if (!merge.merged) throw new Error(merge.message || `PR #${pullNumber} was not merged`);
+            core.notice(`Merged routine data refresh PR #${pullNumber} at ${expectedHeadSha}.`);

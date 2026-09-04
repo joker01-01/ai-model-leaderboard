@@ -15,6 +15,7 @@ import { AA_SNAPSHOT } from "../src/data/generated/aaSnapshot";
 import { ARENA_SNAPSHOT } from "../src/data/generated/arenaSnapshot";
 import { MODELS, type Model } from "../src/data/models";
 import { buildEditorialProfile } from "../src/lib/editorial";
+import { competitionRanks } from "../src/lib/ranking";
 import { compositePartial, DEFAULT_WEIGHTS, objectiveScore } from "../src/lib/score";
 import {
   assertReviewedEvidenceBindings,
@@ -252,4 +253,16 @@ test("generated adapter preserves public and editorial ranking results", async (
   const sourceRanking = rankingSnapshot(MODELS, OBJECTIVE_SNAPSHOT);
   const generatedRanking = rankingSnapshot(catalog.models, profilesFromEvidence(evidence));
   assert.deepEqual(generatedRanking, sourceRanking);
+});
+
+test("leaderboard display uses exact-score competition ranking for both boards", () => {
+  assert.deepEqual(competitionRanks([100, 100, 80, 60, 60]), [1, 1, 3, 4, 4]);
+  assert.deepEqual(competitionRanks([9, 8, 7]), [1, 2, 3]);
+  assert.deepEqual(competitionRanks([]), []);
+  assert.deepEqual(competitionRanks([9]), [1]);
+  assert.deepEqual(
+    competitionRanks([95, 80, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY]),
+    [1, 2, 3, 3],
+  );
+  assert.deepEqual(competitionRanks([56.44, 56.35]), [1, 2]);
 });
