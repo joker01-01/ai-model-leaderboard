@@ -6,7 +6,7 @@ Upgrade the existing AI Model Leaderboard into the bounded ModelOps Agent MVP de
 
 ## Architecture
 
-Target repository architecture in the current worktree. The existing conditional publication control plane is live; the source-native public AA fields still require their first keyed generated-data baseline and deployment:
+Target repository architecture on the current feature branch. The existing conditional publication control plane is live; the source-native public AA fields now have their first keyed generated-data baseline and still require publication through `main`:
 
 ```text
 React 19 + TypeScript + Vite static frontend
@@ -72,7 +72,7 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - Conditional publication is operational: the repository-scoped App, Actions credentials, strict `verify` requirement, protected `main`, trusted-`main` policy inspection, immutable SHA/provenance rechecks, anomaly retention, and guarded routine REST merge have passed live acceptance.
 - Pull requests and pushes to `main` are configured to run the offline generated-data drift check, policy tests, the complete frontend test set, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
 - The current feature worktree separates the source-native public path (`src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`) from the curated editorial path (`src/lib/entries.ts`, `src/components/Board.tsx`). Public ranks are computed before search filtering, so filtered rows retain their AA source rank; equal scores use competition ranking.
-- The public-AA implementation is not deployed yet. The committed snapshot still has only the curated exact-match map, so the public view fails visibly as unavailable instead of presenting curated rows as AA's source leaderboard until a keyed refresh generates the complete 20-entry `intelligenceLeaderboard`.
+- The public-AA implementation now carries a human-reviewed 20-entry `intelligenceLeaderboard` baseline from AA Intelligence Index version 4.1, observed on 2026-09-04. It remains unpublished until the feature pull request merges to `main` and Pages deployment completes.
 
 ## Important Decisions
 
@@ -105,8 +105,7 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - DeepSeek V4 Pro/Flash prices are time-band dependent and are intentionally omitted because the Phase A offer schema does not model time bands.
 - Structured negative availability, end-user country availability, and latency evidence are not modeled yet; provider deployment regions alone cannot answer all geographic constraints.
 - `npm run sync:data:check` does not fail when generated data would drift.
-- The committed AA generated snapshot predates `intelligenceLeaderboard`. Until a GitHub refresh with `AA_API_KEY` creates and a human reviews the first 20-entry baseline, the public view reports AA data unavailable and cannot verify the real current 20 source rows or their creator/release metadata.
-- PR #7/#9 live acceptance covers the earlier curated refresh gate. The new public membership/index-version policy still needs one human-reviewed baseline refresh and a later stable-membership routine refresh before its unattended path can be called live-verified.
+- PR #7/#9 live acceptance covers the earlier curated refresh gate. PR #11 supplies the human-reviewed public membership/index-version baseline; a later stable-membership routine refresh is still required before the new unattended public-membership path can be called live-verified.
 - Focused Agent Panel tests exist, but the rest of the leaderboard still lacks broad end-to-end interaction coverage.
 - The public backend has no authentication or rate limiting. CORS limits browser origins but does not prevent direct scripted requests, so broader exposure needs a separately approved access-control or quota milestone.
 - A real client transport disconnect, bounded endpoint-stability observation, and Git-revert deployment/recovery drill have been exercised against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies revision switching, health continuity, and recovery rather than rollback between behaviorally different backend images. Online logs have not independently proven internal graph-task cancellation; the offline API integration test covers that contract. The control-plane resource graph is a snapshot, not a sustained-load test.
@@ -125,7 +124,10 @@ Current local worktree checks plus the earlier 2026-09-04 live conditional data-
 - `npm run build` succeeded with TypeScript checking for the frontend and ModelOps scripts plus a Vite production build.
 - `npm run test:agent` passed 30 focused runtime-contract, SSE parser, cancellation, and React Panel tests; malformed streams cancel their response reader and partial failed output is not presented as a completed result.
 - `npm run test:frontend` passed 50/50 tests across eight files, including the source-native public parser/rows, source-rank preservation after search, nullable AA metadata, public/editorial control separation, missing full-snapshot state, all prior sort/rank behavior, and Agent tests.
-- `npm run test:data-update-policy` passed 21/21 cases covering the AA source-row generator, distinct configurations, strict 20-row/version/date contracts, deterministic score order, routine score/date/order changes, human-review membership/identity/version changes, strict path/status allowlisting, curated match stability, immutable static evidence, malformed inputs, and CLI exit behavior.
+- `npm run test:data-update-policy` passed 23/23 cases covering the AA source-row generator, distinct configurations, strict 20-row/version/date contracts, cutoff candidate validation, deterministic score order, routine score/date/order changes, human-review membership/identity/version changes, strict path/status allowlisting, curated match stability, immutable static evidence, malformed inputs, and CLI exit behavior.
+- The first keyed public-AA refresh run `33865225568` failed closed because a low-ranked source row lacked a display name. Fix `364b0ef` keeps finite-score and global `sourceId` validation across all ranked rows while validating display metadata only for rows that can enter the first 20, including ties at the cutoff; the focused policy suite then passed 23/23.
+- Refresh run `33865744426` fetched all 643 AA rows and completed every data, frontend, build, backend, type, lint, and evaluation gate. App-authored, GitHub-signed PR #11 changed only the four allowed generated data/report files, and required verification run `33865823234` passed before human merge `475ba4d` into the feature branch.
+- The PR #11 baseline contains exactly 20 finite entries with 20 unique `sourceId` values, one valid observation date (`2026-09-04`), positive Intelligence Index version 4.1, deterministic score/tie ordering, and independent rows for distinct reasoning/effort configurations. Curated AA/Arena matched and unmatched sets and ModelOps evidence counts remained stable.
 - All four workflow YAML files parsed successfully. The guarded merge workflow, GitHub App, Actions credentials, branch protection, negative anomaly path, and positive routine path are live-verified.
 - Live `main` protection requires pull requests and the strict `verify` status check, applies to administrators, requires linear history, blocks force pushes and branch deletion, and requires zero human approvals. The data-sync App has no bypass entry. Repository Actions contains `DATA_SYNC_APP_CLIENT_ID`, `DATA_SYNC_APP_PRIVATE_KEY`, and `AA_API_KEY`; secret values were not read, and no credential value was written to the repository.
 - PR `#6` fixed snapshot-coupled tool/evaluation fixtures and ensured a verified data PR is still prepared when only downstream behavioral checks expose an upstream anomaly. Required run `33847160323` passed before merge commit `d004487`.
@@ -166,7 +168,7 @@ Current local worktree checks plus the earlier 2026-09-04 live conditional data-
 
 ## Next (separate milestones)
 
-1. Run the AA-keyed refresh on the implementation branch, inspect exactly 20 unique `sourceId` rows and distinct configurations, accept the first new-schema baseline through human review, then deploy and perform browser acceptance without adding a count label.
+1. Merge the verified public-AA implementation pull request into `main`, wait for Pages and Zeabur deployment, then perform browser acceptance without adding a count label.
 2. Verify a later stable-membership score/date/order refresh through the unattended policy path.
 3. Design authentication, rate limiting, or quota enforcement before materially broader public API exposure.
 4. Add broader leaderboard end-to-end interaction coverage and sustained-load/resource testing if usage justifies them.
