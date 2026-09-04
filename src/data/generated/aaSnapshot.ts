@@ -28,7 +28,7 @@ export interface AaSnapshot {
 }
 
 export const AA_SNAPSHOT: AaSnapshot = {
-  "generatedAt": "2026-09-04T10:59:01.436Z",
+  "generatedAt": "2026-09-04T19:40:01.934Z",
   "source": "Artificial Analysis Data API",
   "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
   "intelligenceIndexVersion": 4.1,
