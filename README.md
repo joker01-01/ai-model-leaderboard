@@ -37,7 +37,7 @@ The project exposes two deliberately separate views:
 - **Public evaluation board** — displays the first 20 scored Artificial Analysis source entries in current Intelligence Index order. Reasoning, effort, and other configurations are not merged by model family.
 - **Editorial board** — re-ranks a curated catalog of 20 concrete model versions by configurable preferences such as intelligence, coding, tool use, reasoning/math, price, and open weights.
 
-Arena data is shown as user-preference reference in model details. It does not determine the public ranking.
+Arena data is shown as user-preference reference in curated editorial model details. It does not appear in source-native public rows or determine the public ranking.
 
 The repository also contains the Phase C ModelOps Agent backend. It strictly loads the generated evidence JSON and runs five typed operations—catalog filtering, benchmark lookup, pricing, allowlisted provider-document search, and pure update proposals—inside a bounded LangGraph workflow. FastAPI exposes health, non-streaming invoke, and typed POST SSE endpoints; an OpenAI-compatible Responses gateway uses DeepSeek V4 Flash for intent extraction and validates its output locally, while ranking, evidence checks, and proposal decisions remain deterministic.
 
