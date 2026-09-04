@@ -63,3 +63,20 @@ test("fails closed when ranked rows are incomplete, duplicated, or malformed", (
   assert.throws(() => buildAaLeaderboard(invalidDate, "2026-09-04"), /release_date/);
   assert.throws(() => buildAaLeaderboard(malformed, null), /observedAt/);
 });
+
+test("ignores unused display metadata below the public leaderboard cutoff", () => {
+  const rows = Array.from({ length: 20 }, (_, index) => aaRow(index, 100 - index));
+  rows.push(aaRow(585, 1, { name: "", model_creator: { id: "", name: "" }, release_date: "not-a-date" }));
+
+  const result = buildAaLeaderboard(rows, "2026-09-04");
+
+  assert.equal(result.length, AA_LEADERBOARD_LIMIT);
+  assert.equal(result.some((entry) => entry.sourceId === "source-585"), false);
+});
+
+test("validates every row tied at the public leaderboard cutoff", () => {
+  const rows = Array.from({ length: 20 }, (_, index) => aaRow(index, 100 - index));
+  rows.push(aaRow(585, 81, { name: "" }));
+
+  assert.throws(() => buildAaLeaderboard(rows, "2026-09-04"), /AA row 20.name/);
+});

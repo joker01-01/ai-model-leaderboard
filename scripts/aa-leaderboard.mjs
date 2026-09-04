@@ -46,7 +46,7 @@ export function buildAaLeaderboard(rows, observedAt, limit = AA_LEADERBOARD_LIMI
   requiredDate(observedAt, "AA leaderboard observedAt");
   if (!Number.isSafeInteger(limit) || limit <= 0) throw new Error("AA leaderboard limit must be a positive integer");
 
-  const entries = [];
+  const rankedRows = [];
   const sourceIds = new Set();
 
   for (const [index, row] of rows.entries()) {
@@ -61,21 +61,31 @@ export function buildAaLeaderboard(rows, observedAt, limit = AA_LEADERBOARD_LIMI
     if (sourceIds.has(sourceId)) throw new Error(`AA leaderboard contains duplicate source ID ${JSON.stringify(sourceId)}`);
     sourceIds.add(sourceId);
 
-    entries.push({
-      sourceId,
-      sourceSlug: requiredString(row.slug, `${path}.slug`),
-      modelVersion: requiredString(row.name, `${path}.name`),
-      creatorId: nullableString(row.model_creator?.id, `${path}.model_creator.id`),
-      creatorName: nullableString(row.model_creator?.name, `${path}.model_creator.name`),
-      releaseDate: releaseDate(row.release_date ?? null, `${path}.release_date`),
-      value: intelligence,
-      observedAt,
-    });
+    rankedRows.push({ index, row, sourceId, value: intelligence });
   }
 
-  if (entries.length < limit) {
-    throw new Error(`AA returned only ${entries.length} ranked models; ${limit} are required`);
+  if (rankedRows.length < limit) {
+    throw new Error(`AA returned only ${rankedRows.length} ranked models; ${limit} are required`);
   }
+
+  const scoreThreshold = rankedRows
+    .map(({ value }) => value)
+    .sort((left, right) => right - left)[limit - 1];
+  const entries = rankedRows
+    .filter(({ value }) => value >= scoreThreshold)
+    .map(({ index, row, sourceId, value }) => {
+      const path = `AA row ${index}`;
+      return {
+        sourceId,
+        sourceSlug: requiredString(row.slug, `${path}.slug`),
+        modelVersion: requiredString(row.name, `${path}.name`),
+        creatorId: nullableString(row.model_creator?.id, `${path}.model_creator.id`),
+        creatorName: nullableString(row.model_creator?.name, `${path}.model_creator.name`),
+        releaseDate: releaseDate(row.release_date ?? null, `${path}.release_date`),
+        value,
+        observedAt,
+      };
+    });
 
   return entries
     .sort((left, right) => (
