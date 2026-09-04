@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { AA_LEADERBOARD_LIMIT } from "./aa-leaderboard.mjs";
 
 export const ALLOWED_DATA_UPDATE_PATHS = Object.freeze([
   "data/modelops/generated/catalog.json",
@@ -13,6 +14,16 @@ export const ALLOWED_DATA_UPDATE_PATHS = Object.freeze([
 const ALLOWED_PATHS = new Set(ALLOWED_DATA_UPDATE_PATHS);
 const AA_BENCHMARK_IDS = new Set(["aa-coding", "aa-intelligence"]);
 const AA_METRICS = new Set(["coding", "intelligence"]);
+const AA_LEADERBOARD_FIELDS = [
+  "creatorId",
+  "creatorName",
+  "modelVersion",
+  "observedAt",
+  "releaseDate",
+  "sourceId",
+  "sourceSlug",
+  "value",
+];
 const MODIFIED_STATUSES = new Set(["M", "modified"]);
 
 function isObject(value) {
@@ -73,6 +84,12 @@ function cloneJson(value) {
 
 function isFiniteNumber(value) {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function isIsoDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 }
 
 function isNullableFiniteNumber(value) {
@@ -289,14 +306,115 @@ function aaSnapshotIdentityMap(snapshot, path, reasons) {
   return identities;
 }
 
+function aaLeaderboardIdentityMap(snapshot, path, reasons) {
+  if (!isObject(snapshot)) return null;
+  if (snapshot.intelligenceLeaderboard === undefined) {
+    if (snapshot.intelligenceIndexVersion !== undefined) {
+      addReason(reasons, `${path}.intelligenceIndexVersion requires intelligenceLeaderboard`);
+    }
+    return new Map();
+  }
+  if (!Array.isArray(snapshot.intelligenceLeaderboard)) {
+    addReason(reasons, `${path}.intelligenceLeaderboard must be an array`);
+    return null;
+  }
+  if (snapshot.intelligenceLeaderboard.length !== AA_LEADERBOARD_LIMIT) {
+    addReason(reasons, `${path}.intelligenceLeaderboard must contain exactly ${AA_LEADERBOARD_LIMIT} entries`);
+  }
+  if (
+    !isFiniteNumber(snapshot.intelligenceIndexVersion)
+    || snapshot.intelligenceIndexVersion <= 0
+  ) {
+    addReason(reasons, `${path}.intelligenceIndexVersion must be a positive finite number`);
+  }
+
+  const identities = new Map();
+  const observedDates = new Set();
+  let previous = null;
+  for (const [index, entry] of snapshot.intelligenceLeaderboard.entries()) {
+    const entryPath = `${path}.intelligenceLeaderboard[${index}]`;
+    if (!isObject(entry)) {
+      addReason(reasons, `${entryPath} must be an object`);
+      continue;
+    }
+    if (canonicalJson(Object.keys(entry).sort()) !== canonicalJson(AA_LEADERBOARD_FIELDS)) {
+      addReason(reasons, `${entryPath} has missing or unexpected fields`);
+    }
+
+    const identity = {};
+    for (const field of ["sourceId", "sourceSlug", "modelVersion"]) {
+      if (typeof entry[field] !== "string" || entry[field].trim() === "" || entry[field].trim() !== entry[field]) {
+        addReason(reasons, `${entryPath}.${field} must be a non-empty string`);
+      } else {
+        identity[field] = entry[field];
+      }
+    }
+    for (const field of ["creatorId", "creatorName"]) {
+      if (entry[field] !== null && (
+        typeof entry[field] !== "string"
+        || entry[field].trim() === ""
+        || entry[field].trim() !== entry[field]
+      )) {
+        addReason(reasons, `${entryPath}.${field} must be a non-empty string or null`);
+      }
+      identity[field] = entry[field];
+    }
+    if (
+      entry.releaseDate !== null
+      && (
+        typeof entry.releaseDate !== "string"
+        || !isIsoDate(entry.releaseDate)
+      )
+    ) {
+      addReason(reasons, `${entryPath}.releaseDate must be an ISO date or null`);
+    }
+    identity.releaseDate = entry.releaseDate;
+    if (!isFiniteNumber(entry.value)) {
+      addReason(reasons, `${entryPath}.value must be a finite number`);
+    }
+    if (!isIsoDate(entry.observedAt)) {
+      addReason(reasons, `${entryPath}.observedAt must be an ISO date`);
+    } else {
+      observedDates.add(entry.observedAt);
+    }
+    if (typeof entry.sourceId === "string") {
+      if (identities.has(entry.sourceId)) {
+        addReason(reasons, `${path}.intelligenceLeaderboard contains duplicate sourceId ${JSON.stringify(entry.sourceId)}`);
+      }
+      identities.set(entry.sourceId, canonicalJson(identity));
+    }
+
+    if (previous && isFiniteNumber(previous.value) && isFiniteNumber(entry.value)) {
+      const tieOrder = previous.value === entry.value
+        ? (String(previous.modelVersion) < String(entry.modelVersion) ? -1 : String(previous.modelVersion) > String(entry.modelVersion) ? 1 : 0)
+          || (String(previous.sourceId) < String(entry.sourceId) ? -1 : String(previous.sourceId) > String(entry.sourceId) ? 1 : 0)
+        : 0;
+      if (previous.value < entry.value || (previous.value === entry.value && tieOrder > 0)) {
+        addReason(reasons, `${path}.intelligenceLeaderboard is not in deterministic Intelligence order`);
+      }
+    }
+    previous = entry;
+  }
+  if (observedDates.size > 1) {
+    addReason(reasons, `${path}.intelligenceLeaderboard entries must share one observedAt date`);
+  }
+  return identities;
+}
+
 function checkAaSnapshot(baseSnapshot, headSnapshot, reasons) {
   const baseIdentities = aaSnapshotIdentityMap(baseSnapshot, "base.aaSnapshot", reasons);
   const headIdentities = aaSnapshotIdentityMap(headSnapshot, "head.aaSnapshot", reasons);
+  const baseLeaderboardIdentities = aaLeaderboardIdentityMap(baseSnapshot, "base.aaSnapshot", reasons);
+  const headLeaderboardIdentities = aaLeaderboardIdentityMap(headSnapshot, "head.aaSnapshot", reasons);
   if (!isObject(baseSnapshot) || !isObject(headSnapshot)) return;
 
   if (baseSnapshot.source !== headSnapshot.source) addReason(reasons, "AA snapshot source changed");
   if (baseSnapshot.sourceUrl !== headSnapshot.sourceUrl) addReason(reasons, "AA snapshot sourceUrl changed");
+  if (baseSnapshot.intelligenceIndexVersion !== headSnapshot.intelligenceIndexVersion) {
+    addReason(reasons, "AA Intelligence Index version changed");
+  }
   compareIdentityMaps(baseIdentities, headIdentities, "AA snapshot", reasons);
+  compareIdentityMaps(baseLeaderboardIdentities, headLeaderboardIdentities, "AA leaderboard", reasons);
 
   const normalized = [baseSnapshot, headSnapshot].map((snapshot, snapshotIndex) => {
     const path = snapshotIndex === 0 ? "base.aaSnapshot" : "head.aaSnapshot";
@@ -321,6 +439,16 @@ function checkAaSnapshot(baseSnapshot, headSnapshot, reasons) {
           observation.observedAt = "<observed-at>";
         }
       }
+    }
+    if (Array.isArray(result.intelligenceLeaderboard)) {
+      for (const entry of result.intelligenceLeaderboard) {
+        if (!isObject(entry)) continue;
+        entry.value = "<value>";
+        entry.observedAt = "<observed-at>";
+      }
+      result.intelligenceLeaderboard.sort((left, right) => (
+        String(left.sourceId) < String(right.sourceId) ? -1 : String(left.sourceId) > String(right.sourceId) ? 1 : 0
+      ));
     }
     return result;
   });

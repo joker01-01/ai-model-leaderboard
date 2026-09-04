@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { asyncBufferFromUrl, parquetReadObjects } from "hyparquet";
+import { buildAaLeaderboard } from "./aa-leaderboard.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dryRun = process.argv.includes("--check");
@@ -194,24 +195,63 @@ async function syncArtificialAnalysis() {
   // 当前免费 API 的正式入口。必须遍历分页，不能把第一页 200 条误当成完整模型目录。
   const rows = [];
   const seenPages = new Set();
+  let intelligenceIndexVersion = null;
+  let expectedPageSize = null;
+  let expectedTotalPages = null;
   for (let page = 1; page <= 50; page += 1) {
     const url = new URL("https://artificialanalysis.ai/api/v2/language/models/free");
     url.searchParams.set("page", String(page));
     const payload = await fetchJson(url, { headers: { "x-api-key": key } });
+    const responseIndexVersion = payload.intelligence_index_version;
+    if (typeof responseIndexVersion !== "number" || !Number.isFinite(responseIndexVersion) || responseIndexVersion <= 0) {
+      throw new Error(`AA page ${page} has no valid intelligence_index_version`);
+    }
+    if (intelligenceIndexVersion !== null && intelligenceIndexVersion !== responseIndexVersion) {
+      throw new Error(`AA intelligence index version changed during pagination: ${intelligenceIndexVersion} -> ${responseIndexVersion}`);
+    }
+    intelligenceIndexVersion = responseIndexVersion;
     const batch = Array.isArray(payload.data) ? payload.data : [];
+    const pagination = payload.pagination;
+    if (
+      !pagination
+      || pagination.page !== page
+      || !Number.isSafeInteger(pagination.page_size)
+      || pagination.page_size <= 0
+      || !Number.isSafeInteger(pagination.total_pages)
+      || pagination.total_pages <= 0
+      || typeof pagination.has_more !== "boolean"
+    ) {
+      throw new Error(`AA page ${page} has invalid pagination metadata`);
+    }
+    if (pagination.total_pages > 50) throw new Error(`AA pagination exceeds the 50-page safety limit`);
+    if (expectedPageSize !== null && expectedPageSize !== pagination.page_size) {
+      throw new Error(`AA page_size changed during pagination: ${expectedPageSize} -> ${pagination.page_size}`);
+    }
+    expectedPageSize = pagination.page_size;
+    if (expectedTotalPages !== null && expectedTotalPages !== pagination.total_pages) {
+      throw new Error(`AA total_pages changed during pagination: ${expectedTotalPages} -> ${pagination.total_pages}`);
+    }
+    expectedTotalPages = pagination.total_pages;
+    if (pagination.has_more !== (page < pagination.total_pages)) {
+      throw new Error(`AA page ${page} has inconsistent has_more metadata`);
+    }
+    if (batch.length === 0) throw new Error(`AA page ${page} returned no rows before pagination completed`);
+    if (batch.length > pagination.page_size || (pagination.has_more && batch.length !== pagination.page_size)) {
+      throw new Error(`AA page ${page} row count does not match page_size`);
+    }
     const pageSignature = batch.map((model) => String(model.id ?? model.slug)).join("|");
-    if (batch.length === 0 || seenPages.has(pageSignature)) break;
+    if (seenPages.has(pageSignature)) throw new Error(`AA page ${page} repeated an earlier page`);
     seenPages.add(pageSignature);
     rows.push(...batch);
-
-    const pagination = payload.pagination ?? {};
-    const totalPages = Number(pagination.total_pages ?? pagination.totalPages);
-    const nextPage = pagination.next_page ?? pagination.nextPage;
-    if (Number.isFinite(totalPages) && page >= totalPages) break;
-    if (nextPage === null || nextPage === false) break;
-    // 官方未返回分页元数据时，仅在满页的情况下继续；避免因未知响应无限请求。
-    if (!Number.isFinite(totalPages) && nextPage === undefined && batch.length < 200) break;
+    if (!pagination.has_more) break;
   }
+  if (intelligenceIndexVersion === null || expectedTotalPages === null) {
+    throw new Error("AA returned no complete Intelligence Index response");
+  }
+  if (seenPages.size !== expectedTotalPages) {
+    throw new Error(`AA pagination stopped after ${seenPages.size} of ${expectedTotalPages} pages`);
+  }
+  const intelligenceLeaderboard = buildAaLeaderboard(rows, now.slice(0, 10));
   const models = {};
   const matched = [];
   const unmatched = [];
@@ -253,6 +293,8 @@ async function syncArtificialAnalysis() {
       generatedAt: now,
       source: "Artificial Analysis Data API",
       sourceUrl: "https://artificialanalysis.ai/data-api/docs",
+      intelligenceIndexVersion,
+      intelligenceLeaderboard,
       models,
     },
     report: { matched, unmatched, ambiguous, rows: rows.length },
@@ -265,7 +307,7 @@ function renderTs(constName, value) {
     ? "由 `npm run sync:data` 生成；请不要手工编辑。"
     : "由 `npm run sync:data` 生成；Arena 分数不参与本站主榜排序。";
   const interfaces = constName === "AA_SNAPSHOT"
-    ? `export interface SyncedAaMetric {\n  value: number;\n  modelVersion: string;\n  observedAt: string;\n  sourceId: string;\n  sourceSlug: string;\n}\n\nexport interface AaSnapshot {\n  generatedAt: string | null;\n  source: "Artificial Analysis Data API" | "manual";\n  sourceUrl: string;\n  models: Record<string, Partial<Record<"intelligence" | "coding", SyncedAaMetric>>>;\n}`
+    ? `export interface SyncedAaMetric {\n  value: number;\n  modelVersion: string;\n  observedAt: string;\n  sourceId: string;\n  sourceSlug: string;\n}\n\nexport interface SyncedAaLeaderboardEntry {\n  sourceId: string;\n  sourceSlug: string;\n  modelVersion: string;\n  creatorId: string | null;\n  creatorName: string | null;\n  releaseDate: string | null;\n  value: number;\n  observedAt: string;\n}\n\nexport interface AaSnapshot {\n  generatedAt: string | null;\n  source: "Artificial Analysis Data API" | "manual";\n  sourceUrl: string;\n  intelligenceIndexVersion: number;\n  intelligenceLeaderboard: SyncedAaLeaderboardEntry[];\n  models: Record<string, Partial<Record<"intelligence" | "coding", SyncedAaMetric>>>;\n}`
     : `export interface ArenaMetric {\n  value: number;\n  rank: number | null;\n  lower: number | null;\n  upper: number | null;\n  observations: number | null;\n  category: string;\n  observedAt: string;\n  modelVersion: string;\n}\n\nexport interface ArenaSnapshot {\n  generatedAt: string | null;\n  sourceUrl: string;\n  models: Record<string, Partial<Record<"text" | "webdev" | "agent", ArenaMetric>>>;\n}`;
   return `/** ${comment} */\n${interfaces}\n\nexport const ${constName}: ${kind} = ${JSON.stringify(value, null, 2)};\n`;
 }

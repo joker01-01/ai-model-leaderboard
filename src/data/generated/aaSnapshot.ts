@@ -7,17 +7,233 @@ export interface SyncedAaMetric {
   sourceSlug: string;
 }
 
+export interface SyncedAaLeaderboardEntry {
+  sourceId: string;
+  sourceSlug: string;
+  modelVersion: string;
+  creatorId: string | null;
+  creatorName: string | null;
+  releaseDate: string | null;
+  value: number;
+  observedAt: string;
+}
+
 export interface AaSnapshot {
   generatedAt: string | null;
   source: "Artificial Analysis Data API" | "manual";
   sourceUrl: string;
+  intelligenceIndexVersion: number;
+  intelligenceLeaderboard: SyncedAaLeaderboardEntry[];
   models: Record<string, Partial<Record<"intelligence" | "coding", SyncedAaMetric>>>;
 }
 
 export const AA_SNAPSHOT: AaSnapshot = {
-  "generatedAt": "2026-09-04T09:35:26.330Z",
+  "generatedAt": "2026-09-04T10:59:01.436Z",
   "source": "Artificial Analysis Data API",
   "sourceUrl": "https://artificialanalysis.ai/data-api/docs",
+  "intelligenceIndexVersion": 4.1,
+  "intelligenceLeaderboard": [
+    {
+      "sourceId": "3e87c73e-a257-495e-9730-367a66229811",
+      "sourceSlug": "claude-fable-5-1",
+      "modelVersion": "Claude Fable 5.1 (Adaptive Reasoning, Max Effort, Default Fallback)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-09-01",
+      "value": 65.7,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "9b166bf3-42db-4f63-8338-1c4a1244ffe8",
+      "sourceSlug": "claude-fable-5-1-xhigh",
+      "modelVersion": "Claude Fable 5.1 (Adaptive Reasoning, Xhigh Effort, Default Fallback)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-09-01",
+      "value": 64.8,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "b8fc61f7-5e9a-49e6-8547-6ac56db24627",
+      "sourceSlug": "claude-opus-5",
+      "modelVersion": "Claude Opus 5 (Adaptive Reasoning, Max Effort)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-07-24",
+      "value": 63.1,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "9d7d72cd-d95d-45a0-b109-4ad292c9aabd",
+      "sourceSlug": "claude-fable-5-1-high",
+      "modelVersion": "Claude Fable 5.1 (Adaptive Reasoning, High Effort, Default Fallback)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-09-01",
+      "value": 62.5,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "1305c921-7aaa-4d6d-99b5-99b3acf15e19",
+      "sourceSlug": "claude-opus-5-xhigh",
+      "modelVersion": "Claude Opus 5 (Adaptive Reasoning, Xhigh Effort)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-07-24",
+      "value": 62.5,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "cd55210d-358e-4df1-ba9c-9acb5f186cc9",
+      "sourceSlug": "claude-fable-5",
+      "modelVersion": "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-06-09",
+      "value": 62.1,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "58a40aba-a44f-457f-9cca-75b43d4e6934",
+      "sourceSlug": "muse-spark-1-3",
+      "modelVersion": "Muse Spark 1.3 (max)",
+      "creatorId": "e1694725-0192-4e54-b1b8-c97e816c6cbe",
+      "creatorName": "Meta",
+      "releaseDate": "2026-09-02",
+      "value": 62.1,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "712be54a-77ae-41b2-9a58-21181479d6ee",
+      "sourceSlug": "claude-opus-5-high",
+      "modelVersion": "Claude Opus 5 (Adaptive Reasoning, High Effort)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-07-24",
+      "value": 61.5,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "2f339a97-9a0d-499a-9cb5-e0db665bfa25",
+      "sourceSlug": "gpt-6-astra",
+      "modelVersion": "GPT-6 Astra (max)",
+      "creatorId": "e67e56e3-15cd-43db-b679-da4660a69f41",
+      "creatorName": "OpenAI",
+      "releaseDate": "2026-09-03",
+      "value": 61.2,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "1f541ef3-913f-4eb2-9d07-0e93c7a9a5e3",
+      "sourceSlug": "gpt-6-astra-xhigh",
+      "modelVersion": "GPT-6 Astra (xhigh)",
+      "creatorId": "e67e56e3-15cd-43db-b679-da4660a69f41",
+      "creatorName": "OpenAI",
+      "releaseDate": "2026-09-03",
+      "value": 61,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "d93edfe8-bf35-49ad-b56e-b18116142a1c",
+      "sourceSlug": "gpt-5-6-sol",
+      "modelVersion": "GPT-5.6 Sol (max)",
+      "creatorId": "e67e56e3-15cd-43db-b679-da4660a69f41",
+      "creatorName": "OpenAI",
+      "releaseDate": "2026-07-09",
+      "value": 60.9,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "c8adc5cf-fd5a-407b-af51-dc3bede3e49c",
+      "sourceSlug": "grok-4-6",
+      "modelVersion": "Grok 4.6 (high)",
+      "creatorId": "a1e3ddcf-d3e4-44a5-9e8f-029a69850875",
+      "creatorName": "SpaceXAI",
+      "releaseDate": "2026-08-12",
+      "value": 60.9,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "d5170215-69be-4129-849b-26d8d8825bfc",
+      "sourceSlug": "muse-spark-1-3-xhigh",
+      "modelVersion": "Muse Spark 1.3 (xhigh)",
+      "creatorId": "e1694725-0192-4e54-b1b8-c97e816c6cbe",
+      "creatorName": "Meta",
+      "releaseDate": "2026-09-02",
+      "value": 60.8,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "3b7de71c-e034-4591-8ca6-6b6be2fa471f",
+      "sourceSlug": "claude-fable-5-1-medium",
+      "modelVersion": "Claude Fable 5.1 (Adaptive Reasoning, Medium Effort, Default Fallback)",
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "creatorName": "Anthropic",
+      "releaseDate": "2026-09-01",
+      "value": 60.5,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "e05a4828-0536-4876-870d-a235023f992b",
+      "sourceSlug": "gpt-6-astra-high",
+      "modelVersion": "GPT-6 Astra (high)",
+      "creatorId": "e67e56e3-15cd-43db-b679-da4660a69f41",
+      "creatorName": "OpenAI",
+      "releaseDate": "2026-09-03",
+      "value": 60.3,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "d6f43d0a-e8c4-447c-9ff7-5cf0a9d59aa3",
+      "sourceSlug": "grok-4-6-xhigh",
+      "modelVersion": "Grok 4.6 (xhigh)",
+      "creatorId": "a1e3ddcf-d3e4-44a5-9e8f-029a69850875",
+      "creatorName": "SpaceXAI",
+      "releaseDate": "2026-08-12",
+      "value": 60,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "f7d2fc3e-1f7b-405f-818c-07952a4af78f",
+      "sourceSlug": "kimi-k3",
+      "modelVersion": "Kimi K3 (max)",
+      "creatorId": "0a177021-87dd-4250-9a37-f01df196bfe0",
+      "creatorName": "Kimi",
+      "releaseDate": "2026-07-16",
+      "value": 59.7,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "cd684ea4-b475-4269-b001-d469d06d8a7a",
+      "sourceSlug": "glm-5-3",
+      "modelVersion": "GLM-5.3 (max)",
+      "creatorId": "67437eb6-7dc1-4e93-befd-22c8b8ec2065",
+      "creatorName": "Z AI",
+      "releaseDate": "2026-08-18",
+      "value": 59.5,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "e97a4ef5-e817-480e-9595-12f81dc4974f",
+      "sourceSlug": "gpt-6-astra-medium",
+      "modelVersion": "GPT-6 Astra (medium)",
+      "creatorId": "e67e56e3-15cd-43db-b679-da4660a69f41",
+      "creatorName": "OpenAI",
+      "releaseDate": "2026-09-03",
+      "value": 59.2,
+      "observedAt": "2026-09-04"
+    },
+    {
+      "sourceId": "d998db47-9b67-4727-a2bb-2e1261020ac0",
+      "sourceSlug": "gpt-5-6-sol-xhigh",
+      "modelVersion": "GPT-5.6 Sol (xhigh)",
+      "creatorId": "e67e56e3-15cd-43db-b679-da4660a69f41",
+      "creatorName": "OpenAI",
+      "releaseDate": "2026-07-09",
+      "value": 59,
+      "observedAt": "2026-09-04"
+    }
+  ],
   "models": {
     "claude-opus-4-8": {
       "intelligence": {

@@ -67,7 +67,7 @@ describe("AgentPanel", () => {
     const user = userEvent.setup();
     render(<AgentPanel apiOrigin="https://agent.example" fetchImpl={fetchImpl} />);
 
-    await user.click(screen.getByRole("button", { name: /未上榜原因/ }));
+    await user.click(screen.getByRole("button", { name: /精选版本核验/ }));
     await user.click(screen.getByRole("button", { name: "开始核验" }));
 
     expect(await screen.findByText(terminalAnswer.message)).toBeTruthy();

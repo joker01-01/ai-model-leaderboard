@@ -32,9 +32,9 @@ const QUICK_PROMPTS = [
   },
   {
     id: "unranked",
-    label: "未上榜原因",
+    label: "精选版本核验",
     description: "不把相似名称当成同一版本",
-    prompt: () => "doubao-2-1-pro 为什么没有公开榜名次？请只按精确版本和仓库里已有的证据解释。",
+    prompt: () => "doubao-2-1-pro 为什么在精选目录里缺少当前 AA 排名证据？请只按精确版本和仓库里已有的证据解释。",
   },
   {
     id: "proposal",
@@ -234,7 +234,7 @@ export default function AgentPanel({ apiOrigin, fetchImpl }: AgentPanelProps) {
           value={message}
           disabled={!isConnected || isRunning}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder="说明任务、预算、地区、token 用量，或询问某个精确版本为何未上榜。"
+          placeholder="说明任务、预算、地区、token 用量，或核验精选目录中某个精确版本的 AA 证据。"
         />
         <div className="agent-form-foot">
           <p>{isConnected ? "结果受仓库证据边界约束；缺失证据不会被猜测补齐。" : "生产构建未提供 VITE_AGENT_API_URL，因此未发起任何网络请求。"}</p>

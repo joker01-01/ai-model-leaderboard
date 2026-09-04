@@ -94,6 +94,17 @@ function aaSnapshot() {
     generatedAt: "2026-09-03T00:00:00.000Z",
     source: "Artificial Analysis Data API",
     sourceUrl: "https://artificialanalysis.ai/data-api/docs",
+    intelligenceIndexVersion: 4.1,
+    intelligenceLeaderboard: Array.from({ length: 20 }, (_, index) => ({
+      sourceId: `leader-${String(index).padStart(2, "0")}`,
+      sourceSlug: `leader-${index}`,
+      modelVersion: `Leaderboard Model ${String(index).padStart(2, "0")}`,
+      creatorId: `creator-${index}`,
+      creatorName: `Creator ${index}`,
+      releaseDate: "2026-09-01",
+      value: 100 - index,
+      observedAt: "2026-09-03",
+    })),
     models: {
       "model-a": {
         intelligence: {
@@ -164,6 +175,8 @@ function eligibleInput() {
   headAaSnapshot.generatedAt = "2026-09-04T00:00:00.000Z";
   headAaSnapshot.models["model-a"].intelligence.value = 71.5;
   headAaSnapshot.models["model-a"].intelligence.observedAt = "2026-09-04";
+  headAaSnapshot.intelligenceLeaderboard[0].value = 100.5;
+  for (const entry of headAaSnapshot.intelligenceLeaderboard) entry.observedAt = "2026-09-04";
 
   const baseArenaSnapshot = arenaSnapshot();
   const headArenaSnapshot = structuredClone(baseArenaSnapshot);
@@ -274,6 +287,55 @@ test("rejects AA snapshot key, source, and exact identity changes", () => {
   assert.ok(changedKeysResult.reasons.includes("AA snapshot observation identity set changed"));
 });
 
+test("accepts AA leaderboard score reordering when its source identities remain stable", () => {
+  const input = eligibleInput();
+  input.head.aaSnapshot.intelligenceLeaderboard[0].value = 98.5;
+  input.head.aaSnapshot.intelligenceLeaderboard[1].value = 101;
+  input.head.aaSnapshot.intelligenceLeaderboard[0].observedAt = "2026-09-04";
+  input.head.aaSnapshot.intelligenceLeaderboard[1].observedAt = "2026-09-04";
+  input.head.aaSnapshot.intelligenceLeaderboard.sort((left, right) => (
+    right.value - left.value
+    || (left.modelVersion < right.modelVersion ? -1 : left.modelVersion > right.modelVersion ? 1 : 0)
+    || (left.sourceId < right.sourceId ? -1 : left.sourceId > right.sourceId ? 1 : 0)
+  ));
+
+  assert.deepEqual(evaluateDataUpdatePolicy(input), { eligible: true, reasons: [] });
+});
+
+test("rejects AA leaderboard membership, metadata, and index-version changes", () => {
+  const membership = eligibleInput();
+  membership.head.aaSnapshot.intelligenceLeaderboard[19].sourceId = "replacement-source";
+  const membershipResult = evaluateDataUpdatePolicy(membership);
+  assert.equal(membershipResult.eligible, false);
+  assert.ok(membershipResult.reasons.includes("AA leaderboard observation identity set changed"));
+
+  const metadata = eligibleInput();
+  metadata.head.aaSnapshot.intelligenceLeaderboard[0].creatorName = "Renamed Creator";
+  const metadataResult = evaluateDataUpdatePolicy(metadata);
+  assert.equal(metadataResult.eligible, false);
+  assert.ok(metadataResult.reasons.includes("AA leaderboard observation identity changed: leader-00"));
+
+  const version = eligibleInput();
+  version.head.aaSnapshot.intelligenceIndexVersion = 4.2;
+  const versionResult = evaluateDataUpdatePolicy(version);
+  assert.equal(versionResult.eligible, false);
+  assert.ok(versionResult.reasons.includes("AA Intelligence Index version changed"));
+});
+
+test("rejects mixed AA leaderboard observation dates and invalid calendar dates", () => {
+  const mixed = eligibleInput();
+  mixed.head.aaSnapshot.intelligenceLeaderboard[0].observedAt = "2026-09-05";
+  const mixedResult = evaluateDataUpdatePolicy(mixed);
+  assert.equal(mixedResult.eligible, false);
+  assert.ok(mixedResult.reasons.includes("head.aaSnapshot.intelligenceLeaderboard entries must share one observedAt date"));
+
+  const invalid = eligibleInput();
+  invalid.head.aaSnapshot.intelligenceLeaderboard[0].releaseDate = "2026-02-31";
+  const invalidResult = evaluateDataUpdatePolicy(invalid);
+  assert.equal(invalidResult.eligible, false);
+  assert.ok(invalidResult.reasons.includes("head.aaSnapshot.intelligenceLeaderboard[0].releaseDate must be an ISO date or null"));
+});
+
 test("rejects missing AA identity fields", () => {
   const input = eligibleInput();
   delete input.head.aaSnapshot.models["model-a"].intelligence.sourceId;
@@ -343,12 +405,16 @@ test("rejects changes to static evidence and unexpected report fields", () => {
 test("rejects malformed values in otherwise mutable refresh fields", () => {
   const input = eligibleInput();
   input.head.aaSnapshot.models["model-a"].intelligence.value = "71.5";
+  input.head.aaSnapshot.intelligenceLeaderboard[0].value = "100.5";
   input.head.arenaSnapshot.models["model-a"].text.observations = "1100";
 
   const result = evaluateDataUpdatePolicy(input);
   assert.equal(result.eligible, false);
   assert.ok(result.reasons.includes(
     "head.aaSnapshot.models.model-a.intelligence.value must be a finite number",
+  ));
+  assert.ok(result.reasons.includes(
+    "head.aaSnapshot.intelligenceLeaderboard[0].value must be a finite number",
   ));
   assert.ok(result.reasons.includes(
     "head.arenaSnapshot.models.model-a.text.observations must be null or finite",
