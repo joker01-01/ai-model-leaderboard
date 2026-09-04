@@ -160,7 +160,9 @@ The response must include `access-control-allow-origin: https://joker01-01.githu
 
 ### Recorded live result
 
-On 2026-09-04, the deployed `main` service passed `/healthz`, a DeepSeek-backed `query:invoke`, POST SSE, and the GitHub Pages CORS preflight. The published Pages HTML and JavaScript returned HTTP 200, and the live browser DOM contained both the API-configured Evidence Console and the existing leaderboard. The observed runtime logs showed no OOM event or restart during these checks.
+On 2026-09-04, landing-page commit `a80321b` passed GitHub Verify run `33838256321` and Pages run `33838256266`. Zeabur redeployed it from `main`; the public root changed from FastAPI's HTTP 404 JSON to HTTP 200 `text/html`, reported `data-status="ok"`, linked the public leaderboard, `/docs`, and `/healthz`, and sent `Cache-Control: no-store`. The public `/healthz` endpoint remained HTTP 200.
+
+The deployed `main` service also passed a DeepSeek-backed `query:invoke`, POST SSE, and the GitHub Pages CORS preflight. The published Pages HTML and JavaScript returned HTTP 200, and the live browser DOM contained both the API-configured Evidence Console and the existing leaderboard. The observed runtime logs showed no OOM event or restart during these checks.
 
 HTTPS transport checks carrying the production Pages `Origin` header covered all three Agent paths. The constrained recommendation emitted 15 monotonically sequenced events and one `run.completed`; exact-version explanation emitted 10 events with an exact resolution and one terminal event; the review-only update emitted 10 events including `proposal.ready` and ended `awaiting_human_review` without writing data. Together with the live DOM inspection, this verifies the published artifact and its production HTTP/CORS boundary; broad automated click-through coverage remains a separate frontend test scope.
 
