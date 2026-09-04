@@ -6,7 +6,9 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import cast
+from typing import Literal, cast
+
+from pydantic import model_validator
 
 _BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(_BACKEND_ROOT) not in sys.path:
@@ -15,6 +17,7 @@ if str(_BACKEND_ROOT) not in sys.path:
 from app.domain.errors import ToolErrorCode, ToolName, ToolResult  # noqa: E402
 from app.domain.models import (  # noqa: E402
     AgentRequest,
+    BenchmarkId,
     ExactModelResolution,
     ExactResolutionStatus,
     GetModelBenchmarksInput,
@@ -22,6 +25,7 @@ from app.domain.models import (  # noqa: E402
     ListModelsData,
     ListModelsInput,
     ModelBenchmarksData,
+    ModelId,
     ModelPricingData,
     PrepareDataUpdateInput,
     PriceCalculationStatus,
@@ -49,6 +53,7 @@ from app.tools import ProviderDocumentResponse  # noqa: E402
 class ExpectedResult(StrictModel):
     status: RunStatus
     selected_model_id: str | None
+    selected_model_rule: Literal["highest_aa_coding"] | None = None
     message_contains: tuple[str, ...]
     gap_codes: tuple[str, ...]
     missing_constraints: tuple[str, ...]
@@ -66,6 +71,17 @@ class ExpectedResult(StrictModel):
     minimum_state_benchmark_count: int = 0
     minimum_state_pricing_count: int = 0
 
+    @model_validator(mode="after")
+    def validate_selected_model_expectation(self) -> ExpectedResult:
+        if self.selected_model_id is not None and self.selected_model_rule is not None:
+            raise ValueError("selectedModelId and selectedModelRule are mutually exclusive")
+        return self
+
+
+class SyntheticMissingBenchmark(StrictModel):
+    model_id: ModelId
+    benchmark_id: BenchmarkId
+
 
 class EvaluationCase(StrictModel):
     id: str
@@ -73,6 +89,7 @@ class EvaluationCase(StrictModel):
     parsed: ParsedAgentRequest | None = None
     gateway_error: str | None = None
     synthetic_ambiguity_model_ids: tuple[str, ...] = ()
+    synthetic_missing_benchmarks: tuple[SyntheticMissingBenchmark, ...] = ()
     raising_tool: ToolName | None = None
     expected: ExpectedResult
 
@@ -160,10 +177,30 @@ def load_cases(path: Path | None = None) -> tuple[EvaluationCase, ...]:
 
 
 def _repository_for_case(base: LeaderboardRepository, case: EvaluationCase) -> LeaderboardRepository:
+    repository = base
+    if case.synthetic_missing_benchmarks:
+        for missing in case.synthetic_missing_benchmarks:
+            if base.get_model(missing.model_id) is None:
+                raise ValueError(f"{case.id}: unknown synthetic model ID {missing.model_id}")
+        missing_pairs = {
+            (missing.model_id, missing.benchmark_id)
+            for missing in case.synthetic_missing_benchmarks
+        }
+        evidence = base.evidence.model_copy(
+            update={
+                "benchmark_observations": tuple(
+                    observation
+                    for observation in base.evidence.benchmark_observations
+                    if (observation.model_id, observation.benchmark_id) not in missing_pairs
+                )
+            }
+        )
+        repository = LeaderboardRepository(base.catalog, evidence)
+
     if not case.synthetic_ambiguity_model_ids:
-        return base
+        return repository
     return SyntheticAmbiguousRepository(
-        base,
+        repository,
         query=case.parsed.model_reference if case.parsed and case.parsed.model_reference else "",
         model_ids=case.synthetic_ambiguity_model_ids,
     )
@@ -173,6 +210,7 @@ def _assert_case(
     case: EvaluationCase,
     answer: AgentAnswer,
     state: AgentState,
+    repository: LeaderboardRepository,
 ) -> dict[str, object]:
     expected = case.expected
     assert answer.status == expected.status, (case.id, answer.status, expected.status)
@@ -185,10 +223,11 @@ def _assert_case(
         assert fragment in answer.message, (case.id, fragment, answer.message)
 
     selected_model_id = answer.recommendation.selected_model_id if answer.recommendation else None
-    assert selected_model_id == expected.selected_model_id, (
+    expected_selected_model_id = _expected_selected_model_id(expected, repository)
+    assert selected_model_id == expected_selected_model_id, (
         case.id,
         selected_model_id,
-        expected.selected_model_id,
+        expected_selected_model_id,
     )
     rationale = answer.recommendation.rationale if answer.recommendation else ()
     for fragment in expected.rationale_contains:
@@ -266,6 +305,40 @@ def _assert_case(
     }
 
 
+def _expected_selected_model_id(
+    expected: ExpectedResult,
+    repository: LeaderboardRepository,
+) -> str | None:
+    if expected.selected_model_rule is None:
+        return expected.selected_model_id
+
+    candidates: list[tuple[float, float | None, str]] = []
+    for model_id in repository.model_ids:
+        observations = {
+            observation.benchmark_id: observation.value
+            for observation in repository.get_benchmark_observations(
+                model_id,
+                (BenchmarkId.AA_CODING, BenchmarkId.AA_INTELLIGENCE),
+            )
+        }
+        coding = observations.get(BenchmarkId.AA_CODING)
+        if coding is None:
+            continue
+        candidates.append((coding, observations.get(BenchmarkId.AA_INTELLIGENCE), model_id))
+
+    if not candidates:
+        return None
+    return min(
+        candidates,
+        key=lambda item: (
+            -item[0],
+            item[1] is None,
+            -(item[1] or 0.0),
+            item[2],
+        ),
+    )[2]
+
+
 async def run_cases(cases: tuple[EvaluationCase, ...] | None = None) -> tuple[dict[str, object], ...]:
     selected_cases = cases or load_cases()
     base_repository = LeaderboardRepository.load()
@@ -311,7 +384,7 @@ async def run_cases(cases: tuple[EvaluationCase, ...] | None = None) -> tuple[di
         answer = state.get("answer")
         if not isinstance(answer, AgentAnswer):
             raise AssertionError(f"{case.id}: graph did not return an AgentAnswer")
-        results.append(_assert_case(case, answer, cast(AgentState, state)))
+        results.append(_assert_case(case, answer, cast(AgentState, state), repository))
 
     return tuple(results)
 

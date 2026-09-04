@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from app.domain.errors import ToolErrorCode
 from app.domain.models import (
     BenchmarkId,
+    BenchmarkObservation,
     Citation,
     CurrencyCode,
     GetModelBenchmarksInput,
@@ -45,6 +46,62 @@ def repository() -> LeaderboardRepository:
     return LeaderboardRepository.load()
 
 
+def _without_benchmark(
+    repository: LeaderboardRepository,
+    *,
+    model_id: str,
+    benchmark_id: BenchmarkId,
+) -> LeaderboardRepository:
+    evidence = repository.evidence.model_copy(
+        update={
+            "benchmark_observations": tuple(
+                observation
+                for observation in repository.evidence.benchmark_observations
+                if not (
+                    observation.model_id == model_id
+                    and observation.benchmark_id == benchmark_id
+                )
+            )
+        }
+    )
+    return LeaderboardRepository(repository.catalog, evidence)
+
+
+def _with_synthetic_benchmark(
+    repository: LeaderboardRepository,
+    *,
+    model_id: str,
+    benchmark_id: BenchmarkId,
+) -> LeaderboardRepository:
+    without_existing = _without_benchmark(
+        repository,
+        model_id=model_id,
+        benchmark_id=benchmark_id,
+    )
+    definition = next(
+        item
+        for item in without_existing.evidence.benchmark_definitions
+        if item.id == benchmark_id
+    )
+    observation = BenchmarkObservation(
+        model_id=model_id,
+        benchmark_id=benchmark_id,
+        value=(definition.calibration.min + definition.calibration.max) / 2,
+        model_version=f"synthetic-{model_id}",
+        observed_at=date(2026, 9, 1),
+        definition=definition,
+    )
+    evidence = without_existing.evidence.model_copy(
+        update={
+            "benchmark_observations": (
+                *without_existing.evidence.benchmark_observations,
+                observation,
+            )
+        }
+    )
+    return LeaderboardRepository(without_existing.catalog, evidence)
+
+
 def _pricing_request(
     *,
     model_id: str = "qwen-3-5",
@@ -70,13 +127,23 @@ def _pricing_request(
 def test_list_models_returns_exact_candidates_and_typed_exclusions(
     repository: LeaderboardRepository,
 ) -> None:
+    controlled_repository = _without_benchmark(
+        repository,
+        model_id="glm-5-3",
+        benchmark_id=BenchmarkId.AA_CODING,
+    )
+    controlled_repository = _with_synthetic_benchmark(
+        controlled_repository,
+        model_id="qwen-3-5",
+        benchmark_id=BenchmarkId.AA_CODING,
+    )
     result = list_models(
         ListModelsInput(
             candidate_model_ids=("qwen-3-5", "glm-5-3"),
             provider_region_id=RegionId.CN_BEIJING,
             currency=CurrencyCode.USD,
         ),
-        repository=repository,
+        repository=controlled_repository,
     )
 
     assert result.ok
