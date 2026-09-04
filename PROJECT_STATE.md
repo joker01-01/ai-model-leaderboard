@@ -6,7 +6,7 @@ Upgrade the existing AI Model Leaderboard into the bounded ModelOps Agent MVP de
 
 ## Architecture
 
-Current repository architecture; the conditional-automation code is verified locally, while GitHub control-plane activation is still pending:
+Current deployed repository architecture; conditional publication is live:
 
 ```text
 React 19 + TypeScript + Vite static frontend
@@ -14,7 +14,7 @@ React 19 + TypeScript + Vite static frontend
   <- generated Artificial Analysis and Arena snapshots
   <- deterministic ModelOps catalog/evidence JSON adapter
   <- daily Node.js sync + adapter export/tests
-  -> repository-scoped App-signed review PR
+  -> repository-scoped App-authored, GitHub-signed review PR
   -> read-only pull-request verification
   -> trusted-main policy gate
      -> routine generated-data refresh: guarded merge
@@ -68,8 +68,8 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - The HTTP document boundary uses repository-owned exact URLs, total and per-operation timeouts, bounded identity-encoded text responses, and redirect binding to the same `(modelId, providerId, providerModelId, kind)` metadata. Cross-binding redirects cannot be misattributed as evidence.
 - The three graph intents are `recommend`, `explain_unranked`, and `prepare_update`. Missing user inputs end in `needs_clarification`; evidence gaps produce bounded completed answers; unrecoverable gateway/tool failures end in `failed`; valid proposals end in `awaiting_human_review` without writes.
 - The offline backend suite contains 92 repository/tool/graph/gateway/API tests, including available and unavailable root-page contracts. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
-- The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 62 benchmark observations, 18 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
-- The repository now implements an App-signed refresh PR, a strict five-file routine-update policy, trusted-`main` `workflow_run` inspection, verified App-commit provenance, immutable SHA checks, and guarded REST merge. The GitHub App credentials and protected required check are not configured yet, so live publication still uses human merge.
+- The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 64 benchmark observations, 17 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
+- Conditional publication is operational: the repository-scoped App, Actions credentials, strict `verify` requirement, protected `main`, trusted-`main` policy inspection, immutable SHA/provenance rechecks, anomaly retention, and guarded routine REST merge have passed live acceptance.
 - Pull requests and pushes to `main` are configured to run the offline generated-data drift check, policy tests, the complete frontend test set, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
 - Leaderboard entry construction and row/details rendering are separated into `src/lib/entries.ts` and `src/components/Board.tsx`. Both boards now use exact-score competition ranking; sorting places finite dimension scores before missing values so equal missing values remain contiguous.
 
@@ -94,7 +94,7 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - Security review depth is proportional to the touched trust boundary; ordinary documentation/UI/pure-function work does not trigger a broad security audit.
 - Zeabur builds the backend from the repository root so the image preserves both `backend/app/` and `data/modelops/generated/`. Start with one Uvicorn worker and no database or persistent volume.
 - Zeabur's GitHub integration redeploys on pushes to its linked branch by default. Link only `main` so a pull-request merge remains the backend release trigger.
-- The approved publication direction is conditional automation: routine generated-data pull requests may auto-merge only when an explicit changed-file allowlist, stable exact-match membership and source identity, unchanged curated/static evidence, App-signed commit provenance, immutable SHAs, and all required verification pass. Evidence loss, new missing/ambiguous/conflicting matches, source-mapping changes, or non-data changes remain open for human review. The repository implementation exists; GitHub control-plane activation and live acceptance remain pending. Scheduled refreshes never push directly to `main`, and the Agent `prepare_data_update` path remains a pure proposal.
+- Conditional publication permits routine generated-data pull requests to auto-merge only when an explicit changed-file allowlist, stable exact-match membership and source identity, unchanged curated/static evidence, App-authored GitHub-signed commit provenance, immutable SHAs, and all required verification pass. Evidence loss, new missing/ambiguous/conflicting matches, source-mapping changes, or non-data changes remain open for human review. Scheduled refreshes never push directly to `main`, and the Agent `prepare_data_update` path remains a pure proposal that is never auto-published.
 
 ## Known Problems
 
@@ -102,7 +102,6 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - DeepSeek V4 Pro/Flash prices are time-band dependent and are intentionally omitted because the Phase A offer schema does not model time bands.
 - Structured negative availability, end-user country availability, and latency evidence are not modeled yet; provider deployment regions alone cannot answer all geographic constraints.
 - `npm run sync:data:check` does not fail when generated data would drift.
-- Conditional data-refresh automation is not operational yet: the dedicated GitHub App is not installed/configured, `DATA_SYNC_APP_CLIENT_ID` and `DATA_SYNC_APP_PRIVATE_KEY` are absent, and `main` has no protected required `verify` check. Existing PR `#3` was created by `github-actions[bot]`; it must be closed and its fixed refresh branch deleted before the App creates a replacement.
 - Focused Agent Panel tests exist, but the rest of the leaderboard still lacks broad end-to-end interaction coverage.
 - The public backend has no authentication or rate limiting. CORS limits browser origins but does not prevent direct scripted requests, so broader exposure needs a separately approved access-control or quota milestone.
 - A real client transport disconnect, bounded endpoint-stability observation, and Git-revert deployment/recovery drill have been exercised against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies revision switching, health continuity, and recovery rather than rollback between behaviorally different backend images. Online logs have not independently proven internal graph-task cancellation; the offline API integration test covers that contract. The control-plane resource graph is a snapshot, not a sustained-load test.
@@ -112,7 +111,7 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 
 ## Verification
 
-Verified through 2026-09-04 after deploying the Zeabur backend boundary:
+Verified through 2026-09-04 after live conditional data-refresh acceptance:
 
 - `npm ci` succeeded.
 - `npm run modelops:data` generated the adapter successfully outside the managed sandbox.
@@ -122,12 +121,18 @@ Verified through 2026-09-04 after deploying the Zeabur backend boundary:
 - `npm run test:agent` passed 30 focused runtime-contract, SSE parser, cancellation, and React Panel tests; malformed streams cancel their response reader and partial failed output is not presented as a completed result.
 - `npm run test:frontend` passed 41/41 tests across five files, including all sort dimensions, missing-score placement, competition ranking, row rendering, and the existing Agent tests.
 - `npm run test:data-update-policy` passed 15/15 cases covering routine refreshes, strict path/status allowlisting, skipped/ambiguous sources, stable match sets and AA/Arena identities, immutable static evidence, malformed inputs, and CLI exit behavior. A smoke using the current committed snapshot shapes accepted a synchronized AA value refresh and rejected an Arena source-identity mutation.
-- All four workflow YAML files parsed successfully. The guarded merge workflow and GitHub App prerequisites are not yet live-verified.
+- All four workflow YAML files parsed successfully. The guarded merge workflow, GitHub App, Actions credentials, branch protection, negative anomaly path, and positive routine path are live-verified.
+- Live `main` protection requires pull requests and the strict `verify` status check, applies to administrators, requires linear history, blocks force pushes and branch deletion, and requires zero human approvals. The data-sync App has no bypass entry. Repository Actions contains `DATA_SYNC_APP_CLIENT_ID`, `DATA_SYNC_APP_PRIVATE_KEY`, and `AA_API_KEY`; secret values were not read, and no credential value was written to the repository.
+- PR `#6` fixed snapshot-coupled tool/evaluation fixtures and ensured a verified data PR is still prepared when only downstream behavioral checks expose an upstream anomaly. Required run `33847160323` passed before merge commit `d004487`.
+- PR `#8` corrected commit provenance checks to require one App-authored, GitHub-signed commit with `web-flow` as committer, a fixed message, valid verification, one expected parent, and the exact verified head SHA. Required run `33848800831` passed before merge commit `5a8a3f0`.
+- App refresh run `33857550307` updated PR `#7`; required run `33858046203` passed, while trusted policy run `33858519972` correctly retained it because GLM-5.3 gained an exact AA match and DeepSeek V4 Flash lost an Arena observation. After human review, the accepted baseline merged as `223b1c3`.
+- Routine refresh run `33858638289` opened PR `#9` with four allowed generated-file changes. Required run `33859147546` passed; trusted policy run `33859611973` classified it as routine, rechecked immutable inputs, and automatically merged exact head `44a3f9d` as `ce49c8e`. The remote refresh branch was deleted after merge.
+- Post-merge `main` verification run `33859647251` and Pages deployment run `33859647300` passed. The public leaderboard, Zeabur status page, and `/healthz` returned HTTP 200. A live DeepSeek-backed invoke resolved `GLM-5.3` exactly and reported its same-version AA Intelligence observation, confirming that the Zeabur backend loaded the accepted data snapshot.
 - `node --check scripts/sync-data.mjs` succeeded.
 - The extracted alias data was deep-compared with the previous inline array: 20 model IDs, 21 AA aliases, and 40 Arena aliases were unchanged.
-- README publication claims and the human merge boundary still match the checked GitHub Actions workflows.
+- README and the public footer now describe the checked conditional publication boundary: routine refreshes auto-merge only after every gate passes, while anomalies remain open for human review.
 - `git diff --check`, an explicit trailing-whitespace scan covering untracked files, and a common secret-pattern scan reported no findings.
-- The network-backed `npm run sync:data:check` was not run; external AA/Arena refresh behavior is not claimed as runtime-verified in Phase A.
+- The standalone local `npm run sync:data:check` remains dry-run-only and is not a fail-on-drift freshness gate. Live AA/Arena fetch, generated PR creation, anomaly retention, and routine automatic merge are separately verified by the recorded GitHub Actions runs.
 - `python -m pytest -q` from `backend/` passed all 92 tests after adding the browser-facing root status page, including its available/unavailable contracts, API integration tests, Responses structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding.
 - `python -m ruff check app tests evals` passed.
 - `python -m mypy app tests evals` passed for 41 source files.
@@ -155,6 +160,5 @@ Verified through 2026-09-04 after deploying the Zeabur backend boundary:
 
 ## Next (separate milestones)
 
-1. Create and install the repository-scoped data-sync GitHub App, configure its variable/private-key secret, protect `main` with required `verify`, close PR `#3` and delete its old refresh branch, then live-test one routine refresh and one rejected anomaly as described in `docs/data-refresh-automation.md`.
-2. Design authentication, rate limiting, or quota enforcement before materially broader public API exposure.
-3. Add broader leaderboard end-to-end interaction coverage and sustained-load/resource testing if usage justifies them.
+1. Design authentication, rate limiting, or quota enforcement before materially broader public API exposure.
+2. Add broader leaderboard end-to-end interaction coverage and sustained-load/resource testing if usage justifies them.
