@@ -9,10 +9,11 @@ The ModelOps document is an approved implementation plan, not proof of implement
 ## Stack and structure
 
 - React 19, TypeScript, and Vite provide the static GitHub Pages frontend.
-- `src/data/models.ts` contains curated model metadata.
-- `src/data/benchmarks.ts` combines verified static observations with the generated Artificial Analysis snapshot.
+- `src/data/models.ts` contains the curated catalog used by the editorial board and ModelOps Agent.
+- `src/data/benchmarks.ts` combines verified static observations with exact-version Artificial Analysis evidence for that curated catalog.
+- `src/lib/aaLeaderboard.ts` and `src/components/AaBoard.tsx` validate and render the source-native public Artificial Analysis leaderboard without projecting it into the curated catalog.
 - `src/lib/score.ts` and `src/lib/editorial.ts` contain ranking semantics.
-- `scripts/sync-data.mjs` performs external-data synchronization and exact-version matching.
+- `scripts/sync-data.mjs` performs external-data synchronization, builds the current Artificial Analysis Intelligence leaderboard, and separately performs exact-version matching for curated evidence.
 - Python 3.12, Pydantic v2, FastAPI, and the low-level LangGraph graph API provide the ModelOps Agent backend under `backend/`.
 - `backend/app/repositories/leaderboard.py` strictly loads the committed generated JSON; `backend/app/tools/` contains five typed read-only/pure tools; `backend/app/graph/` contains state, nodes, routes, dependency injection, and tool orchestration.
 - `backend/app/services/model_gateway.py` keeps the gateway protocol and deterministic fake; `backend/app/services/openai_gateway.py` implements locally validated OpenAI-compatible Responses structured output with DeepSeek V4 Flash as the default provider model, and `backend/app/services/provider_document_client.py` implements bounded exact-allowlist document fetching.
@@ -55,7 +56,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 - `npm run build` is the current TypeScript and production-build gate.
-- `npm run test:modelops-data` is the focused shared-data contract and ranking-regression suite. `npm run test:data-update-policy` covers the fail-closed routine-refresh gate. `npm run test:agent` covers the typed SSE parser and Agent Panel interactions; `npm run test:frontend` runs all frontend tests. There is no general frontend lint script yet.
+- `npm run test:modelops-data` is the focused curated shared-data contract and ranking-regression suite. `npm run test:data-update-policy` covers the source-native AA generator plus the fail-closed routine-refresh gate for both public membership and curated matches. `npm run test:agent` covers the typed SSE parser and Agent Panel interactions; `npm run test:frontend` runs all frontend tests, including the independent public board. There is no general frontend lint script yet.
 - `npm run modelops:data:check` is offline and must fail when the committed ModelOps JSON is missing or stale.
 - `npm run sync:data` requires network access; fresh Artificial Analysis data also requires `AA_API_KEY`.
 - `npm run sync:data:check` is currently a dry run only. It does not fail when generated output would change, so do not treat a zero exit code as proof that snapshots are current.
@@ -65,7 +66,9 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ## Product invariants
 
-- Public ranking uses only the same-version Artificial Analysis Intelligence Index.
+- The public board contains exactly the first 20 finite Artificial Analysis Intelligence entries from the complete paginated source snapshot. `sourceId` is the row identity; reasoning, effort, and other source configurations remain separate even when their family names match.
+- The public board must not infer curated metadata, merge source rows by family, or display a `Top 20`, source-total, or curated-coverage count. Its visible title remains `公开评测榜 · 智能指数`.
+- The editorial board and ModelOps Agent continue to use the curated exact-version catalog; public-board membership must not expand that catalog or generated Agent evidence.
 - Similar names, unknown versions, missing evidence, and multiple matches remain unmatched or ambiguous. Never infer a match from model family or naming similarity.
 - Editorial scoring stays separate from public ranking.
 - Arena data is reference-only and must not affect public rank.
@@ -86,6 +89,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ## Generated data
 
 - Do not hand-edit `src/data/generated/aaSnapshot.ts`, `src/data/generated/arenaSnapshot.ts`, `data/modelops/generated/*.json`, or any future file explicitly marked as generated.
+- The generated AA snapshot stores both the source-native `intelligenceLeaderboard` and the curated exact-match `models` map. Keep those two consumers independent.
 - Change source mappings or generator logic, regenerate, then review the resulting snapshots and `data/sync-report.json`.
 - Change ModelOps reviewed inputs or exporter logic, run `npm run modelops:data`, inspect both generated JSON files, then run `npm run test:modelops-data` and `npm run modelops:data:check`.
 - Treat `data/sync-report.json` as generated review evidence. Do not hide missing or ambiguous entries.
@@ -93,7 +97,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ## Publication boundary
 
 - Scheduled refreshes must prepare or update a pull request; they must not push data changes directly to `main`.
-- A data-refresh pull request may auto-merge only after the repository gate proves that changed paths are limited to approved generated data/report files, exact source identities and matched sets remain stable, no new missing/ambiguous/conflicting evidence or loss of previously matched evidence appears, and every required data contract, test, and build check passes.
+- A data-refresh pull request may auto-merge only after the repository gate proves that changed paths are limited to approved generated data/report files, the public AA leaderboard membership/index version and curated exact source identities/matched sets remain stable, no new missing/ambiguous/conflicting evidence or loss of previously matched evidence appears, and every required data contract, test, and build check passes.
 - Any anomaly, failed or missing required check, or change to code, workflows, dependencies, documentation, or reviewed source mappings remains subject to human approval. Preserve the pull request as the review and audit boundary.
 - Do not enable conditional auto-merge until `main` has appropriate rules or protection and the required pull-request checks cannot be bypassed.
 - The data-sync GitHub App must be installed only on this repository, hold only Contents and Pull requests write access, sign its refresh commits, and remain outside every required-check bypass list. Automatic merge must revalidate the App author/signature plus immutable PR, head, base, and current-`main` SHAs.

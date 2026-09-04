@@ -12,7 +12,7 @@
 
 This project is an AI model evaluation platform built around one rule: **if the version cannot be verified, don't pretend the score belongs there.**
 
-The public board ranks same-version scores from Artificial Analysis. A separate editorial board can re-rank by user-adjustable preferences. Routine generated-data refreshes publish automatically only after the trusted gate passes; anomalies remain open for human review.
+The public board follows the first 20 scored entries in the current Artificial Analysis Intelligence Index. Each source configuration remains its own row. A separate editorial board re-ranks a curated exact-version catalog by user-adjustable preferences. Routine generated-data refreshes publish automatically only after the trusted gate passes; anomalies remain open for human review.
 
 **Frontend:** https://joker01-01.github.io/ai-model-leaderboard/
 
@@ -32,10 +32,10 @@ A missing or ambiguous match stays unresolved. I would rather leave a score blan
 
 ## What it does
 
-The project currently tracks 20 concrete model versions and exposes two different views:
+The project exposes two deliberately separate views:
 
-- **Public evaluation board** — ranks by same-version Artificial Analysis Intelligence Index.
-- **Editorial board** — re-ranks by configurable preferences such as intelligence, coding, tool use, reasoning/math, price, and open weights.
+- **Public evaluation board** — displays the first 20 scored Artificial Analysis source entries in current Intelligence Index order. Reasoning, effort, and other configurations are not merged by model family.
+- **Editorial board** — re-ranks a curated catalog of 20 concrete model versions by configurable preferences such as intelligence, coding, tool use, reasoning/math, price, and open weights.
 
 Arena data is shown as user-preference reference in model details. It does not determine the public ranking.
 
@@ -47,10 +47,12 @@ Phase D adds a React evidence console backed by a typed, runtime-validated POST 
 
 ```mermaid
 flowchart LR
-  src[Data sources]
-  sync[Sync script]
-  match[Exact version matching]
-  report[Validation report]
+  aa[Paginated AA source]
+  arena[Arena source]
+  public[Finite Intelligence entries]
+  top[First 20 source rows]
+  match[Curated exact-version matching]
+  generated[Generated snapshots + report]
   pr[Generated-data PR]
   gate[Trusted policy gate]
   human[Human review]
@@ -58,7 +60,10 @@ flowchart LR
   pages[GitHub Pages]
   api[Zeabur API]
 
-  src --> sync --> match --> report --> pr --> gate
+  aa --> public --> top --> generated
+  aa --> match
+  arena --> match --> generated
+  generated --> pr --> gate
   gate -->|routine + all checks| main
   gate -->|anomaly / failed gate| human --> main
   main --> pages
@@ -70,11 +75,12 @@ Sources:
 - **Artificial Analysis Data API** — benchmark source for the public board.
 - **LMArena leaderboard dataset** — blind-preference reference in the detail view.
 
-The sync workflow runs daily at 01:20 Beijing time. It updates generated snapshots and opens or updates a pull request; it never pushes directly to `main`. The trusted gate automatically merges only routine refreshes with stable exact identities, approved generated paths, verified provenance, and all required checks. Anomalies stay open for human review. A merge into `main` triggers GitHub Pages and the linked Zeabur deployment.
+The sync workflow runs daily at 01:20 Beijing time. It reads the complete paginated AA response, derives the source-native public leaderboard, and separately maintains exact-version evidence for the curated catalog. It updates generated snapshots and opens or updates a pull request; it never pushes directly to `main`. The trusted gate automatically merges only routine score/date/order refreshes with stable public membership, index version, curated exact identities, approved generated paths, verified provenance, and all required checks. Membership, version, identity, or evidence anomalies stay open for human review. A merge into `main` triggers GitHub Pages and the linked Zeabur deployment.
 
 ## Reliability rules
 
-- **Exact version matching only.** Similar names, unknown versions, or multiple hits remain unmatched.
+- **Source rows stay source rows.** Public entries use AA `sourceId` identity; separate configurations are neither deduplicated nor projected into the curated catalog.
+- **Exact version matching for curated evidence only.** Similar names, unknown versions, or multiple hits remain unmatched in the editorial/Agent catalog.
 - **Ambiguity becomes data, not a guess.** Missing and ambiguous cases are written to `data/sync-report.json`.
 - **Public rank and editorial preference stay separate.** Editorial weights never rewrite the public benchmark rank.
 - **Arena is reference, not rank.** User preference does not get mixed into the headline public score.
@@ -86,13 +92,14 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | Area | Key files |
 | --- | --- |
 | Model metadata | `src/data/models.ts` |
-| Public benchmark mapping | `src/data/benchmarks.ts` |
+| Public AA leaderboard | `src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx` |
+| Curated benchmark mapping | `src/data/benchmarks.ts` |
 | Editorial scoring | `src/lib/editorial.ts` |
 | AA generated snapshot | `src/data/generated/aaSnapshot.ts` |
 | Arena generated snapshot | `src/data/generated/arenaSnapshot.ts` |
 | ModelOps reviewed/generated data | `data/modelops/` |
 | ModelOps data contracts/tests | `scripts/modelops-data-schema.ts`, `scripts/modelops-data.test.ts` |
-| Leaderboard rows / sorting / rank | `src/components/Board.tsx`, `src/lib/entries.ts`, `src/lib/ranking.ts` |
+| Curated rows / sorting / rank | `src/components/Board.tsx`, `src/lib/entries.ts`, `src/lib/ranking.ts` |
 | Strict Python contracts/repository | `backend/app/domain/`, `backend/app/repositories/` |
 | Five typed ModelOps tools | `backend/app/tools/` |
 | LangGraph workflow/verifier | `backend/app/graph/`, `backend/app/services/` |
@@ -101,7 +108,8 @@ The sync workflow runs daily at 01:20 Beijing time. It updates generated snapsho
 | Runtime configuration | `.env.example`, `backend/app/config.py` |
 | Zeabur backend deployment | `Dockerfile`, `.dockerignore`, `docs/backend-deployment-zeabur.md` |
 | Offline Agent evaluations | `backend/evals/` |
-| Sync / matching report | `data/sync-report.json` |
+| AA leaderboard generator | `scripts/aa-leaderboard.mjs` |
+| Sync / matching report | `scripts/sync-data.mjs`, `data/sync-report.json` |
 | Sync workflow | `.github/workflows/sync-data.yml` |
 | Routine-refresh policy / merge workflow | `scripts/data-update-policy.mjs`, `.github/workflows/auto-merge-data.yml` |
 | Deploy workflow | `.github/workflows/deploy.yml` |
@@ -164,15 +172,16 @@ The backend runs as `modelops-agent-api` on a Zeabur-managed Tencent Cloud serve
 
 ## Verification and remaining work
 
-`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 92-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, the browser landing page, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
+`npm run test:modelops-data` checks the curated ModelOps adapter contracts, exact source/version bindings, and curated objective/editorial evidence equivalence. The public AA board has separate generator, parser, component, and refresh-policy tests. The 92-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, the browser landing page, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
-Phase D is published through GitHub Pages. The live browser DOM contains both the configured Agent Panel and the existing leaderboard, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A fail-on-drift mode for the standalone local `sync:data:check` command and broader frontend interaction coverage remain separate future work.
+Phase D is published through GitHub Pages. The live browser DOM contains the configured Agent Panel and the public/editorial leaderboard views, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A fail-on-drift mode for the standalone local `sync:data:check` command and broader frontend interaction coverage remain separate future work.
 
 The conditional data-refresh control plane is operational: a repository-scoped GitHub App prepares the pull request, protected `main` requires the complete `verify` check, and trusted-main policy code performs the guarded merge. Live acceptance covered both an anomaly refresh retained for human review ([PR #7](https://github.com/joker01-01/ai-model-leaderboard/pull/7)) and a routine refresh merged automatically ([PR #9](https://github.com/joker01-01/ai-model-leaderboard/pull/9)). See [`docs/data-refresh-automation.md`](docs/data-refresh-automation.md).
 
 ## Limitations
 
-- The catalog is a curated set of 20 pinned versions, not the entire model market.
+- The public board is intentionally limited to the first 20 scored entries returned by the current AA Intelligence source snapshot; it is not the entire model market.
+- The separate editorial/Agent catalog is a curated set of 20 pinned versions. Public membership does not automatically become Agent evidence.
 - Scores are snapshots from selected public benchmark sources, not vendor-official conclusions.
 - Model versions, prices, context windows, and licenses change quickly.
 - Artificial Analysis sync requires `AA_API_KEY` for fresh benchmark data.
@@ -185,11 +194,11 @@ The conditional data-refresh control plane is operational: a repository-scoped G
 
 Before recording a public score:
 
-1. Confirm the exact model version.
-2. Keep the benchmark name, observation date, and source URL.
-3. Use the same-version Artificial Analysis Intelligence Index for the public rank.
-4. If the version cannot be confirmed, leave it pending.
-5. Never mix editorial scores, sibling versions, or unverified claims into the public board.
+1. Preserve each public entry's AA source ID, concrete configuration name, source slug, observation date, and index version.
+2. Rank only finite values from the current Artificial Analysis Intelligence Index.
+3. Keep distinct source configurations as distinct rows instead of deduplicating by model family.
+4. Apply exact-version matching separately when attaching evidence to the curated editorial/Agent catalog.
+5. Never mix editorial scores, sibling-version evidence, or inferred metadata into the public board.
 
 <details>
 <summary><strong>中文说明</strong></summary>
@@ -200,13 +209,14 @@ Before recording a public score:
 
 这个项目围绕一个很简单的规则：**版本不能确认，就不要假装这个分数属于它。**
 
-公开榜按同版本 Artificial Analysis Intelligence Index 排名；编辑推荐榜再根据用户偏好重排。数据每天自动同步并生成更新 PR；精确身份、文件范围、提交来源和全部检查均稳定的例行更新会自动合并，异常更新保留给人工审核。
+公开榜直接展示 Artificial Analysis 当前 Intelligence Index 的前 20 个有分数源条目；同一模型的不同推理、努力等配置分别成行，不按模型家族合并。编辑推荐榜和 ModelOps Agent 继续使用独立的 20 个精确版本精选目录。数据每天自动同步并生成更新 PR；公开榜成员、指数版本、精选目录身份、文件范围、提交来源和全部检查均稳定的例行更新会自动合并，异常更新保留给人工审核。
 
 我更愿意留一个空白，也不愿意让一个分数看起来比它实际更确定。
 
 核心可靠性规则：
 
-- 只接受精确版本匹配。
+- 公开榜按 AA `sourceId` 保留每个源配置，不去重、不套用精选目录资料。
+- 精选目录证据只接受精确版本匹配。
 - 相似名称、未知版本、多条候选都保持未匹配。
 - 缺失和歧义写入 `data/sync-report.json`，不偷偷补值。
 - Arena 只作用户偏好参考，不参与公开名次。

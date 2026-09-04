@@ -9,7 +9,7 @@
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "modelops:data": "tsx scripts/export-modelops-data.ts",
     "modelops:data:check": "tsx scripts/export-modelops-data.ts --check",
-    "test:data-update-policy": "node --test scripts/data-update-policy.test.mjs",
+    "test:data-update-policy": "node --test scripts/data-update-policy.test.mjs scripts/aa-leaderboard.test.mjs",
     "test:agent": "vitest run src/features/agent",
     "test:frontend": "vitest run src",
     "test:modelops-data": "tsx --test scripts/modelops-data.test.ts",

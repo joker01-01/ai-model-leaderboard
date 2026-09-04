@@ -245,7 +245,7 @@ test("pricing tier export ordering compares token boundaries numerically", async
   );
 });
 
-test("generated adapter preserves public and editorial ranking results", async () => {
+test("generated adapter preserves curated objective and editorial ranking results", async () => {
   const [catalog, evidence] = await Promise.all([
     readJson("data/modelops/generated/catalog.json") as Promise<ModelOpsCatalog>,
     readJson("data/modelops/generated/evidence.json") as Promise<ModelOpsEvidence>,
