@@ -141,6 +141,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 Available endpoints:
 
+- `GET /` — browser-friendly service status and links to the public product, API docs, and readiness endpoint.
 - `GET /healthz` — runtime readiness.
 - `POST /api/v1/agent/query:invoke` — one structured response.
 - `POST /api/v1/agent/query` — typed SSE with monotonic sequence, heartbeat comments, one terminal event, and disconnect cancellation.
@@ -153,7 +154,7 @@ The backend runs as `modelops-agent-api` on a Zeabur-managed Tencent Cloud serve
 
 ## What is not automated yet
 
-`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 91-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
+`npm run test:modelops-data` checks strict reviewed-data contracts, exact source/version bindings, and public/editorial ranking equivalence. The 92-test backend suite covers the strict repository, all five tools, graph routing and terminal states, concrete HTTP boundaries, the browser landing page, health/invoke/SSE contracts, cancellation, and safe errors; 24 deterministic cases cover recommendation, clarification, stale/missing evidence, exact-version explanations, pure proposals, and unrecoverable failures. The CI workflow already runs these backend gates with Python lint and type checking in addition to the frontend checks.
 
 Phase D is published through GitHub Pages. The live browser DOM contains both the configured Agent Panel and the existing leaderboard, and the recommendation, exact-version explanation, and review-only proposal paths passed HTTPS transport checks carrying the production Pages `Origin` header. A reviewed Git-revert deployment/recovery drill also completed against Zeabur. The reverted Phase D commit did not change backend build inputs, so the drill verifies GitHub-to-Zeabur revision switching, health continuity, and recovery rather than rollback between different backend implementations. A network-backed sync freshness gate and broader frontend interaction coverage remain separate future work. Publication still requires human review.
 

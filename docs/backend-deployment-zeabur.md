@@ -84,7 +84,17 @@ Use the generated Zeabur HTTPS origin as `$ApiOrigin` in PowerShell:
 $ApiOrigin = "https://modelops-agent-api.zeabur.app"
 ```
 
-### 1. Readiness
+### 1. Browser landing
+
+Open `$ApiOrigin` in a browser, or inspect the response directly:
+
+```powershell
+curl.exe --include --fail --show-error "$ApiOrigin/"
+```
+
+An available runtime returns HTTP 200 with `content-type: text/html`, an `ok` status marker, and links to the public leaderboard, `/docs`, and `/healthz`. An unavailable runtime returns the same bounded page with HTTP 503 and no startup-error details. Keep Zeabur's automated health probe on `/healthz`; the root page is the human-facing service boundary.
+
+### 2. Readiness
 
 ```powershell
 curl.exe --fail --show-error "$ApiOrigin/healthz"
@@ -98,7 +108,7 @@ Expected response:
 
 A `503` response means the API key, generated JSON, or startup dependency is unavailable. Do not route frontend traffic to that deployment.
 
-### 2. Non-streaming live request
+### 3. Non-streaming live request
 
 ```powershell
 curl.exe --fail --show-error `
@@ -109,7 +119,7 @@ curl.exe --fail --show-error `
 
 Acceptance requires a schema-valid response from the configured DeepSeek gateway with `answer.status` equal to `completed` for this recommendation smoke. Missing evidence must remain explicit and a proposal must remain `awaiting_human_review`.
 
-### 3. POST SSE
+### 4. POST SSE
 
 ```powershell
 curl.exe --no-buffer --fail --show-error `
@@ -128,7 +138,7 @@ Verify all of the following:
 - closing the client connection cancels unfinished server work;
 - a complete run finishes within the configured model/document timeouts without the gateway terminating the stream.
 
-### 4. Browser boundary
+### 5. Browser boundary
 
 Check the browser preflight explicitly:
 

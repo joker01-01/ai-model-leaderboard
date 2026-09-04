@@ -10,7 +10,7 @@ import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from app.api.agent import AgentRuntime
 from app.api.agent import router as agent_router
@@ -33,6 +33,149 @@ from app.services.provider_document_client import HttpProviderDocumentClient
 logger = logging.getLogger(__name__)
 
 RuntimeFactory = Callable[[ApiSettings], AbstractAsyncContextManager[AgentRuntime]]
+PUBLIC_FRONTEND_URL = "https://joker01-01.github.io/ai-model-leaderboard/"
+
+
+def _runtime_is_available(application: FastAPI) -> bool:
+    return isinstance(getattr(application.state, "agent_runtime", None), AgentRuntime)
+
+
+def _service_landing_page(*, available: bool) -> str:
+    status = "ok" if available else "unavailable"
+    status_label = "运行正常" if available else "运行时不可用"
+    status_detail = (
+        "Agent 运行时已就绪，可以接收请求。"
+        if available
+        else "服务在线，但 Agent 运行时尚未就绪。"
+    )
+    return f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>ModelOps Agent API</title>
+  <style>
+    :root {{
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #080b10;
+      color: #edf4ff;
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      --signal: #ffb86b;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 32px 20px;
+      background-color: #080b10;
+      background-image: radial-gradient(circle at 1px 1px, #253040 1px, transparent 0);
+      background-size: 28px 28px;
+    }}
+    body[data-status="ok"] {{ --signal: #70e0a1; }}
+    main {{
+      width: min(760px, 100%);
+      border: 1px solid #2a3545;
+      background: #0d1219;
+      box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
+    }}
+    header {{ padding: 32px; border-bottom: 1px solid #2a3545; }}
+    .eyebrow {{
+      margin: 0 0 18px;
+      color: #8da2bd;
+      font: 600 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }}
+    h1 {{ margin: 0; font-size: clamp(34px, 7vw, 62px); line-height: .95; letter-spacing: -.055em; }}
+    .status {{
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-top: 28px;
+      padding: 16px 18px;
+      border-left: 3px solid var(--signal);
+      background: #111923;
+    }}
+    .status-dot {{
+      width: 10px;
+      height: 10px;
+      margin-top: 5px;
+      border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 0 5px color-mix(in srgb, var(--signal) 14%, transparent);
+      flex: 0 0 auto;
+    }}
+    .status strong {{ display: block; color: var(--signal); font-size: 15px; }}
+    .status p {{ margin: 4px 0 0; color: #aebed1; font-size: 14px; line-height: 1.5; }}
+    nav {{ display: grid; grid-template-columns: repeat(3, 1fr); }}
+    a {{
+      min-height: 150px;
+      padding: 24px;
+      color: inherit;
+      text-decoration: none;
+      border-right: 1px solid #2a3545;
+      background: #0d1219;
+    }}
+    a:last-child {{ border-right: 0; }}
+    a:hover {{ background: #131b26; }}
+    a:focus-visible {{ outline: 3px solid #7da7ff; outline-offset: -3px; }}
+    code {{
+      display: block;
+      margin-bottom: 32px;
+      color: #7da7ff;
+      font: 600 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+    }}
+    a strong {{ display: block; font-size: 17px; letter-spacing: -.01em; }}
+    a span {{ display: block; margin-top: 7px; color: #8da2bd; font-size: 13px; line-height: 1.45; }}
+    footer {{
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 24px;
+      border-top: 1px solid #2a3545;
+      color: #71849c;
+      font: 500 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }}
+    @media (max-width: 620px) {{
+      header {{ padding: 26px 22px; }}
+      nav {{ grid-template-columns: 1fr; }}
+      a {{ min-height: auto; border-right: 0; border-bottom: 1px solid #2a3545; }}
+      a:last-child {{ border-bottom: 0; }}
+      code {{ margin-bottom: 14px; }}
+      footer {{ flex-direction: column; }}
+    }}
+  </style>
+</head>
+<body data-status="{status}">
+  <main>
+    <header>
+      <p class="eyebrow" lang="en">Public service boundary / ModelOps</p>
+      <h1 lang="en">Agent API</h1>
+      <div class="status" role="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <div><strong>{status_label}</strong><p>{status_detail}</p></div>
+      </div>
+    </header>
+    <nav aria-label="服务入口">
+      <a href="{PUBLIC_FRONTEND_URL}">
+        <code>01 / PRODUCT</code><strong>打开模型排行榜</strong><span>进入公开排行榜与 Agent 面板</span>
+      </a>
+      <a href="/docs">
+        <code>02 / API</code><strong>查看 API 文档</strong><span>浏览请求格式与响应契约</span>
+      </a>
+      <a href="/healthz">
+        <code>03 / HEALTH</code><strong>读取健康状态</strong><span>检查运行时是否可用</span>
+      </a>
+    </nav>
+    <footer><span>无状态运行时</span><span>人工审核后发布</span></footer>
+  </main>
+</body>
+</html>"""
 
 
 @asynccontextmanager
@@ -145,6 +288,15 @@ def create_app(
             status_code=500,
         )
 
+    @application.get("/", response_class=HTMLResponse, include_in_schema=False)
+    async def service_landing(request: Request) -> HTMLResponse:
+        available = _runtime_is_available(request.app)
+        return HTMLResponse(
+            content=_service_landing_page(available=available),
+            status_code=200 if available else 503,
+            headers={"Cache-Control": "no-store"},
+        )
+
     @application.get(
         "/healthz",
         response_model=HealthResponse,
@@ -152,7 +304,7 @@ def create_app(
         tags=["health"],
     )
     async def healthz(request: Request, response: Response) -> HealthResponse:
-        if not isinstance(getattr(request.app.state, "agent_runtime", None), AgentRuntime):
+        if not _runtime_is_available(request.app):
             response.status_code = 503
             return HealthResponse(status="unavailable")
         return HealthResponse(status="ok")

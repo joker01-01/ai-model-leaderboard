@@ -40,6 +40,7 @@ from app.services.model_gateway import FakeModelGateway, ModelGateway, ModelGate
 from app.tools import ProviderDocumentResponse
 
 _MESSAGE = "recommend one exact model"
+_PUBLIC_FRONTEND_URL = "https://joker01-01.github.io/ai-model-leaderboard/"
 
 
 class OfflineDocumentClient:
@@ -214,6 +215,25 @@ def test_default_runtime_factory_composes_without_network_access() -> None:
         assert client.get("/healthz").json() == {"status": "ok"}
 
 
+def test_root_status_page_reports_available_runtime_and_links() -> None:
+    gateway = FakeModelGateway({_MESSAGE: _parsed_request()})
+    application = create_app(
+        settings=_settings(),
+        runtime_factory=_runtime_factory(_runtime(gateway)),
+    )
+
+    with TestClient(application) as client:
+        response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    assert response.headers["cache-control"] == "no-store"
+    assert 'data-status="ok"' in response.text
+    assert f'href="{_PUBLIC_FRONTEND_URL}"' in response.text
+    assert 'href="/docs"' in response.text
+    assert 'href="/healthz"' in response.text
+
+
 def test_lifespan_health_and_invoke_use_injected_runtime() -> None:
     lifecycle: list[str] = []
     gateway = FakeModelGateway({_MESSAGE: _parsed_request()})
@@ -286,9 +306,18 @@ def test_runtime_start_failure_yields_health_503_and_typed_invoke_error() -> Non
 
     application = create_app(settings=_settings(), runtime_factory=unavailable_factory)
     with TestClient(application) as client:
+        root = client.get("/")
         health = client.get("/healthz")
         invoke = client.post("/api/v1/agent/query:invoke", json={"message": _MESSAGE})
 
+    assert root.status_code == 503
+    assert root.headers["content-type"].startswith("text/html")
+    assert root.headers["cache-control"] == "no-store"
+    assert 'data-status="unavailable"' in root.text
+    assert f'href="{_PUBLIC_FRONTEND_URL}"' in root.text
+    assert 'href="/docs"' in root.text
+    assert 'href="/healthz"' in root.text
+    assert "configuration details" not in root.text
     assert health.status_code == 503
     assert health.json() == {"status": "unavailable"}
     assert invoke.status_code == 503

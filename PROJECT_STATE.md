@@ -28,6 +28,7 @@ Python 3.12 Agent core
   <- bounded exact-allowlist HTTP provider-document client
 
 Independent FastAPI service
+  -> GET / as browser status/navigation
   -> GET /healthz
   -> POST /api/v1/agent/query:invoke
   -> POST /api/v1/agent/query as typed SSE
@@ -58,11 +59,11 @@ The frontend remains usable when no Agent API is configured. The reviewed Pages 
 - Phase B is implemented and verified: strict immutable Pydantic contracts, generated-data repository validation, five typed tools, deterministic evidence verification, a low-level LangGraph state machine, dependency-injected fake gateway/document client, and pure update proposals.
 - Phase C is implemented and verified: environment-backed configuration, FastAPI lifespan/CORS/health, snake_case streaming and non-streaming Agent endpoints, typed SSE sequencing/heartbeat/disconnect cancellation, a DeepSeek V4 Flash OpenAI-compatible Responses gateway, and a bounded HTTP provider-document client.
 - Phase D is implemented and published: a typed POST SSE client, deep runtime validation of nested wire data, an evidence-console React Panel, request stopping, disconnected fallback, and focused parser/component tests. CI and Pages deployment both gate the build on these tests; application recovery commit `bb9e31e` restored the Phase D tree after the drill.
-- Root-level Docker packaging and the Zeabur runbook are implemented. The `modelops-agent-api` service builds from GitHub `main`, runs the repository-root Dockerfile, uses a custom HTTP `/healthz` check, and exposes `https://modelops-agent-api.zeabur.app`.
+- Root-level Docker packaging and the Zeabur runbook are implemented. The `modelops-agent-api` service builds from GitHub `main`, runs the repository-root Dockerfile, uses a custom HTTP `/healthz` check, and exposes `https://modelops-agent-api.zeabur.app`. The root route now presents a browser-facing runtime status page while `/healthz` remains the machine health probe.
 - Live Phase C/D deployment acceptance passed for readiness, a real DeepSeek-backed non-streaming recommendation, all three POST SSE product paths through HTTPS checks carrying the production Pages `Origin` header, browser CORS, the published Agent Panel and static leaderboard in the live DOM, deployment recovery, and bounded single-replica stability. The secret remains in Zeabur service variables and is not stored in the repository.
 - The HTTP document boundary uses repository-owned exact URLs, total and per-operation timeouts, bounded identity-encoded text responses, and redirect binding to the same `(modelId, providerId, providerModelId, kind)` metadata. Cross-binding redirects cannot be misattributed as evidence.
 - The three graph intents are `recommend`, `explain_unranked`, and `prepare_update`. Missing user inputs end in `needs_clarification`; evidence gaps produce bounded completed answers; unrecoverable gateway/tool failures end in `failed`; valid proposals end in `awaiting_human_review` without writes.
-- The offline backend suite contains 91 repository/tool/graph/gateway/API tests. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
+- The offline backend suite contains 92 repository/tool/graph/gateway/API tests, including available and unavailable root-page contracts. The deterministic evaluation set contains 24 passing scenarios spanning recommendation, pricing boundaries, missing/stale evidence, exact/unknown/ambiguous version explanations, pure proposals, filter reasons, and internal failures.
 - The generated adapter currently contains 20 models, 13 registered static benchmark versions, 9 provider bindings, 6 benchmark definitions, 62 benchmark observations, 18 Arena observations, 9 price tiers across 6 provider offers, and 12 allowlisted provider documents.
 - The scheduled sync now regenerates and tests the ModelOps adapter before it can prepare a review PR; merge to `main` remains the publication gate.
 - Pull requests and pushes to `main` are configured to run the offline generated-data drift check, focused TypeScript data and Agent UI tests, production frontend build, backend pytest/Ruff/mypy gates, and deterministic evals with read-only workflow permissions.
@@ -117,7 +118,7 @@ Verified through 2026-09-04 after deploying the Zeabur backend boundary:
 - README publication claims and the human merge boundary still match the checked GitHub Actions workflows.
 - `git diff --check`, an explicit trailing-whitespace scan covering untracked files, and a common secret-pattern scan reported no findings.
 - The network-backed `npm run sync:data:check` was not run; external AA/Arena refresh behavior is not claimed as runtime-verified in Phase A.
-- `python -m pytest -q` from `backend/` passed all 91 tests after the DeepSeek configuration change, including API integration tests, Responses structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding.
+- `python -m pytest -q` from `backend/` passed all 92 tests after adding the browser-facing root status page, including its available/unavailable contracts, API integration tests, Responses structured-output gateway contracts, bounded provider-document HTTP behavior, and redirect evidence binding.
 - `python -m ruff check app tests evals` passed.
 - `python -m mypy app tests evals` passed for 41 source files.
 - `python evals/run.py` passed 24/24 deterministic cases with no model-provider or provider-document network calls.
