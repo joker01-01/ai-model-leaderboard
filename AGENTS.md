@@ -14,15 +14,15 @@ Preserve the working product and its evidence boundaries through small, phase-sc
 - The currently deployed public AA path is implemented by `src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`, and generated `src/data/generated/aaSnapshot.ts`.
 - `src/data/models.ts`, `src/data/benchmarks.ts`, `src/lib/score.ts`, and `src/lib/editorial.ts` implement the separate curated editorial/ModelOps domain.
 - `scripts/sync-data.mjs` owns external synchronization. `scripts/aa-public-snapshot.mjs` validates and normalizes the full Free v2 AA projection; `scripts/generated-snapshot-module.mjs` is the canonical legacy TypeScript renderer used by sync and trusted auto-merge parsing. `src/lib/aaPublicSnapshot.ts` and `src/lib/aaRankings.ts` provide the strict frontend contract and pure selectors. The first credentialed 643-row generated baseline was explicitly approved on 2026-09-04.
-- The public frontend uses `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, `src/pages/`, and the public chart components for the four-card home and five complete leaderboard views. `#/advisor` remains a disabled shell until its separate phase is implemented.
+- The local public frontend uses `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, `src/pages/`, and the public chart components for the four-card home, five complete leaderboard views, and the one-shot `#/advisor` experience. `src/features/advisor/` owns the strict client contract, form, request lifecycle, and result presentation.
 - Python 3.12, Pydantic v2, FastAPI, and the low-level LangGraph graph API provide the backend under `backend/`.
 - `backend/app/repositories/leaderboard.py` loads committed generated ModelOps JSON. `backend/app/tools/` contains typed read-only/pure tools. `backend/app/graph/` owns state, nodes, routes, dependency injection, and orchestration.
-- `backend/app/services/openai_gateway.py` provides locally validated DeepSeek Responses structured output. `provider_document_client.py` provides bounded exact-allowlist fetching for the legacy evidence flow.
-- `backend/app/main.py` owns configuration/lifespan and the service status page. `backend/app/api/` exposes health, non-streaming invoke, and disconnect-aware POST SSE endpoints.
+- `backend/app/services/openai_gateway.py` provides locally validated DeepSeek Responses structured output. `provider_document_client.py` provides bounded exact-allowlist fetching for the legacy evidence flow. The independent advisor path uses `deepseek_advisor_gateway.py`, a deterministic AA selector, a reviewed official-source registry, and bounded in-process rate/concurrency controls.
+- `backend/app/main.py` owns configuration/lifespan and the service status page. `backend/app/api/` exposes health, the one-shot advisor JSON endpoint, legacy non-streaming invoke, and disconnect-aware POST SSE endpoints.
 - The backend deploys to Zeabur from repository-root `Dockerfile`; it must include both Python code and required generated JSON. The service remains linked to `main`.
 - GitHub workflows prepare App-signed data PRs, evaluate routine data updates from trusted `main`, verify pull requests, and deploy merged `main` to GitHub Pages.
 
-The public ranking pages consume the full source-native AA snapshot. The advisor must not consume it until its implementation is verified. Both remain independent from curated exact-version ModelOps data.
+The public ranking pages and the deterministic advisor selector consume separate strict projections of the full source-native AA snapshot. Both remain independent from curated exact-version ModelOps data; the advisor never projects curated metadata into public candidates.
 
 ## Verified commands
 
@@ -51,7 +51,7 @@ python -m mypy app tests evals
 python evals/run.py
 ```
 
-Local API startup requires an exported key; `.env.example` is documentation and is not loaded automatically:
+Local API startup can serve deterministic AA-only advisor fallback without a provider key. Live DeepSeek verification and the legacy Agent require an exported key; `.env.example` is documentation and is not loaded automatically:
 
 ```powershell
 $env:MODELOPS_MODEL_API_KEY = "<DeepSeek API key>"
@@ -65,6 +65,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - Backend tests and evaluations must remain deterministic and injected; ordinary verification must not require provider or document-site network access.
 - `GET /` is the browser status boundary and `GET /healthz` is the machine readiness check. Both return 503 when required startup/runtime dependencies are unavailable. Browser/API wire fields remain snake_case.
 - `POST /api/v1/agent/query` currently provides one-run SSE with monotonic sequence, one terminal event, heartbeat comments, and disconnect cancellation. It has no persistence or replay.
+- `POST /api/v1/advisor/recommend` provides one-shot JSON. It rate-limits each client IP to five requests per ten minutes and admits at most two live web-backed recommendations in one process; capacity or provider failure returns deterministic AA fallback instead of queueing.
 
 ## Confirmed public-product invariants
 

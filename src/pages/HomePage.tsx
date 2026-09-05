@@ -99,7 +99,7 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
             <h2>按需求选模型</h2>
           </div>
           <div className="advisor-card-action">
-            <span>下一阶段接入</span>
+            <span>开始选择</span>
             <span aria-hidden="true">→</span>
           </div>
         </a>

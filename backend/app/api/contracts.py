@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated, Literal
 
@@ -18,6 +19,10 @@ def _validate_clean_text(value: str) -> str:
 
 
 class ApiRequestModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+
+class ApiResponseModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
@@ -49,6 +54,7 @@ class AgentInvokeResponse(StrictModel):
 
 class ApiErrorCode(StrEnum):
     INVALID_REQUEST = "invalid_request"
+    RATE_LIMITED = "rate_limited"
     SERVICE_UNAVAILABLE = "service_unavailable"
     INTERNAL_ERROR = "internal_error"
 
@@ -71,7 +77,9 @@ class ApiBoundaryError(RuntimeError):
         code: ApiErrorCode,
         message: str,
         retryable: bool = False,
+        headers: Mapping[str, str] | None = None,
     ) -> None:
         super().__init__(message)
         self.status_code = status_code
         self.error = ApiError(code=code, message=message, retryable=retryable)
+        self.headers = dict(headers or {})

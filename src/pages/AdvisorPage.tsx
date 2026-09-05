@@ -1,6 +1,13 @@
 import { useEffect, useRef } from "react";
 
-export default function AdvisorPage() {
+import AdvisorForm from "../features/advisor/AdvisorForm";
+
+interface AdvisorPageProps {
+  readonly apiOrigin: string | null;
+  readonly displayNames: ReadonlyMap<string, string>;
+}
+
+export default function AdvisorPage({ apiOrigin, displayNames }: AdvisorPageProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -14,15 +21,12 @@ export default function AdvisorPage() {
         <span aria-hidden="true">←</span>
       </a>
       <section className="advisor-shell" aria-labelledby="advisor-title">
-        <p className="advisor-kicker">MODEL ADVISOR</p>
-        <h1 id="advisor-title" ref={titleRef} tabIndex={-1}>按需求选模型</h1>
-        <p>告诉我任务、预算和部署要求，我会从完整榜单中给出可核验的选择。</p>
-        <label>
-          <span>你的需求</span>
-          <textarea disabled placeholder="智能推荐将在下一阶段接入" />
-        </label>
-        <button type="button" disabled>尚未连接</button>
-        <p className="advisor-phase-note">当前页面只展示入口，不会调用旧版技术 Agent 控制台。</p>
+        <header className="advisor-page-head">
+          <p className="advisor-kicker">MODEL ADVISOR</p>
+          <h1 id="advisor-title" ref={titleRef} tabIndex={-1}>按需求选模型</h1>
+          <p>写下任务、预算和部署要求，从完整 AA 榜单中得到一次性、可核验的选择。</p>
+        </header>
+        <AdvisorForm apiOrigin={apiOrigin} displayNames={displayNames} />
       </section>
     </main>
   );

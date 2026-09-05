@@ -6,18 +6,18 @@ Refactor the existing AI model leaderboard into the simple four-card product def
 
 ## Current repository baseline
 
-- Working directory: `D:\desktop\ai-model-leaderboard`.
-- Current branch: `main`; the refactor checkpoint is based on remote revision `f3c82ad9d5fb130d9bd66edafcdb491b73792f88`.
+- Working directory for the Phase 4 task: `C:\Users\ADMIN\.codex\worktrees\d8e0\ai-model-leaderboard` (physical alias `D:\CodexData\.codex\worktrees\d8e0\ai-model-leaderboard`).
+- The task worktree is detached at local `main` revision `cf85d8a46590a0e15e74600bd7c7f29531c1e88b`; `origin/main` remains the older deployed revision `f3c82ad9d5fb130d9bd66edafcdb491b73792f88`.
 - React 19, TypeScript, and Vite build the GitHub Pages frontend.
 - The published public board currently opens directly and renders the first 20 finite AA Intelligence entries from a complete paginated fetch.
-- The deployed frontend still contains the curated editorial board and technical Agent evidence console. The local Phase 1–3 checkpoint replaces their public entry points with the confirmed four-card directory while preserving the legacy implementations.
-- The current generated AA snapshot keeps the 20-row source-native Intelligence board separate from the curated exact-match `models` map.
+- The deployed frontend still contains the curated editorial board and technical Agent evidence console. The local Phase 1–4 working tree replaces their public entry points with the confirmed four-card directory and one-shot advisor while preserving the legacy implementations.
+- The local full public snapshot contains 643 source-native rows; the separate legacy generated AA module still keeps its 20-row Intelligence compatibility board and curated exact-match `models` map.
 - The curated editorial and ModelOps paths use exact internal IDs, controlled AA/Arena/provider identifiers, reviewed evidence, deterministic export, and visible missing evidence.
-- The Python 3.12 FastAPI/LangGraph backend is deployed from `main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
-- The backend currently supports strict one-run invoke/SSE contracts, DeepSeek Responses structured intent extraction, exact-allowlisted provider-document fetching, deterministic tools, and review-only update proposals.
+- The pre-refactor Python 3.12 FastAPI/LangGraph backend is deployed from `origin/main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
+- The local backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
 - GitHub Actions verifies pull requests, deploys Pages, prepares App-signed data PRs, and conditionally auto-merges the current narrow class of routine generated refreshes.
 
-These are current deployed implementation facts. The local checkpoint implements the data layer and ranking experience described below but is not yet pushed or published; the advisor and footer remain future phases.
+The deployment statements above describe `origin/main`. The local working tree implements Phases 1–4 but is not committed, pushed, or published; the footer/social assets remain Phase 5.
 
 ## Confirmed product target
 
@@ -110,11 +110,17 @@ The product direction and Phase 1 design baseline are confirmed.
    - deterministic simplified names without a redundant leading `Claude` token, compact collision-only `R` / `NR` mode markers, global creator-ID filters, non-visible competition-rank semantics, and responsive single-bar/stacked-pair charts;
    - one chart-level 600ms detail animation with reduced-motion support;
    - legacy editorial board and technical Agent console preserved in the repository but removed from public navigation.
-4. **One-shot advisor and official web verification — not started.**
+4. **One-shot advisor and official web verification — implementation and offline/local-browser verification complete; awaiting user acceptance.**
+   - strict one-shot form and JSON contracts with explicit verified, partial, AA-only, and all-live-candidates-rejected states;
+   - deterministic five-row selection from the full backend AA snapshot, including exact monthly-budget filtering and stable AA-derived order;
+   - bounded DeepSeek Responses intent extraction and built-in web-search verification against a reviewed creator/source registry;
+   - official citation, redirect, candidate-identity, source-kind, and evidence-closure validation before any live claim or hard-constraint elimination;
+   - per-IP five-per-ten-minute limiting and a non-queueing two-slot live-web gate for the fixed one-worker/one-replica deployment model;
+   - deterministic AA fallback on missing key, provider failure, web saturation, or rejected provider evidence, with cancellation cleanup.
 5. **Footer and social assets — not started; ranking-page responsive layout is complete.**
-6. **Full verification, documentation, and publication — the Phase 1–3 local checkpoint is verified and documented; push, pull request, and publication are not started.**
+6. **Full verification, documentation, and publication — the Phase 1–4 local working tree is documented; push, pull request, and publication are not started.**
 
-The commit containing this state file is the local Phase 1–3 checkpoint. No push, pull request, or deployment has been performed for this refactor.
+Phase 4 currently exists only as uncommitted changes in this task worktree. No push, pull request, or deployment has been performed for it.
 
 ## Frozen decisions
 
@@ -165,17 +171,38 @@ Phase 3 adds or modifies:
 - `src/pages/HomePage.tsx`, `AbilityPage.tsx`, `EfficiencyPage.tsx`, `AdvisorPage.tsx`, and page tests;
 - `src/components/LeaderboardLayout.tsx`, `SingleMetricChart.tsx`, `DualMetricChart.tsx`, `ModelIdentity.tsx`, `CreatorIcon.tsx`, and component tests.
 
-## Remaining after the Phase 1–3 checkpoint
+Phase 4 adds or modifies:
+
+- `src/features/advisor/` plus `src/pages/AdvisorPage.tsx`, the home advisor entry, route coverage, and scoped advisor styles;
+- `backend/app/domain/advisor.py`, the strict advisor API contracts and endpoint, and independent advisor runtime wiring;
+- `backend/app/repositories/aa_snapshot.py` and `official_sources.py` for strict committed-AA loading and reviewed source binding;
+- `backend/app/services/advisor_selector.py`, `advisor_rate_limit.py`, `advisor_gateway.py`, and `deepseek_advisor_gateway.py`;
+- `data/aa/official-sources.json`, its schema, and the registry review README;
+- focused backend/frontend tests, deterministic advisor evaluations, deployment packaging, and configuration documentation.
+
+## Remaining after the Phase 1–4 working tree
 
 - Creator identities currently use stable circular initials. Licensed local brand SVGs, the home-only social footer, and the WeChat QR dialog remain Phase 5 work.
-- The current Agent task model and UI are narrower and more technical than the confirmed arbitrary-needs advisor.
-- DeepSeek is not currently configured to use server-side web search in this repository.
-- The reviewed `data/aa/official-sources.json` creator/source registry does not yet exist.
-- There is no public advisor rate limiter or global web-search concurrency gate.
-- README and operational docs now describe the verified local Phase 1–3 checkpoint while explicitly distinguishing it from the still-unpublished online revision.
+- Phase 4 needs the user's result-copy and visual acceptance before Phase 5 begins.
+- A bounded live DeepSeek smoke remains unverified because `MODELOPS_MODEL_API_KEY` is not set in this environment.
+- The local machine has no Docker command, so the repository-root image was not built; only packaging contracts were checked statically and through tests.
+- Before Zeabur publication, verify one replica/one worker and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
+- README and operational docs should be refreshed in Phase 6 after the product behavior is accepted, while explicitly distinguishing the unpublished local revision from `origin/main`.
 - A single-process in-memory limiter is adequate only while Zeabur runs one worker/replica; horizontal scaling would require a shared limiter before being enabled.
 
 ## Verification record
+
+Phase 4 verification in this task worktree:
+
+- full backend pytest: 196/196 passing across advisor and preserved legacy paths;
+- Ruff passes for `app`, `tests`, and `evals`; mypy passes across 57 source files;
+- deterministic evaluations: 29/29 passing, including five advisor fallback/selection cases;
+- `npm run test:frontend`: 162/162 passing across 24 files, including strict advisor request/response parsing, form behavior, cancellation, fallback, live-rejection evidence, and preserved ranking/legacy regressions;
+- `npm run build`: TypeScript and Vite production build passing; Vite emits a non-failing 503.35 kB main-chunk size advisory against its 500 kB warning threshold;
+- local browser acceptance at desktop and 390px widths exercised the real Vite-to-FastAPI CORS/POST path without a provider key: HTTP 200 returned three deterministic AA-only candidates, explicit live-verification fallback wording, and no page-level horizontal overflow or browser-console error;
+- targeted regressions cover sixth-request 429/`Retry-After`, two-slot non-queueing web capacity, disconnect/outer cancellation, lifespan startup cancellation, bounded responses/time/output tokens, strict aliases, exact Decimal cost at JS-safe and subnormal-float boundaries, candidate/source-kind/URL citation binding, redirect binding, all-five live exclusion evidence closure, and future GitHub registry mislabeling;
+- `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run modelops:data:check`: current, confirming the independent curated ModelOps data remains intact;
+- the live DeepSeek wire shape, Docker image build, Zeabur proxy/replica configuration, commit/PR checks, Pages, and Zeabur publication are not verified in this phase.
 
 Consolidated Phase 1–3 verification after the readable-axis ceiling correction:
 
@@ -232,6 +259,6 @@ Those older production results describe the deployed architecture and must not b
 
 ## Next
 
-1. Begin Phase 4 one-shot advisor and official-source web verification from the accepted Phase 1–3 checkpoint.
-2. Implement the Phase 5 footer/social assets and responsive polish after the advisor acceptance gate.
-3. Run Phase 6 publication checks and push/deploy only when separately requested.
+1. Review and accept the Phase 4 advisor result wording, fallback states, and visual behavior.
+2. Implement the Phase 5 footer/social assets and responsive polish only after that acceptance gate.
+3. Run Phase 6 documentation/publication checks and push/deploy only when separately requested.

@@ -61,13 +61,16 @@ describe("public product routes", () => {
     await waitFor(() => expect(screen.getByRole("heading", { level: 1, name: "AI 模型排行榜" })).toBeTruthy());
   });
 
-  it("opens the advisor route as a disabled Phase 3 shell without the legacy console", () => {
+  it("opens the one-shot advisor form without the legacy console", () => {
     window.location.hash = "#/advisor";
     const { container } = render(<App />);
 
     expect(screen.getByRole("heading", { level: 1, name: "按需求选模型" })).toBeTruthy();
-    expect((screen.getByRole("textbox", { name: "你的需求" }) as HTMLTextAreaElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: "尚未连接" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("textbox", { name: "你的需求" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "部署地区（可选）" })).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "我有明确预算" })).toBeTruthy();
+    expect((screen.getByRole("button", { name: "获取推荐" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(container.textContent).not.toContain("下一阶段接入");
     expect(container.querySelector(".agent-panel")).toBeNull();
   });
 

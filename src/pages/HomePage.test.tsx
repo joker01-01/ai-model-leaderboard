@@ -140,6 +140,8 @@ describe("HomePage", () => {
     expect(within(speed).getByRole("heading", { level: 2, name: "模型速度榜单" })).toBeTruthy();
     expect(within(price).getByRole("heading", { level: 2, name: "模型价格榜单" })).toBeTruthy();
     expect(within(advisor).getByRole("heading", { level: 2, name: "按需求选模型" })).toBeTruthy();
+    expect(within(advisor).getByText("开始选择")).toBeTruthy();
+    expect(within(advisor).queryByText("下一阶段接入")).toBeNull();
     expect(document.activeElement).toBe(title);
     await user.tab();
     expect(document.activeElement).toBe(ability);

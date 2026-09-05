@@ -9,5 +9,9 @@
 !data/modelops/
 !data/modelops/generated/
 !data/modelops/generated/*.json
+!data/aa/
+!data/aa/generated/
+!data/aa/generated/snapshot.json
+!data/aa/official-sources.json
 **/__pycache__/
 **/*.py[cod]

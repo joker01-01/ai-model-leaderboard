@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://joker01-01.github.io/ai-model-leaderboard/schemas/aa-official-sources.schema.json",
+  "title": "Reviewed AA Creator Official Sources",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "artificialAnalysis", "creators"],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "artificialAnalysis": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/sourceScope"
+      }
+    },
+    "creators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["creatorId", "sources"],
+        "properties": {
+          "creatorId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S(?:.*\\S)?$"
+          },
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/creatorSource"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "host": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 253,
+      "pattern": "^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"
+    },
+    "pathPrefix": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^/(?:[^/?#%\\\\]+/)*$"
+    },
+    "sourceScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "allowSubdomains", "pathPrefix"],
+      "properties": {
+        "host": {
+          "$ref": "#/$defs/host"
+        },
+        "allowSubdomains": {
+          "type": "boolean"
+        },
+        "pathPrefix": {
+          "$ref": "#/$defs/pathPrefix"
+        }
+      }
+    },
+    "creatorSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "host", "allowSubdomains", "pathPrefix"],
+      "properties": {
+        "kind": {
+          "enum": ["official_site", "official_github"]
+        },
+        "host": {
+          "$ref": "#/$defs/host"
+        },
+        "allowSubdomains": {
+          "type": "boolean"
+        },
+        "pathPrefix": {
+          "$ref": "#/$defs/pathPrefix"
+        }
+      },
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "official_github"
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "host": {
+            "const": "github.com"
+          },
+          "allowSubdomains": {
+            "const": false
+          },
+          "pathPrefix": {
+            "pattern": "^/[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/$"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "host": {
+            "not": {
+              "const": "github.com"
+            }
+          }
+        }
+      }
+    }
+  }
+}

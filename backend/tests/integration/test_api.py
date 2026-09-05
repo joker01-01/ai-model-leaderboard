@@ -8,6 +8,7 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import date
+from pathlib import Path
 from typing import cast
 
 import pytest
@@ -16,6 +17,7 @@ from pydantic import SecretStr, ValidationError
 from starlette.types import Message, Scope
 
 from app.api import sse as sse_api
+from app.api.advisor import AdvisorRuntime
 from app.api.agent import AgentRuntime
 from app.config import ApiSettings
 from app.domain.models import (
@@ -33,7 +35,7 @@ from app.domain.models import (
 from app.graph.builder import build_graph
 from app.graph.state import GraphContext
 from app.graph.tool_executor import ModelOpsToolExecutor
-from app.main import RuntimeFactory, create_app
+from app.main import AdvisorRuntimeFactory, RuntimeFactory, create_app
 from app.repositories.leaderboard import LeaderboardRepository
 from app.services.evidence_verifier import EvidenceVerifier
 from app.services.model_gateway import FakeModelGateway, ModelGateway, ModelGatewayError, ParsedAgentRequest
@@ -171,10 +173,12 @@ def test_settings_parse_cors_and_numeric_environment_values() -> None:
             "MODELOPS_MODEL_NAME": "configured-model",
             "MODELOPS_MODEL_BASE_URL": "https://gateway.example/api",
             "MODELOPS_MODEL_TIMEOUT_SECONDS": "12.5",
+            "MODELOPS_MODEL_MAX_RESPONSE_BYTES": "4096",
             "MODELOPS_PROVIDER_DOCUMENT_TIMEOUT_SECONDS": "4",
             "MODELOPS_PROVIDER_DOCUMENT_MAX_BYTES": "2048",
             "MODELOPS_SSE_HEARTBEAT_SECONDS": "3.5",
             "MODELOPS_GRAPH_RECURSION_LIMIT": "48",
+            "MODELOPS_TRUSTED_PROXY_CIDRS": "10.0.0.1/8,2001:db8::1/64",
         }
     )
 
@@ -184,15 +188,19 @@ def test_settings_parse_cors_and_numeric_environment_values() -> None:
     assert settings.model_name == "configured-model"
     assert settings.model_base_url == "https://gateway.example/api"
     assert settings.model_timeout_seconds == 12.5
+    assert settings.model_max_response_bytes == 4096
     assert settings.provider_document_timeout_seconds == 4
     assert settings.provider_document_max_bytes == 2048
     assert settings.sse_heartbeat_seconds == 3.5
     assert settings.graph_recursion_limit == 48
+    assert settings.trusted_proxy_cidrs == ("10.0.0.0/8", "2001:db8::/64")
 
     with pytest.raises((ValueError, ValidationError)):
         ApiSettings.from_env({"MODELOPS_GRAPH_RECURSION_LIMIT": "not-an-integer"})
     with pytest.raises(ValidationError):
         ApiSettings.from_env({"MODELOPS_CORS_ORIGINS": "https://one.example/not-an-origin"})
+    with pytest.raises(ValidationError):
+        ApiSettings.from_env({"MODELOPS_TRUSTED_PROXY_CIDRS": "not-a-network"})
 
 
 def test_settings_default_to_deepseek_v4_flash() -> None:
@@ -201,6 +209,23 @@ def test_settings_default_to_deepseek_v4_flash() -> None:
     assert settings.model_api_key is None
     assert settings.model_name == "deepseek-v4-flash"
     assert settings.model_base_url == "https://api.deepseek.com"
+
+
+def test_docker_disables_uvicorn_proxy_header_rewriting() -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    dockerfile = repository_root / "Dockerfile"
+
+    command = next(line for line in dockerfile.read_text(encoding="utf-8").splitlines() if line.startswith("CMD "))
+    context_rules = set((repository_root / ".dockerignore").read_text(encoding="utf-8").splitlines())
+
+    assert "--workers 1" in command
+    assert "--no-proxy-headers" in command
+    assert {
+        "!data/aa/",
+        "!data/aa/generated/",
+        "!data/aa/generated/snapshot.json",
+        "!data/aa/official-sources.json",
+    }.issubset(context_rules)
 
 
 def test_default_runtime_factory_composes_without_network_access() -> None:
@@ -298,7 +323,7 @@ def test_invalid_request_uses_safe_typed_error_without_echoing_input() -> None:
     assert "do-not-echo" not in response.text
 
 
-def test_runtime_start_failure_yields_health_503_and_typed_invoke_error() -> None:
+def test_legacy_runtime_start_failure_leaves_advisor_readiness_available() -> None:
     @asynccontextmanager
     async def unavailable_factory(_settings: ApiSettings) -> AsyncIterator[AgentRuntime]:
         raise RuntimeError("configuration details must not escape")
@@ -310,16 +335,16 @@ def test_runtime_start_failure_yields_health_503_and_typed_invoke_error() -> Non
         health = client.get("/healthz")
         invoke = client.post("/api/v1/agent/query:invoke", json={"message": _MESSAGE})
 
-    assert root.status_code == 503
+    assert root.status_code == 200
     assert root.headers["content-type"].startswith("text/html")
     assert root.headers["cache-control"] == "no-store"
-    assert 'data-status="unavailable"' in root.text
+    assert 'data-status="ok"' in root.text
     assert f'href="{_PUBLIC_FRONTEND_URL}"' in root.text
     assert 'href="/docs"' in root.text
     assert 'href="/healthz"' in root.text
     assert "configuration details" not in root.text
-    assert health.status_code == 503
-    assert health.json() == {"status": "unavailable"}
+    assert health.status_code == 200
+    assert health.json() == {"status": "ok"}
     assert invoke.status_code == 503
     assert invoke.json() == {
         "error": {
@@ -329,6 +354,79 @@ def test_runtime_start_failure_yields_health_503_and_typed_invoke_error() -> Non
         }
     }
     assert "configuration details" not in invoke.text
+
+
+def test_advisor_start_failure_does_not_prevent_injected_legacy_runtime() -> None:
+    lifecycle: list[str] = []
+
+    @asynccontextmanager
+    async def unavailable_advisor_factory(_settings: ApiSettings) -> AsyncIterator[AdvisorRuntime]:
+        raise RuntimeError("advisor configuration details must not escape")
+        yield cast(AdvisorRuntime, None)
+
+    advisor_factory: AdvisorRuntimeFactory = unavailable_advisor_factory
+    gateway = FakeModelGateway({_MESSAGE: _parsed_request()})
+    application = create_app(
+        settings=_settings(),
+        runtime_factory=_runtime_factory(_runtime(gateway), lifecycle),
+        advisor_runtime_factory=advisor_factory,
+    )
+
+    with TestClient(application) as client:
+        assert lifecycle == ["started"]
+        health = client.get("/healthz")
+        advisor = client.post(
+            "/api/v1/advisor/recommend",
+            json={"requirement": "需要通用能力", "deployment_region": None, "budget": None},
+        )
+        invoke = client.post("/api/v1/agent/query:invoke", json={"message": _MESSAGE})
+
+    assert lifecycle == ["started", "stopped"]
+    assert health.status_code == 503
+    assert health.json() == {"status": "unavailable"}
+    assert advisor.status_code == 503
+    assert advisor.json()["error"]["code"] == "service_unavailable"
+    assert invoke.status_code == 200
+    assert "advisor configuration details" not in advisor.text
+
+
+def test_lifespan_startup_cancellation_closes_an_entered_advisor_runtime() -> None:
+    async def scenario() -> None:
+        lifecycle: list[str] = []
+        legacy_starting = asyncio.Event()
+
+        @asynccontextmanager
+        async def advisor_factory(_settings: ApiSettings) -> AsyncIterator[AdvisorRuntime]:
+            lifecycle.append("advisor-started")
+            try:
+                yield cast(AdvisorRuntime, object())
+            finally:
+                lifecycle.append("advisor-stopped")
+
+        @asynccontextmanager
+        async def blocking_legacy_factory(_settings: ApiSettings) -> AsyncIterator[AgentRuntime]:
+            legacy_starting.set()
+            await asyncio.Event().wait()
+            yield _runtime(FakeModelGateway({_MESSAGE: _parsed_request()}))
+
+        application = create_app(
+            settings=_settings(),
+            runtime_factory=blocking_legacy_factory,
+            advisor_runtime_factory=advisor_factory,
+        )
+        context = application.router.lifespan_context(application)
+        startup = asyncio.create_task(context.__aenter__())
+        await asyncio.wait_for(legacy_starting.wait(), timeout=1)
+
+        startup.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await startup
+
+        assert lifecycle == ["advisor-started", "advisor-stopped"]
+        assert application.state.agent_runtime is None
+        assert application.state.advisor_runtime is None
+
+    asyncio.run(scenario())
 
 
 def test_runtime_shutdown_failure_is_contained_without_a_second_lifespan_yield(
@@ -373,11 +471,13 @@ def test_cors_allows_only_configured_frontend_origin() -> None:
             "/api/v1/agent/query",
             headers={**headers, "Origin": "https://untrusted.example"},
         )
+        exposed = client.get("/healthz", headers={"Origin": "https://leaderboard.example"})
 
     assert allowed.status_code == 200
     assert allowed.headers["access-control-allow-origin"] == "https://leaderboard.example"
     assert denied.status_code == 400
     assert "access-control-allow-origin" not in denied.headers
+    assert exposed.headers["access-control-expose-headers"] == "Retry-After"
 
 
 def test_sse_events_have_ordered_sequence_safe_shape_and_one_terminal_event() -> None:

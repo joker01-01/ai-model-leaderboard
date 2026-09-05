@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import type { CreatorOption } from "./components/LeaderboardLayout";
 import { AA_PUBLIC_SNAPSHOT } from "./data/generated/aaPublicSnapshot";
+import { normalizeAdvisorApiOrigin } from "./features/advisor/api";
 import { useHashRoute } from "./lib/hashRoute";
 import {
   AA_FEATURED_CREATORS,
@@ -14,6 +15,7 @@ import EfficiencyPage from "./pages/EfficiencyPage";
 import HomePage from "./pages/HomePage";
 
 const PUBLIC_SNAPSHOT = parseAaPublicSnapshot(AA_PUBLIC_SNAPSHOT);
+const ADVISOR_API_ORIGIN = normalizeAdvisorApiOrigin(import.meta.env.VITE_AGENT_API_URL);
 const PRESENTATIONS = buildAaModelPresentationIndex(PUBLIC_SNAPSHOT.models);
 const DISPLAY_NAMES = new Map(
   Array.from(PRESENTATIONS, ([sourceId, presentation]) => [sourceId, presentation.displayName]),
@@ -49,7 +51,9 @@ export default function App() {
           primaryCreators={PRIMARY_CREATORS}
         />
       )}
-      {route.page === "advisor" && <AdvisorPage />}
+      {route.page === "advisor" && (
+        <AdvisorPage apiOrigin={ADVISOR_API_ORIGIN} displayNames={DISPLAY_NAMES} />
+      )}
     </div>
   );
 }
