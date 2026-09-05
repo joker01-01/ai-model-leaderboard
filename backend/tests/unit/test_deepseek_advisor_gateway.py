@@ -633,6 +633,9 @@ def test_search_accepts_observed_candidate_bound_reformulations() -> None:
         ),
     )
     observed_queries = [
+        'site:anthropic.com "Claude Fable 5.1" "Adaptive Reasoning"',
+        'site:anthropic.com "Claude Fable 5.1" "Adaptive Reasoning" '
+        '"Max Effort"',
         'site:anthropic.com "Claude Fable 5.1" "Adaptive Reasoning" '
         '"Max Effort" "Default Fallback" model api',
         'site:artificialanalysis.ai "Claude Fable 5.1" "Max Effort" '
@@ -688,9 +691,9 @@ def test_shared_base_query_is_auxiliary_and_cannot_authorize_a_candidate(
             ),
         ),
     )
-    shared_query = (
-        'site:artificialanalysis.ai "Claude Fable 5.1" '
-        "model identity api access"
+    shared_queries = (
+        'site:artificialanalysis.ai "Claude Fable 5.1" model identity api access',
+        'site:anthropic.com "Claude Fable 5.1" "Adaptive Reasoning"',
     )
     output = _verification_output(candidate_slot=2)
     official_url = "https://anthropic.com/claude/fable-5-1"
@@ -704,7 +707,7 @@ def test_shared_base_query_is_auxiliary_and_cannot_authorize_a_candidate(
             output,
             actions=[
                 {"type": "search", "query": _search_query(request)},
-                {"type": "search", "query": shared_query},
+                {"type": "search", "queries": list(shared_queries)},
             ],
             annotations=[
                 _annotation_for_summary(
@@ -722,16 +725,106 @@ def test_shared_base_query_is_auxiliary_and_cannot_authorize_a_candidate(
     assert second.checks[0].verdict == EvidenceVerdict.UNVERIFIED
     assert second.citations == ()
     assert "exact_queries=1" in caplog.text
-    assert "auxiliary_queries=1" in caplog.text
+    assert "auxiliary_queries=2" in caplog.text
 
     def auxiliary_only_handler(_request: httpx.Request) -> httpx.Response:
         return _output_response(
             _verification_output(candidate_slot=1),
-            query=shared_query,
+            query=shared_queries[1],
         )
 
     with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(auxiliary_only_handler, candidates=candidates)
+
+    def mixed_candidate_handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(candidate_slot=1),
+            query=(
+                'site:anthropic.com "Claude Fable 5.1" '
+                '"Max Effort" "Xhigh Effort"'
+            ),
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+        _run_verify(mixed_candidate_handler, candidates=candidates)
+
+
+def test_unique_configuration_subset_can_authorize_its_candidate() -> None:
+    anthropic = _anthropic_candidate()
+    candidates = (
+        RankedAdvisorCandidate(
+            candidate_slot=1,
+            model=anthropic.model.model_copy(
+                update={
+                    "source_id": "claude-fable-5-1-max",
+                    "source_slug": "claude-fable-5-1-max",
+                    "raw_name": (
+                        "Claude Fable 5.1 "
+                        "(Adaptive Reasoning, Max Effort, Default Fallback)"
+                    ),
+                }
+            ),
+        ),
+        RankedAdvisorCandidate(
+            candidate_slot=2,
+            model=anthropic.model.model_copy(
+                update={
+                    "source_id": "claude-fable-5-1-xhigh",
+                    "source_slug": "claude-fable-5-1-xhigh",
+                    "raw_name": (
+                        "Claude Fable 5.1 "
+                        "(Adaptive Reasoning, Xhigh Effort, Default Fallback)"
+                    ),
+                }
+            ),
+        ),
+    )
+    output = _verification_output(candidate_slot=1)
+    official_url = "https://anthropic.com/claude/fable-5-1"
+    get_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        return _output_response(
+            output,
+            query='site:anthropic.com "Claude Fable 5.1" "Max Effort"',
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=official_url,
+                    title="Anthropic model page",
+                )
+            ],
+        )
+
+    verifications = _run_verify(handler, candidates=candidates)
+    max_candidate = next(item for item in verifications if item.candidate_slot == 1)
+    assert get_urls == [official_url]
+    assert max_candidate.checks[0].verdict == EvidenceVerdict.SATISFIED
+    assert len(max_candidate.citations) == 1
+
+
+def test_configuration_subset_expansion_is_capped() -> None:
+    candidate = _candidate()
+    bounded_candidate = RankedAdvisorCandidate(
+        candidate_slot=0,
+        model=candidate.model.model_copy(
+            update={
+                "raw_name": "OpenAI Model (High, Low, Max, Medium)",
+            }
+        ),
+    )
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            query='site:openai.com "OpenAI Model" "High"',
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+        _run_verify(handler, candidates=(bounded_candidate,))
 
 
 @pytest.mark.parametrize(

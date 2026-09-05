@@ -9,6 +9,7 @@ import logging
 import re
 from collections.abc import Collection, Mapping
 from dataclasses import dataclass
+from itertools import combinations
 from math import isfinite
 from typing import Annotated, Literal, TypeAlias, cast
 from urllib.parse import urldefrag, urljoin, urlsplit
@@ -43,6 +44,7 @@ _MAX_WEB_ACTIONS = 60
 _MAX_WEB_ACTION_QUERIES = 60
 _MAX_WEB_ACTION_QUERY_LENGTH = 1_024
 _MAX_WEB_ACTION_ID_LENGTH = 512
+_MAX_CONFIGURATION_SUBSET_GROUPS = 3
 _SAFE_QUOTED_REFORMULATION_SUFFIXES = ("", " model")
 _CONTINUATION_MARKER = re.compile(
     r"\Aws_call_id=call_(?=.{1,128}\Z)[A-Za-z0-9]+(?:_[A-Za-z0-9]+)*\Z",
@@ -463,7 +465,23 @@ def _safe_reformulated_queries(
                 quoted_fallback = " ".join(
                     f'"{group}"' for group in fallback_groups
                 )
+                if len(groups) <= _MAX_CONFIGURATION_SUBSET_GROUPS:
+                    quoted_subsets = tuple(
+                        " ".join(f'"{group}"' for group in subset)
+                        for subset_size in range(1, len(groups) + 1)
+                        for subset in combinations(groups, subset_size)
+                    )
+                else:
+                    quoted_subsets = ()
                 for scope in scopes:
+                    for quoted_subset in quoted_subsets:
+                        reformulations.add(
+                            f'site:{scope} "{base}" {quoted_subset}'
+                        )
+                        if api_access_requested:
+                            reformulations.add(
+                                f'site:{scope} "{base}" {quoted_subset} model api'
+                            )
                     if api_access_requested:
                         reformulations.add(
                             f'site:{scope} "{base}" {quoted_groups} model api'
