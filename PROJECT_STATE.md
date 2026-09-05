@@ -4,12 +4,12 @@
 
 Refactor the existing AI model leaderboard into the simple four-card product defined in `DESIGN.md`, backed by complete source-native Artificial Analysis metrics and a one-shot DeepSeek-assisted model advisor, while preserving the curated exact-version ModelOps domain and protected data-publication workflow.
 
-## Mobile proportional release
+## Mobile single-column correction
 
-- User authorized publication of the proportional-layout trial on 2026-09-06. Release branch `codex/mobile-proportional-release` is based on current `origin/main` at `db4bfda` (merged PR #16), preserving all Phase 5 assets, sorting, footer, and the existing advisor. The older local trial remains saved separately as `73b2b22`.
-- At widths up to 620px, a 1100px canvas is uniformly scaled to the viewport; resize restores normal layout above that breakpoint. Tablet reflow is retained at 621-1024px. Home leading-fill alignment uses the desktop calculation on scaled phones too.
-- Local frontend tests pass 195/195; TypeScript/Vite build passes with the existing >500 kB chunk advisory. Browser checks at 390px confirm no horizontal page overflow or clipped ranking values on home, ability, speed, price, and the idle advisor. Physical-device readability remains for user review; 15px labels scale to about 5.3px at 390px.
-- Publication uses the protected-main PR verification and Pages deployment workflow; check live GitHub status for the release outcome.
+- The published 1100px desktop-canvas trial (PR #17, `d71ffd1`) was too small. The corrected phone layout retains one home leaderboard per row and fits a 620px single-column canvas to the available viewport width, excluding scrollbars. Names remain beside bars; home ability uses the absolute 0-100 scale again on phones.
+- Resize and document-width observation maintain the fit when the vertical scrollbar appears; normal tablet/desktop layout returns above 620px. Existing assets, sorting, footer, advisor, generated data, and backend behavior are preserved.
+- The user clarified that single-column home layout is required before scaling; this is recorded in AGENTS.md and DESIGN.md. Physical-device readability remains subject to user review.
+- Verification: 195/195 frontend tests and TypeScript/Vite build pass (existing chunk-size advisory). At 390px, browser checks confirm all four home cards share one column, all five complete rankings retain their values without clipping, and the idle advisor renders. Scroll width equals the available 376px after accounting for the browser scrollbar. The 1440px desktop check retains normal layout. Publication follows the already-authorized protected PR/Pages path.
 
 ## Current repository baseline
 
