@@ -19,7 +19,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - README is a concise product introduction with seven real page screenshots. PR #22 merged as `c869362`; its GitHub Pages deployment succeeded, checked on 2026-09-06.
 - Phones up to 620 CSS pixels fit a 760px single-column canvas to the available width. Home displays Top 3 per ranking; tablet/desktop display Top 5. Complete rankings retain every eligible row.
 - Home previews, detail entry, and metric/creator/sort changes play a 600ms animation. Visible bars use Web Animations transforms and one number-text RAF per chart; unsupported browsers show final values. The user explicitly chose chart growth regardless of the OS reduced-motion setting.
-- Historical implementation plans and reuse research are under `docs/archive/`. They describe earlier decisions, not current deployment status.
+- Superseded frontend/ModelOps implementation plans and initial reuse research have been removed from the repository tree. Historical copies remain available in Git history; current design and operational documentation remain maintained.
 
 ## Important Decisions
 
