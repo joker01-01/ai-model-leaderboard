@@ -656,6 +656,84 @@ def test_search_accepts_observed_candidate_bound_reformulations() -> None:
     assert len(_run_verify(handler, candidates=(candidate,))) == 1
 
 
+def test_shared_base_query_is_auxiliary_and_cannot_authorize_a_candidate(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    anthropic = _anthropic_candidate()
+    candidates = (
+        RankedAdvisorCandidate(
+            candidate_slot=1,
+            model=anthropic.model.model_copy(
+                update={
+                    "source_id": "claude-fable-5-1-max",
+                    "source_slug": "claude-fable-5-1-max",
+                    "raw_name": (
+                        "Claude Fable 5.1 "
+                        "(Adaptive Reasoning, Max Effort, Default Fallback)"
+                    ),
+                }
+            ),
+        ),
+        RankedAdvisorCandidate(
+            candidate_slot=2,
+            model=anthropic.model.model_copy(
+                update={
+                    "source_id": "claude-fable-5-1-xhigh",
+                    "source_slug": "claude-fable-5-1-xhigh",
+                    "raw_name": (
+                        "Claude Fable 5.1 "
+                        "(Adaptive Reasoning, Xhigh Effort, Default Fallback)"
+                    ),
+                }
+            ),
+        ),
+    )
+    shared_query = (
+        'site:artificialanalysis.ai "Claude Fable 5.1" '
+        "model identity api access"
+    )
+    output = _verification_output(candidate_slot=2)
+    official_url = "https://anthropic.com/claude/fable-5-1"
+    get_urls: list[str] = []
+
+    def approved_handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        return _output_response(
+            output,
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                {"type": "search", "query": shared_query},
+            ],
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=official_url,
+                    title="Anthropic model page",
+                )
+            ],
+        )
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    verifications = _run_verify(approved_handler, candidates=candidates)
+    second = next(item for item in verifications if item.candidate_slot == 2)
+    assert get_urls == []
+    assert second.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert second.citations == ()
+    assert "exact_queries=1" in caplog.text
+    assert "auxiliary_queries=1" in caplog.text
+
+    def auxiliary_only_handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(candidate_slot=1),
+            query=shared_query,
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
+        _run_verify(auxiliary_only_handler, candidates=candidates)
+
+
 @pytest.mark.parametrize(
     "query",
     [
@@ -1101,24 +1179,126 @@ def test_failed_open_page_still_requires_a_reviewed_url() -> None:
         _run_verify(handler)
 
 
-def test_failed_search_action_remains_rejected() -> None:
-    action: dict[str, object] = {"type": "search"}
+def test_failed_reviewed_search_is_validated_but_not_replayed(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    requests: list[dict[str, object]] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
-        failed_action = dict(action)
-        failed_action["query"] = _search_query(request)
+        body = json.loads(request.content)
+        requests.append(body)
+        if body["tool_choice"] != "none":
+            query = _search_query(request)
+            return _action_only_response(
+                [
+                    {"type": "search", "query": query},
+                    {"type": "search", "query": query},
+                ],
+                failed_indexes=frozenset({1}),
+            )
+        return _output_response(_verification_output())
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    assert len(_run_verify(handler)) == 1
+    assert len(requests) == 2
+    continuation_input = cast(list[dict[str, object]], requests[1]["input"])
+    assert [item["id"] for item in continuation_input[1:]] == ["ws-test-0"]
+    assert "failed_searches=1" in caplog.text
+
+
+def test_failed_search_cannot_replace_a_completed_search() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return _action_only_response(
+            [{"type": "search", "query": _search_query(request)}],
+            failed_indexes=frozenset({0}),
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
+        _run_verify(handler)
+
+
+def test_failed_search_cannot_authorize_candidate_evidence() -> None:
+    output = _verification_output(candidate_slot=1)
+    official_url = "https://anthropic.com/claude/test-model"
+    get_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        body = json.loads(request.content)
+        search_input = json.loads(body["input"])
+        anthropic_query = search_input["candidates"][1]["allowedQueries"][0]
         response = _output_response(
-            _verification_output(),
+            output,
             actions=[
                 {"type": "search", "query": _search_query(request)},
-                failed_action,
+                {"type": "search", "query": anthropic_query},
+            ],
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=official_url,
+                    title="Anthropic model page",
+                )
             ],
         )
         payload = response.json()
         payload["output"][1]["status"] = "failed"
         return httpx.Response(200, json=payload)
 
-    with pytest.raises(AdvisorGatewayError, match="incomplete action"):
+    verifications = _run_verify(
+        handler,
+        candidates=(_candidate(), _anthropic_candidate()),
+    )
+    anthropic = next(item for item in verifications if item.candidate_slot == 1)
+    assert get_urls == []
+    assert anthropic.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert anthropic.citations == ()
+
+
+@pytest.mark.parametrize(
+    ("action", "error"),
+    [
+        (
+            {"type": "search", "query": "site:evil.example OpenAI Test Model"},
+            "unapproved query",
+        ),
+        (
+            {
+                "type": "search",
+                "query": 'site:openai.com "OpenAI Test Model"',
+                "sources": [{"type": "url", "url": "https://evil.example/model"}],
+            },
+            "unapproved source URL",
+        ),
+        (
+            {
+                "type": "search",
+                "query": 'site:openai.com "OpenAI Test Model"',
+                "providerExtension": True,
+            },
+            "invalid search action",
+        ),
+    ],
+)
+def test_failed_search_still_requires_approved_query_and_sources(
+    action: dict[str, object],
+    error: str,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        response = _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                action,
+            ],
+        )
+        payload = response.json()
+        payload["output"][1]["status"] = "failed"
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match=error):
         _run_verify(handler)
 
 

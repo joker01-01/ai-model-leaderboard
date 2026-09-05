@@ -393,6 +393,7 @@ def _safe_reformulated_queries(
     reformulations_by_slot: dict[int, frozenset[str]] = {}
     auxiliary_by_slot: dict[int, frozenset[str]] = {}
     api_access_requested = VerificationCheckKind.API_ACCESS in checks
+    requested_check_terms = " ".join(check.value.replace("_", " ") for check in checks)
     for candidate in candidates:
         scopes = list(aa_scopes)
         if candidate.model.creator_id is not None:
@@ -406,6 +407,9 @@ def _safe_reformulated_queries(
             for anchor in _candidate_search_anchors(candidate):
                 for suffix in _SAFE_QUOTED_REFORMULATION_SUFFIXES:
                     reformulations.add(f'site:{scope} "{anchor}"{suffix}')
+                reformulations.add(
+                    f'site:{scope} "{anchor}" {requested_check_terms}'
+                )
                 if _is_safe_unquoted_search_anchor(anchor):
                     reformulations.add(f"site:{scope} {anchor}")
 
@@ -522,8 +526,10 @@ def _search_query_kind(
     reformulated_slots = _matching_candidate_slots(query, reformulated_queries_by_slot)
     auxiliary_slots = _matching_candidate_slots(query, auxiliary_queries_by_slot)
     all_slots = exact_slots | reformulated_slots | auxiliary_slots
-    if len(all_slots) != 1:
+    if not all_slots:
         return None
+    if len(all_slots) > 1:
+        return _QueryMatch(kind="auxiliary", candidate_slot=None)
     candidate_slot = next(iter(all_slots))
     if candidate_slot in exact_slots:
         return _QueryMatch(kind="exact", candidate_slot=candidate_slot)
@@ -564,6 +570,7 @@ def _validate_web_actions(
     reformulated_query_count = 0
     auxiliary_query_count = 0
     continuation_marker_count = 0
+    failed_search_count = 0
     failed_open_page_count = 0
     failed_find_in_page_count = 0
     for item in cast(list[object], payload["output"]):
@@ -595,13 +602,14 @@ def _validate_web_actions(
         if not isinstance(action, dict) or not isinstance(action.get("type"), str):
             raise AdvisorGatewayError("advisor web search returned an invalid action")
         action_type = cast(str, action["type"])
-        # Production has returned failed navigation items inside an otherwise completed
-        # response. They are fully validated metadata, but never replayed or used as evidence.
-        is_failed_navigation = action_status == "failed" and action_type in {
+        # Production has returned failed tool items inside an otherwise completed response.
+        # They are fully validated metadata, but never replayed or used as evidence.
+        is_failed_action = action_status == "failed" and action_type in {
+            "search",
             "open_page",
             "find_in_page",
         }
-        if action_status != "completed" and not is_failed_navigation:
+        if action_status != "completed" and not is_failed_action:
             raise AdvisorGatewayError("advisor web search returned an incomplete action")
         if action_type == "search":
             if set(action).difference({"type", "query", "queries", "sources"}):
@@ -643,12 +651,14 @@ def _validate_web_actions(
                     raise AdvisorGatewayError("advisor web search used an unapproved query")
                 if query_kind.kind == "exact":
                     exact_query_count += 1
-                    completed_search = True
-                    primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
+                    if action_status == "completed":
+                        completed_search = True
+                        primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
                 elif query_kind.kind == "reformulated":
                     reformulated_query_count += 1
-                    completed_search = True
-                    primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
+                    if action_status == "completed":
+                        completed_search = True
+                        primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
                 elif query_kind.kind == "auxiliary":
                     auxiliary_query_count += 1
                 else:
@@ -670,7 +680,10 @@ def _validate_web_actions(
                         )
                     ):
                         raise AdvisorGatewayError("advisor web search used an unapproved source URL")
-            replay_items.append(cast(JsonObject, item))
+            if is_failed_action:
+                failed_search_count += 1
+            else:
+                replay_items.append(cast(JsonObject, item))
             continue
         if action_type == "open_page":
             if set(action) != {"type", "url"} or not isinstance(action.get("url"), str):
@@ -682,7 +695,7 @@ def _validate_web_actions(
                 allow_fragment=True,
             ):
                 raise AdvisorGatewayError("advisor web search opened an unapproved URL")
-            if is_failed_navigation:
+            if is_failed_action:
                 failed_open_page_count += 1
         elif action_type == "find_in_page":
             if (
@@ -700,7 +713,7 @@ def _validate_web_actions(
                 allow_fragment=True,
             ):
                 raise AdvisorGatewayError("advisor web search inspected an unapproved URL")
-            if is_failed_navigation:
+            if is_failed_action:
                 failed_find_in_page_count += 1
         elif action_type != "search":
             raise AdvisorGatewayError("advisor web search returned an invalid action")
@@ -711,13 +724,14 @@ def _validate_web_actions(
     logger.info(
         "advisor_web_action_diagnostics actions=%d queries=%d exact_queries=%d "
         "reformulated_queries=%d auxiliary_queries=%d continuation_markers=%d "
-        "failed_open_pages=%d failed_find_in_pages=%d",
+        "failed_searches=%d failed_open_pages=%d failed_find_in_pages=%d",
         action_count,
         query_count,
         exact_query_count,
         reformulated_query_count,
         auxiliary_query_count,
         continuation_marker_count,
+        failed_search_count,
         failed_open_page_count,
         failed_find_in_page_count,
     )
