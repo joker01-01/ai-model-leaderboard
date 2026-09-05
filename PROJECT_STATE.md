@@ -202,7 +202,7 @@ Phase 4 verification in this task worktree:
 - local browser acceptance at desktop and 390px widths exercised the real Vite-to-FastAPI CORS/POST path without a provider key: HTTP 200 returned three deterministic AA-only candidates, explicit live-verification fallback wording, and no page-level horizontal overflow or browser-console error;
 - targeted regressions cover sixth-request 429/`Retry-After`, two-slot non-queueing web capacity, disconnect/outer cancellation, lifespan startup cancellation, bounded responses/time/output tokens, strict aliases, exact Decimal cost at JS-safe and subnormal-float boundaries, candidate/source-kind/URL citation binding, redirect binding, all-five live exclusion evidence closure, and future GitHub registry mislabeling;
 - `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run modelops:data:check`: current, confirming the independent curated ModelOps data remains intact;
-- the current pre-refactor Zeabur service passed a bounded live DeepSeek invoke after pull-request creation; the Phase 4 advisor live wire shape, Docker image build, Zeabur proxy/replica configuration, exact-head PR check, Pages, and Zeabur publication still require their own evidence.
+- the current pre-refactor Zeabur service passed a bounded live DeepSeek invoke after pull-request creation; the Phase 4 advisor live wire shape, Docker image build, Zeabur proxy/replica configuration, Pages, and Zeabur publication still require their own evidence. Exact-head pull-request checks are external GitHub state and are not frozen in this file.
 
 Consolidated Phase 1–3 verification after the readable-axis ceiling correction:
 
@@ -259,6 +259,6 @@ Those older production results describe the deployed architecture and must not b
 
 ## Next
 
-1. Wait for the exact-head checks on pull request #15 and review the focused Phase 1–4 diff.
+1. Review pull request #15 and confirm its current exact-head check in GitHub before any separately authorized merge.
 2. Merge and run Pages/Zeabur acceptance only when separately requested.
 3. Implement the Phase 5 footer/social assets as a separate approved scope.
