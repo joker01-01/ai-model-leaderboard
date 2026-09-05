@@ -120,6 +120,7 @@ def _output_response(
     for action in action_items or []:
         items.append(
             {
+                "id": f"ws-test-{len(items)}",
                 "type": "web_search_call",
                 "status": "completed",
                 "action": action,
@@ -140,6 +141,19 @@ def _output_response(
         }
     )
     return httpx.Response(200, json={"status": "completed", "output": items})
+
+
+def _action_only_response(
+    actions: list[dict[str, object]],
+    *,
+    failed_indexes: frozenset[int] = frozenset(),
+) -> httpx.Response:
+    response = _output_response({}, actions=actions)
+    payload = response.json()
+    payload["output"].pop()
+    for index in failed_indexes:
+        payload["output"][index]["status"] = "failed"
+    return httpx.Response(200, json=payload)
 
 
 def _verification_output(
@@ -330,6 +344,209 @@ def test_search_request_is_bounded_to_frozen_candidates_and_registry_queries() -
     assert not any(query.startswith("site:evil.example ") for query in allowed_queries)
 
 
+def test_action_only_search_response_is_continued_once_with_validated_calls(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    requests: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        requests.append(body)
+        if body["tool_choice"] != "none":
+            return _action_only_response(
+                [
+                    {"type": "search", "query": _search_query(request)},
+                    {
+                        "type": "open_page",
+                        "url": "https://openai.com/research/test-model#overview",
+                    },
+                    {
+                        "type": "find_in_page",
+                        "url": "https://openai.com/research/test-model#api",
+                        "pattern": "API access",
+                    },
+                    {
+                        "type": "open_page",
+                        "url": "https://openai.com/research/missing#overview",
+                    },
+                ],
+                failed_indexes=frozenset({2, 3}),
+            )
+        return _output_response(_verification_output())
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    (verification,) = _run_verify(handler)
+
+    assert len(requests) == 2
+    first, second = requests
+    assert second["tool_choice"] == "none"
+    assert "tools" not in second
+    assert "previous_response_id" not in second
+    assert second["instructions"] != first["instructions"]
+    continuation_input = cast(list[dict[str, object]], second["input"])
+    assert continuation_input[0] == {"role": "user", "content": first["input"]}
+    assert [item["id"] for item in continuation_input[1:]] == ["ws-test-0", "ws-test-1"]
+    assert continuation_input[1]["action"] == {
+        "type": "search",
+        "query": json.loads(cast(str, first["input"]))["candidates"][0]["allowedQueries"][0],
+    }
+    assert continuation_input[2]["action"] == {
+        "type": "open_page",
+        "url": "https://openai.com/research/test-model#overview",
+    }
+    assert len(continuation_input) == 3
+    assert verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert "advisor_web_continuation replayed_actions=2" in caplog.text
+    assert "test-model" not in caplog.text
+
+
+def test_search_response_with_a_message_is_not_continued() -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return _output_response(
+            _verification_output(),
+            query=_search_query(request),
+        )
+
+    assert len(_run_verify(handler)) == 1
+    assert call_count == 1
+
+
+def test_continuation_rejects_any_new_web_action() -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        body = json.loads(request.content)
+        if body["tool_choice"] != "none":
+            return _action_only_response(
+                [{"type": "search", "query": _search_query(request)}]
+            )
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {
+                    "type": "open_page",
+                    "url": "https://openai.com/research/test-model",
+                }
+            ],
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="invalid continuation response"):
+        _run_verify(handler)
+    assert call_count == 2
+
+
+@pytest.mark.parametrize(
+    ("invalid_status", "invalid_role"),
+    [("in_progress", "assistant"), ("completed", "user")],
+)
+def test_continuation_rejects_any_incomplete_or_non_assistant_message(
+    invalid_status: str,
+    invalid_role: str,
+) -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        body = json.loads(request.content)
+        if body["tool_choice"] != "none":
+            return _action_only_response(
+                [{"type": "search", "query": _search_query(request)}]
+            )
+        response = _output_response(_verification_output())
+        payload = response.json()
+        payload["output"].append(
+            {
+                "type": "message",
+                "status": invalid_status,
+                "role": invalid_role,
+                "content": [],
+            }
+        )
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="invalid continuation response"):
+        _run_verify(handler)
+    assert call_count == 2
+
+
+def test_unknown_first_response_item_cannot_trigger_continuation() -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        response = _action_only_response(
+            [{"type": "search", "query": _search_query(request)}]
+        )
+        payload = response.json()
+        payload["output"].append(
+            {"type": "reasoning", "status": "completed", "content": "ignored"}
+        )
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="invalid output item"):
+        _run_verify(handler)
+    assert call_count == 1
+
+
+@pytest.mark.parametrize(
+    "invalid_id",
+    [None, "", " ws-test", "ws test", "ws-test\nvalue", "x" * 513],
+)
+def test_search_action_ids_are_strictly_bounded_before_continuation(
+    invalid_id: object,
+) -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        response = _action_only_response(
+            [{"type": "search", "query": _search_query(request)}]
+        )
+        payload = response.json()
+        if invalid_id is None:
+            del payload["output"][0]["id"]
+        else:
+            payload["output"][0]["id"] = invalid_id
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="output item|action ID"):
+        _run_verify(handler)
+    assert call_count == 1
+
+
+def test_duplicate_search_action_ids_are_rejected_before_continuation() -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        response = _action_only_response(
+            [
+                {"type": "search", "query": _search_query(request)},
+                {
+                    "type": "open_page",
+                    "url": "https://openai.com/research/test-model",
+                },
+            ]
+        )
+        payload = response.json()
+        payload["output"][1]["id"] = payload["output"][0]["id"]
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="action ID"):
+        _run_verify(handler)
+    assert call_count == 1
+
+
 def test_search_rejects_unapproved_queries() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return _output_response(
@@ -379,6 +596,7 @@ def test_search_accepts_safe_provider_reformulations_and_continuation_marker(
                         'site:anthropic.com "Claude Fable 5.1" model',
                         'site:platform.claude.com "Claude Fable 5.1"',
                         'site:openai.com "GPT-5.6 Sol (xhigh)"',
+                        '"GPT-5.6 Sol (xhigh)" site:openai.com model API access',
                         "site:github.com/openai GPT-5.6 Sol",
                         "ws_call_id=call_00_5CYfabc",
                     ],
@@ -391,12 +609,51 @@ def test_search_accepts_safe_provider_reformulations_and_continuation_marker(
 
     assert len(verifications) == 2
     assert "advisor_web_action_diagnostics" in caplog.text
-    assert "queries=9" in caplog.text
+    assert "queries=10" in caplog.text
     assert "exact_queries=1" in caplog.text
-    assert "reformulated_queries=7" in caplog.text
+    assert "reformulated_queries=8" in caplog.text
+    assert "auxiliary_queries=0" in caplog.text
     assert "continuation_markers=1" in caplog.text
     assert "Claude Fable 5.1" not in caplog.text
     assert "call_00_5CYfabc" not in caplog.text
+
+
+def test_search_accepts_observed_candidate_bound_reformulations() -> None:
+    anthropic = _anthropic_candidate()
+    candidate = RankedAdvisorCandidate(
+        candidate_slot=anthropic.candidate_slot,
+        model=anthropic.model.model_copy(
+            update={
+                "raw_name": (
+                    "Claude Fable 5.1 "
+                    "(Adaptive Reasoning, Max Effort, Default Fallback)"
+                ),
+                "source_slug": "claude-fable-5-1",
+            }
+        ),
+    )
+    observed_queries = [
+        'site:anthropic.com "Claude Fable 5.1" "Adaptive Reasoning" '
+        '"Max Effort" "Default Fallback" model api',
+        'site:artificialanalysis.ai "Claude Fable 5.1" "Max Effort" '
+        '"Default Fallback" model api',
+        'site:artificialanalysis.ai "Claude Fable 5.1" max '
+        '"Default Fallback" model api',
+        'site:platform.claude.com "claude-fable-5-1" max model api',
+        'site:artificialanalysis.ai "claude-fable-5-1" "max" model',
+        'site:artificialanalysis.ai/models "claude-fable-5-1" "max" fallback',
+        '"Claude Fable 5.1 (Adaptive Reasoning, Max Effort, Default Fallback)"',
+        '"Claude Fable 5.1" "Max Effort" "Default Fallback" '
+        "site:artificialanalysis.ai",
+    ]
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(candidate_slot=1),
+            actions=[{"type": "search", "queries": observed_queries}],
+        )
+
+    assert len(_run_verify(handler, candidates=(candidate,))) == 1
 
 
 @pytest.mark.parametrize(
@@ -695,6 +952,109 @@ def test_completed_open_and_find_actions_are_limited_to_reviewed_urls() -> None:
         _run_verify(unapproved_source_handler)
 
 
+def test_action_metadata_may_use_fragments_but_search_sources_may_not() -> None:
+    def approved_handler(request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                {
+                    "type": "open_page",
+                    "url": "https://openai.com/research/test-model#overview",
+                },
+                {
+                    "type": "find_in_page",
+                    "url": "https://openai.com/research/test-model#api",
+                    "pattern": "API access",
+                },
+            ],
+        )
+
+    assert len(_run_verify(approved_handler)) == 1
+
+    def source_handler(request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {
+                    "type": "search",
+                    "query": _search_query(request),
+                    "sources": [
+                        {
+                            "type": "url",
+                            "url": "https://openai.com/research/test-model#overview",
+                        }
+                    ],
+                }
+            ],
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved source URL"):
+        _run_verify(source_handler)
+
+
+def test_action_metadata_rejects_a_malformed_fragment_url() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                {"type": "open_page", "url": "https://[bad#fragment"},
+            ],
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved URL"):
+        _run_verify(handler)
+
+
+@pytest.mark.parametrize("surrogate_location", ["id", "pattern", "url"])
+def test_action_metadata_rejects_lone_surrogates_before_continuation(
+    surrogate_location: str,
+) -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        actions: list[dict[str, object]] = [
+            {"type": "search", "query": _search_query(request)}
+        ]
+        if surrogate_location == "pattern":
+            actions.append(
+                {
+                    "type": "find_in_page",
+                    "url": "https://openai.com/research/test-model",
+                    "pattern": "API access",
+                }
+            )
+        elif surrogate_location == "url":
+            actions.append(
+                {
+                    "type": "open_page",
+                    "url": "https://openai.com/research/test-model",
+                }
+            )
+        response = _action_only_response(actions)
+        payload = response.json()
+        if surrogate_location == "id":
+            payload["output"][0]["id"] = "ws-\ud800test"
+        elif surrogate_location == "pattern":
+            payload["output"][1]["action"]["pattern"] = "API\ud800access"
+        else:
+            payload["output"][1]["action"]["url"] = (
+                "https://openai.com/research/\ud800test-model"
+            )
+        return httpx.Response(
+            200,
+            content=json.dumps(payload, ensure_ascii=True).encode("utf-8"),
+            headers={"content-type": "application/json"},
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="action ID|find pattern|unapproved URL"):
+        _run_verify(handler)
+    assert call_count == 1
+
+
 @pytest.mark.parametrize("failed_open_first", [False, True])
 def test_failed_reviewed_open_page_does_not_discard_completed_search(
     caplog: pytest.LogCaptureFixture,
@@ -741,24 +1101,12 @@ def test_failed_open_page_still_requires_a_reviewed_url() -> None:
         _run_verify(handler)
 
 
-@pytest.mark.parametrize(
-    "action",
-    [
-        {"type": "search"},
-        {
-            "type": "find_in_page",
-            "url": "https://openai.com/research/test-model",
-            "pattern": "API access",
-        },
-    ],
-)
-def test_failed_actions_other_than_open_page_remain_rejected(
-    action: dict[str, object],
-) -> None:
+def test_failed_search_action_remains_rejected() -> None:
+    action: dict[str, object] = {"type": "search"}
+
     def handler(request: httpx.Request) -> httpx.Response:
         failed_action = dict(action)
-        if failed_action["type"] == "search":
-            failed_action["query"] = _search_query(request)
+        failed_action["query"] = _search_query(request)
         response = _output_response(
             _verification_output(),
             actions=[
@@ -772,6 +1120,34 @@ def test_failed_actions_other_than_open_page_remain_rejected(
 
     with pytest.raises(AdvisorGatewayError, match="incomplete action"):
         _run_verify(handler)
+
+
+def test_failed_reviewed_find_action_is_validated_but_not_evidence(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        response = _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                {
+                    "type": "find_in_page",
+                    "url": "https://openai.com/research/test-model#api",
+                    "pattern": "API access",
+                },
+            ],
+        )
+        payload = response.json()
+        payload["output"][1]["status"] = "failed"
+        return httpx.Response(200, json=payload)
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    (verification,) = _run_verify(handler)
+
+    assert verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert verification.citations == ()
+    assert "failed_find_in_pages=1" in caplog.text
+    assert "test-model" not in caplog.text
 
 
 def test_failed_open_page_cannot_replace_a_completed_search() -> None:
@@ -859,6 +1235,42 @@ def test_only_output_text_url_citations_are_accepted_as_evidence() -> None:
     assert verification.checks[0].verdict == EvidenceVerdict.SATISFIED
     assert verification.checks[0].citation_ids == (verification.citations[0].citation_id,)
     assert verification.citations[0].url == official_url
+
+
+def test_citation_cannot_verify_a_candidate_without_its_scoped_search() -> None:
+    openai = _candidate()
+    anthropic = _anthropic_candidate()
+    output = _verification_output(candidate_slot=anthropic.candidate_slot)
+    official_url = "https://anthropic.com/claude/test-model"
+    get_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        return _output_response(
+            output,
+            query=_search_query(request),
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=official_url,
+                    title="Anthropic model page",
+                )
+            ],
+        )
+
+    verifications = _run_verify(handler, candidates=(openai, anthropic))
+    anthropic_verification = next(
+        verification
+        for verification in verifications
+        if verification.candidate_slot == anthropic.candidate_slot
+    )
+
+    assert get_urls == []
+    assert anthropic_verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert anthropic_verification.checks[0].summary is None
+    assert anthropic_verification.citations == ()
 
 
 def test_a_url_only_inside_structured_json_is_not_a_citation() -> None:
