@@ -695,6 +695,124 @@ def test_completed_open_and_find_actions_are_limited_to_reviewed_urls() -> None:
         _run_verify(unapproved_source_handler)
 
 
+@pytest.mark.parametrize("failed_open_first", [False, True])
+def test_failed_reviewed_open_page_does_not_discard_completed_search(
+    caplog: pytest.LogCaptureFixture,
+    failed_open_first: bool,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        search: dict[str, object] = {"type": "search", "query": _search_query(request)}
+        failed_open: dict[str, object] = {
+            "type": "open_page",
+            "url": "https://openai.com/research/test-model",
+        }
+        actions = [failed_open, search] if failed_open_first else [search, failed_open]
+        response = _output_response(
+            _verification_output(),
+            actions=actions,
+        )
+        payload = response.json()
+        payload["output"][0 if failed_open_first else 1]["status"] = "failed"
+        return httpx.Response(200, json=payload)
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+
+    (verification,) = _run_verify(handler)
+    assert verification.citations == ()
+    assert verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert "failed_open_pages=1" in caplog.text
+    assert "openai.com" not in caplog.text
+
+
+def test_failed_open_page_still_requires_a_reviewed_url() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        response = _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                {"type": "open_page", "url": "https://evil.example/model"},
+            ],
+        )
+        payload = response.json()
+        payload["output"][1]["status"] = "failed"
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved URL"):
+        _run_verify(handler)
+
+
+@pytest.mark.parametrize(
+    "action",
+    [
+        {"type": "search"},
+        {
+            "type": "find_in_page",
+            "url": "https://openai.com/research/test-model",
+            "pattern": "API access",
+        },
+    ],
+)
+def test_failed_actions_other_than_open_page_remain_rejected(
+    action: dict[str, object],
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        failed_action = dict(action)
+        if failed_action["type"] == "search":
+            failed_action["query"] = _search_query(request)
+        response = _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                failed_action,
+            ],
+        )
+        payload = response.json()
+        payload["output"][1]["status"] = "failed"
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="incomplete action"):
+        _run_verify(handler)
+
+
+def test_failed_open_page_cannot_replace_a_completed_search() -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        response = _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "open_page", "url": "https://openai.com/research/test-model"},
+            ],
+        )
+        payload = response.json()
+        payload["output"][0]["status"] = "failed"
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
+        _run_verify(handler)
+
+
+@pytest.mark.parametrize(
+    "status",
+    ["in_progress", "incomplete", "searching", "unknown", None, 1, ["failed"]],
+)
+def test_open_page_statuses_other_than_completed_or_failed_are_rejected(
+    status: object,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        response = _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                {"type": "open_page", "url": "https://openai.com/research/test-model"},
+            ],
+        )
+        payload = response.json()
+        payload["output"][1]["status"] = status
+        return httpx.Response(200, json=payload)
+
+    with pytest.raises(AdvisorGatewayError, match="incomplete action"):
+        _run_verify(handler)
+
+
 def test_incomplete_web_action_and_message_items_are_rejected() -> None:
     def action_handler(request: httpx.Request) -> httpx.Response:
         response = _output_response(_verification_output(), query=_search_query(request))

@@ -387,18 +387,23 @@ def _validate_web_actions(
     exact_query_count = 0
     reformulated_query_count = 0
     continuation_marker_count = 0
+    failed_open_page_count = 0
     for item in cast(list[object], payload["output"]):
         if not isinstance(item, dict) or item.get("type") != "web_search_call":
             continue
         action_count += 1
         if action_count > _MAX_WEB_ACTIONS:
             raise AdvisorGatewayError("advisor web search returned too many actions")
-        if item.get("status") != "completed":
-            raise AdvisorGatewayError("advisor web search returned an incomplete action")
+        action_status = item.get("status")
         action = item.get("action")
         if not isinstance(action, dict) or not isinstance(action.get("type"), str):
             raise AdvisorGatewayError("advisor web search returned an invalid action")
         action_type = cast(str, action["type"])
+        # Production has returned failed open_page items inside an otherwise completed
+        # response. Keep that observed wire exception narrower than the documented states.
+        is_failed_open_page = action_status == "failed" and action_type == "open_page"
+        if action_status != "completed" and not is_failed_open_page:
+            raise AdvisorGatewayError("advisor web search returned an incomplete action")
         if action_type == "search":
             if set(action).difference({"type", "query", "queries", "sources"}):
                 raise AdvisorGatewayError("advisor web search returned an invalid search action")
@@ -467,6 +472,8 @@ def _validate_web_actions(
                 raise AdvisorGatewayError("advisor web search returned an invalid open_page action")
             if not _web_action_url_is_allowed(cast(str, action["url"]), candidates, official_sources):
                 raise AdvisorGatewayError("advisor web search opened an unapproved URL")
+            if is_failed_open_page:
+                failed_open_page_count += 1
             continue
         if action_type == "find_in_page":
             if (
@@ -486,12 +493,13 @@ def _validate_web_actions(
         raise AdvisorGatewayError("advisor web search returned no approved search action")
     logger.info(
         "advisor_web_action_diagnostics actions=%d queries=%d exact_queries=%d "
-        "reformulated_queries=%d continuation_markers=%d",
+        "reformulated_queries=%d continuation_markers=%d failed_open_pages=%d",
         action_count,
         query_count,
         exact_query_count,
         reformulated_query_count,
         continuation_marker_count,
+        failed_open_page_count,
     )
 
 
