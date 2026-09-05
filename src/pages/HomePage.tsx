@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
+import SiteFooter from "../components/SiteFooter";
 import SingleMetricChart from "../components/SingleMetricChart";
 import { selectAbilityRanking, selectPriceRanking, selectSpeedRanking } from "../lib/aaRankings";
 import type { AaPublicSnapshot } from "../lib/aaPublicSnapshot";
@@ -19,7 +20,10 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
   const abilityPreview = abilityRows.slice(0, 5);
   const speedPreview = speedRows.slice(0, 5);
   const pricePreview = priceRows.slice(0, 5);
-  const speedMax = niceAxisMaximum(Math.max(0, speedRows[0]?.primaryValue ?? 0));
+  const speedMax = niceAxisMaximum(Math.max(
+    0,
+    ...speedPreview.map((row) => row.primaryValue),
+  ));
   const priceMax = niceAxisMaximum(Math.max(0, priceRows[0]?.primaryValue ?? 0));
   const leadingAbilityValue = abilityPreview[0]?.primaryValue ?? 0;
   const leadingPriceValue = pricePreview[0]?.primaryValue ?? 0;
@@ -119,9 +123,10 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
               progress={1}
               preview
               tone="speed"
-              ariaLabel="模型输出速度榜单预览"
-              metricLabel="输出速度"
-              valueSuffix="tokens/s"
+              lowerIsBetter
+              ariaLabel="模型首字延迟榜单预览"
+              metricLabel="首字延迟"
+              valueSuffix="秒"
             />
           ) : (
             <p className="home-preview-empty">速度数据暂不可用，仍可查看榜单来源与更新时间。</p>
@@ -160,6 +165,11 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
           </div>
         </a>
       </section>
+
+      <SiteFooter
+        observedAt={snapshot.source.observedAt}
+        sourceUrl={snapshot.source.url}
+      />
     </main>
   );
 }

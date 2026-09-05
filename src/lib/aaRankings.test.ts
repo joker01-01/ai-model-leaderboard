@@ -43,7 +43,7 @@ describe("AA public ranking selectors", () => {
     expect(selectAaRanking(models, "agentic").map((row) => row.sourceId)).toEqual(["beta", "gamma"]);
   });
 
-  it("requires both speed values and orders speed by output tokens per second", () => {
+  it("requires both speed values and orders speed by first-answer latency from low to high", () => {
     const models = [
       model("fast", { timeToFirstAnswerSeconds: 2, outputTokensPerSecond: 200 }),
       model("responsive", { timeToFirstAnswerSeconds: 0.1, outputTokensPerSecond: 100 }),
@@ -52,8 +52,8 @@ describe("AA public ranking selectors", () => {
     ];
 
     expect(selectSpeedRanking(models).map((row) => [row.sourceId, row.primaryValue])).toEqual([
-      ["fast", 200],
-      ["responsive", 100],
+      ["responsive", 0.1],
+      ["fast", 2],
     ]);
   });
 

@@ -151,6 +151,7 @@ describe("AbilityPage", () => {
     expect(rankedSourceIds()).toEqual(["alpha", "beta", "gamma", "fable", "epsilon", "zeta"]);
     expect(screen.queryByRole("searchbox")).toBeNull();
     expect(screen.queryByText(/条结果/)).toBeNull();
+    expect(document.querySelector(".leaderboard-masthead p")).toBeNull();
 
     rerenderMetric("coding");
     expect(screen.getByRole("link", { name: "编程智能" }).getAttribute("aria-current")).toBe("page");

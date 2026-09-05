@@ -1178,6 +1178,109 @@ textarea { -webkit-tap-highlight-color: transparent; }
   text-align: center;
 }
 
+.site-footer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  min-height: 104px;
+  padding: 28px 4px 0;
+  border-top: 1px solid #272b31;
+  margin-top: 30px;
+}
+
+.site-footer__socials {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.site-footer__social-link,
+.site-footer__social-button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--directory-line);
+  border-radius: 50%;
+  color: #f5f7fa;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.site-footer__social-link:hover,
+.site-footer__social-button:hover {
+  border-color: var(--advisor);
+  background: rgba(155, 108, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.site-footer__social-icon {
+  display: block;
+  width: 19px;
+  height: 19px;
+  filter: invert(1);
+}
+
+.site-footer__meta {
+  justify-self: end;
+  margin: 0;
+  color: rgba(245, 247, 250, 0.58);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.site-footer__source-link {
+  color: rgba(245, 247, 250, 0.82);
+  text-underline-offset: 3px;
+}
+
+.site-footer__source-link:hover { color: var(--ability); }
+
+.site-footer__wechat {
+  position: relative;
+  z-index: 2;
+  display: inline-grid;
+}
+
+.site-footer__wechat-popover {
+  position: absolute;
+  z-index: 20;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  display: block;
+  width: min(232px, calc(100vw - 32px), calc(100dvh - 96px));
+  padding: 8px;
+  border: 1px solid var(--advisor);
+  background: #080a0c;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.72);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+}
+
+.site-footer__wechat:hover .site-footer__wechat-popover,
+.site-footer__wechat:focus-within .site-footer__wechat-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.site-footer__wechat-qr {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  padding: 8px;
+  object-fit: contain;
+  background: #fff;
+}
+
 .leaderboard-page { padding-top: 26px; }
 
 .leaderboard-masthead {
@@ -1361,6 +1464,24 @@ textarea { -webkit-tap-highlight-color: transparent; }
   color: rgba(245, 247, 250, 0.82);
   background: #101419;
   font: 700 11px/1 var(--mono);
+}
+
+.creator-icon[data-creator-logo] {
+  color: #050607;
+  border-color: rgba(245, 247, 250, 0.68);
+  background: #f5f7fa;
+}
+
+.creator-icon[data-creator-logo="kimi"] {
+  color: #f5f7fa;
+  background: #050607;
+}
+
+.creator-icon__logo {
+  display: block;
+  width: 66%;
+  height: 66%;
+  object-fit: contain;
 }
 
 .model-identity {
@@ -2181,6 +2302,20 @@ textarea { -webkit-tap-highlight-color: transparent; }
   .directory-card h2 { font-size: clamp(28px, 8vw, 38px); letter-spacing: 0.025em; }
   .advisor-card { display: grid; min-height: 116px; padding: 18px; }
   .advisor-card-action { justify-content: space-between; }
+  .site-footer {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    justify-items: center;
+    padding-top: 26px;
+  }
+  .site-footer__meta { justify-self: center; text-align: center; }
+  .site-footer__wechat-popover {
+    right: -24px;
+    left: auto;
+    transform: translateY(8px);
+  }
+  .site-footer__wechat:hover .site-footer__wechat-popover,
+  .site-footer__wechat:focus-within .site-footer__wechat-popover { transform: none; }
   .home-preview-empty { min-height: 310px; }
   .leaderboard-masthead > div { padding-right: 52px; padding-left: 52px; }
   .back-link { width: 44px; height: 44px; }

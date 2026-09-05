@@ -141,7 +141,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("EfficiencyPage", () => {
-  it("orders speed by output throughput, keeps both values, and filters without reranking", async () => {
+  it("orders speed by first-answer latency, keeps both values, and filters without reranking", async () => {
     const user = userEvent.setup();
     renderPage("speed");
 
@@ -154,23 +154,23 @@ describe("EfficiencyPage", () => {
     const legend = screen.getByRole("group", { name: "指标图例" });
     expect(within(legend).getByText("首字延迟")).toBeTruthy();
     expect(within(legend).getByText("输出速度")).toBeTruthy();
-    expect(within(legend).getByRole("button", { name: /输出速度，当前从高到低排序/ })
+    expect(within(legend).getByRole("button", { name: /首字延迟，当前从低到高排序/ })
       .getAttribute("aria-pressed")).toBe("true");
-    expect(rankedSourceIds("speed")).toEqual(["beta", "epsilon", "alpha", "gamma"]);
+    expect(rankedSourceIds("speed")).toEqual(["alpha", "beta", "epsilon", "gamma"]);
     const firstRow = within(rankingList("speed")).getAllByRole("listitem")[0];
-    expect(within(firstRow).getByText("首个答案 Token 时间：0.1 秒，越低越好")).toBeTruthy();
-    expect(within(firstRow).getByText("输出速度：300 tokens/s，越高越好")).toBeTruthy();
+    expect(within(firstRow).getByText("首个答案 Token 时间：0.05 秒，越低越好")).toBeTruthy();
+    expect(within(firstRow).getByText("输出速度：200 tokens/s，越高越好")).toBeTruthy();
     expect(within(firstRow).getByText("第 1 名")).toBeTruthy();
     expect(firstRow.querySelectorAll(".model-identity")).toHaveLength(1);
     expect(firstRow.querySelectorAll(".dual-metric-chart__bar")).toHaveLength(2);
-    expect(Array.from(firstRow.querySelectorAll(".metric-number"), (node) => node.textContent)).toEqual(["0.1", "300"]);
+    expect(Array.from(firstRow.querySelectorAll(".metric-number"), (node) => node.textContent)).toEqual(["0.05", "200"]);
     expect(Array.from(firstRow.querySelectorAll(".metric-unit"), (node) => node.textContent)).toEqual(["秒", "tokens/s"]);
 
     await user.click(screen.getByRole("button", { name: "Creator A" }));
 
     const filteredRows = within(rankingList("speed")).getAllByRole("listitem");
     expect(rankedSourceIds("speed")).toEqual(["alpha", "gamma"]);
-    expect(within(filteredRows[0]).getByText("第 3 名")).toBeTruthy();
+    expect(within(filteredRows[0]).getByText("第 1 名")).toBeTruthy();
     expect(within(filteredRows[1]).getByText("第 4 名")).toBeTruthy();
   });
 
@@ -178,21 +178,21 @@ describe("EfficiencyPage", () => {
     const user = userEvent.setup();
     renderPage("speed");
 
-    await user.click(screen.getByRole("button", { name: /输出速度，当前从高到低排序/ }));
-    expect(rankedSourceIds("speed")).toEqual(["gamma", "alpha", "beta", "epsilon"]);
-    await user.click(screen.getByRole("button", { name: /输出速度，当前从低到高排序/ }));
-
-    await user.click(screen.getByRole("button", { name: /首字延迟，点击按从低到高排序/ }));
-    expect(rankedSourceIds("speed")).toEqual(["alpha", "beta", "epsilon", "gamma"]);
-
     await user.click(screen.getByRole("button", { name: /首字延迟，当前从低到高排序/ }));
     expect(rankedSourceIds("speed")).toEqual(["gamma", "epsilon", "beta", "alpha"]);
+    await user.click(screen.getByRole("button", { name: /首字延迟，当前从高到低排序/ }));
+
+    await user.click(screen.getByRole("button", { name: /输出速度，点击按从高到低排序/ }));
+    expect(rankedSourceIds("speed")).toEqual(["beta", "epsilon", "alpha", "gamma"]);
+
+    await user.click(screen.getByRole("button", { name: /输出速度，当前从高到低排序/ }));
+    expect(rankedSourceIds("speed")).toEqual(["gamma", "alpha", "beta", "epsilon"]);
 
     await user.click(screen.getByRole("button", { name: "Creator A" }));
     const filteredRows = within(rankingList("speed")).getAllByRole("listitem");
     expect(rankedSourceIds("speed")).toEqual(["gamma", "alpha"]);
     expect(within(filteredRows[0]).getByText("第 1 名")).toBeTruthy();
-    expect(within(filteredRows[1]).getByText("第 4 名")).toBeTruthy();
+    expect(within(filteredRows[1]).getByText("第 2 名")).toBeTruthy();
   });
 
   it("orders price by output price from high to low and requires both prices", () => {
@@ -238,10 +238,10 @@ describe("EfficiencyPage", () => {
     expect(rankedSourceIds("price")).toEqual(["gamma", "alpha", "beta", "delta"]);
   });
 
-  it("resets to the default output metric when the efficiency route changes", async () => {
+  it("resets to the default metric when the efficiency route changes", async () => {
     const user = userEvent.setup();
     const { rerender } = renderPage("speed");
-    await user.click(screen.getByRole("button", { name: /首字延迟，点击按从低到高排序/ }));
+    await user.click(screen.getByRole("button", { name: /输出速度，点击按从高到低排序/ }));
 
     rerender(pageForMetric("price"));
 

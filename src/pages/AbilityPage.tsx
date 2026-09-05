@@ -24,12 +24,6 @@ const TABS = [
   { metric: "agentic" as const, href: "#/ability/agentic", label: "智能体能力" },
 ];
 
-const DESCRIPTIONS: Readonly<Record<AaAbilityMetric, string>> = {
-  intelligence: "Artificial Analysis 综合智能指数完整榜单",
-  coding: "Artificial Analysis 编程智能指数完整榜单",
-  agentic: "Artificial Analysis 智能体能力指数完整榜单",
-};
-
 export default function AbilityPage({
   snapshot,
   metric,
@@ -50,7 +44,6 @@ export default function AbilityPage({
       tone="ability"
       titleTone="ability"
       title="模型能力榜单"
-      description={DESCRIPTIONS[metric]}
       tabs={TABS.map((tab) => ({ ...tab, active: tab.metric === metric }))}
       creatorId={creatorId}
       onCreatorChange={setCreatorId}
