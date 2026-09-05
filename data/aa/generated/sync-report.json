@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "source": {
     "url": "https://artificialanalysis.ai/api/v2/language/models/free",
-    "observedAt": "2026-09-04",
+    "observedAt": "2026-09-05",
     "schemaFingerprint": "sha256:38d8da098c352a8a014cfc883db118e35ea640b15d60fc1742ea8e10b155bb37",
-    "intelligenceIndexVersion": 4.1
+    "intelligenceIndexVersion": 4.2
   },
   "pagination": {
     "pageSize": 200,
@@ -16,11 +16,11 @@
   "finiteMetricCounts": {
     "intelligence": 630,
     "coding": 255,
-    "agentic": 197,
-    "inputPricePerMillion": 440,
-    "outputPricePerMillion": 440,
-    "timeToFirstAnswerSeconds": 332,
-    "outputTokensPerSecond": 332
+    "agentic": 100,
+    "inputPricePerMillion": 439,
+    "outputPricePerMillion": 439,
+    "timeToFirstAnswerSeconds": 335,
+    "outputTokensPerSecond": 335
   },
   "missingIdentity": {
     "sourceSlug": {
