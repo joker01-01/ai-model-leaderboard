@@ -7,17 +7,16 @@ Refactor the existing AI model leaderboard into the simple four-card product def
 ## Current repository baseline
 
 - Working directory for the Phase 5 task: `C:\Users\ADMIN\.codex\worktrees\d8e0\ai-model-leaderboard` (physical alias `D:\CodexData\.codex\worktrees\d8e0\ai-model-leaderboard`).
-- The task worktree is on `codex/phase-5-assets`, branched from Phase 1–4 commit `a538dbb` and published as stacked pull request [#16](https://github.com/joker01-01/ai-model-leaderboard/pull/16). Pull request [#15](https://github.com/joker01-01/ai-model-leaderboard/pull/15) remains scoped to `codex/phase-4-advisor` and incorporates `origin/main` revision `cdb94b63d2dedbd2d8328bbc7290a47fa118bc8c` through merge commit `9cb152b`.
+- The task worktree is on `codex/phase-5-assets`, published as pull request [#16](https://github.com/joker01-01/ai-model-leaderboard/pull/16) against `main`. Pull request [#15](https://github.com/joker01-01/ai-model-leaderboard/pull/15) was squash-merged into `main` as `4eff8492e4da25898e2623be96c3b454200d577f`; ancestry-only merge commit `4521fed` keeps the Phase 5 tree unchanged while making that merged `main` revision an ancestor of pull request #16.
 - React 19, TypeScript, and Vite build the GitHub Pages frontend.
-- The published public board currently opens directly and renders the first 20 finite AA Intelligence entries from a complete paginated fetch.
-- The deployed frontend still contains the curated editorial board and technical Agent evidence console. The local Phase 1–4 working tree replaces their public entry points with the confirmed four-card directory and one-shot advisor while preserving the legacy implementations.
+- The published GitHub Pages frontend at `4eff849` serves the confirmed four-card directory, complete public AA leaderboard routes, and one-shot advisor while preserving the curated editorial board and technical Agent evidence console only as unlinked repository implementations.
 - The local full public snapshot contains 643 source-native rows; the separate legacy generated AA module still keeps its 20-row Intelligence compatibility board and curated exact-match `models` map.
 - The curated editorial and ModelOps paths use exact internal IDs, controlled AA/Arena/provider identifiers, reviewed evidence, deterministic export, and visible missing evidence.
-- The pre-refactor Python 3.12 FastAPI/LangGraph backend is deployed from `origin/main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
-- The local backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
+- The Phase 1–4 Python 3.12 FastAPI/LangGraph backend is deployed from `main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
+- The deployed backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
 - GitHub Actions verifies pull requests, deploys Pages, prepares App-signed data PRs, and conditionally auto-merges the current narrow class of routine generated refreshes.
 
-The deployment statements above describe `origin/main`. Phases 1–4 are committed on the pull-request branch but are not merged or published. Phase 5 has completed final visual acceptance and is published for isolated stacked review; neither pull request is merged or deployed.
+The deployment statements above describe `origin/main` after pull request #15. Phase 5 has completed final visual acceptance and remains isolated in pull request #16; it is not merged or deployed.
 
 ## Confirmed product target
 
@@ -125,9 +124,9 @@ The product direction and Phase 1 design baseline are confirmed.
    - locally bundled image-only QR popover shown by pointer hover or keyboard focus, without visible account, scan-instruction, close, backdrop, or modal copy;
    - nine exact-ID provider/product SVGs—using Claude for Anthropic, Gemini for Google, Grok for xAI, GLM for Z AI, Kimi for Kimi, Qwen for Alibaba, and Meta for Meta—with prototype-safe initial fallback for every unmapped creator, plus locally bundled social SVGs, pinned attribution, and a production-distributed third-party notice;
    - responsive footer/popover styling with no page-level horizontal overflow in the checked 1053px browser viewport.
-6. **Full verification, documentation, and publication — local Phase 6 gates, documentation, and stacked pull-request publication are complete; protected review and later deployment acceptance remain.**
+6. **Full verification, documentation, and publication — local gates, Phase 1–4 publication, Phase 5 retargeting, and exact-head pull-request verification are complete; Phase 5 review and merge remain.**
 
-Phase 4 is committed on `codex/phase-4-advisor`. Pull request #15 is the Phase 1–4 review boundary; it has not been merged or deployed. Phase 5 stays isolated on `codex/phase-5-assets` in stacked pull request #16.
+Phase 1–4 was squash-merged through pull request #15 and is deployed from `main` revision `4eff849`. Phase 5 stays isolated on `codex/phase-5-assets` in pull request #16, now directly based on `main` with a green exact-head verification check.
 
 ## Frozen decisions
 
@@ -194,13 +193,14 @@ Phase 5 adds or modifies:
 - the user-provided local WeChat QR, nine provider/product SVGs, three social SVGs, `src/assets/ATTRIBUTION.md`, and the production-distributed `public/THIRD_PARTY_NOTICES.txt`;
 - final user-approved presentation corrections in `aaRankings`, `SingleMetricChart`, `AbilityPage`, `EfficiencyPage` tests, and the governing product documents.
 
-## Remaining after the Phase 1–4 working tree
+## Remaining after the Phase 1–4 publication
 
-- Phase 5 has final visual acceptance and completed local Phase 6 gates. Pull request #16 is based on `codex/phase-4-advisor`, so pull request #15 intentionally remains scoped to Phase 1–4.
-- A fresh bounded legacy DeepSeek smoke after pull request #16 publication returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing or replacing its value. The Phase 4 advisor's live web-verification path remains unverified until pull request #15 is merged and Zeabur redeploys it.
+- Phase 5 has final visual acceptance and completed local Phase 6 gates. Pull request #16 is based directly on `main`, contains exactly the expected 35 Phase 5 files, and has a successful exact-head verification check at `4521fed`; it remains open and unmerged.
+- A fresh bounded legacy DeepSeek smoke returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing or replacing its value.
+- Two bounded live advisor requests reached the deployed Phase 4 endpoint and returned deterministic AA-only recommendations. The diagnostic request preserved the model-parsed `coding` purpose and `api_access` hard requirement, proving that key-backed intent parsing succeeded, but returned zero accepted citations after 36.79 seconds. The strongest current explanation is that the five-candidate, 19-query live-verification step exhausted its 30-second hard timeout; this remains a high-confidence inference because the fallback response and current log event intentionally do not distinguish timeout, provider rejection, strict wire/citation rejection, or a successful search with no accepted citations.
 - The local machine has no Docker command, so the repository-root image was not built; only packaging contracts were checked statically and through tests.
-- Before Zeabur publication, verify one replica/one worker and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
-- Pull request #15 must land before the Phase 5 stacked pull request can be retargeted to `main`; neither pull request is authorized to merge merely by creating the stacked review.
+- Before relying on proxy-derived client IPs or scaling the service, verify the Zeabur one-replica/one-worker setting and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
+- Pull request #16 must remain scoped to Phase 5 presentation/assets. Any live advisor observability or timeout/query correction belongs in a separate backend change from `main`, not in pull request #16.
 - A single-process in-memory limiter is adequate only while Zeabur runs one worker/replica; horizontal scaling would require a shared limiter before being enabled.
 
 ## Verification record
@@ -215,7 +215,9 @@ Phase 4 verification in this task worktree:
 - local browser acceptance at desktop and 390px widths exercised the real Vite-to-FastAPI CORS/POST path without a provider key: HTTP 200 returned three deterministic AA-only candidates, explicit live-verification fallback wording, and no page-level horizontal overflow or browser-console error;
 - targeted regressions cover sixth-request 429/`Retry-After`, two-slot non-queueing web capacity, disconnect/outer cancellation, lifespan startup cancellation, bounded responses/time/output tokens, strict aliases, exact Decimal cost at JS-safe and subnormal-float boundaries, candidate/source-kind/URL citation binding, redirect binding, all-five live exclusion evidence closure, and future GitHub registry mislabeling;
 - `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run modelops:data:check`: current, confirming the independent curated ModelOps data remains intact;
-- the current pre-refactor Zeabur service passed a bounded live DeepSeek invoke after pull-request creation; the Phase 4 advisor live wire shape, Docker image build, Zeabur proxy/replica configuration, Pages, and Zeabur publication still require their own evidence. Exact-head pull-request checks are external GitHub state and are not frozen in this file.
+- after pull request #15 merged, GitHub Pages deployment and the `main` verification workflow passed at `4eff849`; the public page returned HTTP 200 with the new product title, and the Zeabur OpenAPI document exposed both `/api/v1/advisor/recommend` and the preserved legacy invoke path;
+- the deployed advisor's deterministic fallback and key-backed intent extraction are live-verified, but accepted live web evidence is not: a focused request returned the correct parsed `coding`/`api_access` contract, three AA-only candidates, and zero citations after 36.79 seconds;
+- the current 30-second provider timeout covers the complete live verification operation, while the diagnostic candidate pool expands to 19 exact site-scoped queries. That timing makes timeout the leading hypothesis, but not a confirmed root cause without stage-specific error/timing telemetry. Exact-head pull-request checks remain external GitHub state and must be read live rather than treated as frozen evidence.
 
 Current consolidated frontend verification after the readable-axis and visible-fill alignment corrections:
 
@@ -262,7 +264,11 @@ Phase 2 data-layer verification retained by the same working tree:
 
 Not yet verified:
 
-- auto-merge baseline rejection, Pages publication, or Zeabur behavior for this refactor. Exact-head pull-request status must be read from GitHub rather than treated as a frozen project-state fact.
+- a deployed advisor response with accepted official citations and `verified` or `partial` status;
+- the exact live-verification failure branch, because production currently collapses timeout, provider/wire rejection, and zero accepted evidence into the same AA-only response and logs only the exception class;
+- the Zeabur one-replica/one-worker setting and exact trusted-proxy CIDRs;
+- a local repository-root Docker build, because Docker is unavailable on this machine;
+- Phase 5 Pages publication, because pull request #16 remains unmerged. Exact-head pull-request status must still be read from GitHub rather than treated as a frozen project-state fact.
 
 The last recorded pre-refactor production baseline also includes:
 
@@ -286,13 +292,13 @@ Phase 5 and local Phase 6 verification on `codex/phase-5-assets`:
 - `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run test:agent`: 30/30 passing; `npm run modelops:data:check` reports current generated data.
 - Full backend pytest, Ruff, and mypy gates pass; deterministic evaluations pass 29/29.
 - Changed-file scans find no secret-like values, no unsafe SVG scripting/event/remote-reference content, and no workflow or generated-data modifications.
-- GitHub pull request #15 remained open and mergeable at exact head `a538dbb8e6c1da4fa25b78fa875e72a3d2f283ce`; its `Verify pull request` check completed successfully on 2026-09-05.
-- GitHub pull request #16 was created as an open, mergeable stacked review based on `codex/phase-4-advisor`; its latest head must keep the `Verify pull request` check green before merge.
+- GitHub pull request #15 passed exact-head verification and was squash-merged into `main` as `4eff8492e4da25898e2623be96c3b454200d577f` on 2026-09-05; the resulting `main` tree exactly matched the reviewed Phase 1–4 head.
+- GitHub pull request #16 was retargeted to `main` after an ancestry-only merge that did not change its Phase 5 tree. At exact head `4521fed53dfdf9db281dd9d4a36ded3ffef98f81`, GitHub reports it open, mergeable, clean, with 35 expected files and a successful `Verify pull request` check.
 
 Those older production results describe the deployed architecture and must not be cited as verification of the new target.
 
 ## Next
 
-1. Review pull request #16 while keeping it stacked on `codex/phase-4-advisor` so pull request #15 remains unchanged.
-2. After pull request #15 is merged, retarget pull request #16 to `main`.
-3. Merge and run Pages/Zeabur acceptance only when separately authorized, re-checking each exact head first.
+1. Review pull request #16 against `main`; do not merge it without separate authorization.
+2. Track the deployed advisor live-verification issue as a separate backend change from `main`: first add non-sensitive stage/error telemetry and a live contract probe, then change timeout/query/wire handling only after the actual branch is identified.
+3. If pull request #16 is approved, re-check its exact head, merge it with an allowed linear-history method, and run focused Pages acceptance. The backend should not redeploy for a Phase 5-only diff.
