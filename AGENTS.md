@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository is an AI model leaderboard with a React/Vite frontend and FastAPI/LangGraph backend. The user-confirmed full-product direction is defined in `DESIGN.md` and staged in `FRONTEND_REFACTOR_PLAN.md`.
+This repository is an AI model leaderboard with a React/Vite frontend and FastAPI/LangGraph backend. The user-confirmed product direction is defined in `DESIGN.md`. Historical implementation plans are archived under `docs/archive/` and do not impose new phase gates on maintenance of the published product.
 
 Those documents describe intended behavior, not proof that it exists. Use `PROJECT_STATE.md`, the current code, generated data, tests, and deployed revision before claiming a phase is implemented or published.
 
@@ -11,7 +11,7 @@ Preserve the working product and its evidence boundaries through small, phase-sc
 ## Current stack and structure
 
 - React 19, TypeScript, and Vite provide the GitHub Pages frontend.
-- The currently deployed public AA path is implemented by `src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`, and generated `src/data/generated/aaSnapshot.ts`.
+- The public AA path uses `src/pages/`, `src/lib/aaRankings.ts`, `src/lib/aaPublicSnapshot.ts`, and generated `src/data/generated/aaPublicSnapshot.ts`. `src/lib/aaLeaderboard.ts`, `src/components/AaBoard.tsx`, and `src/data/generated/aaSnapshot.ts` are preserved legacy consumers.
 - `src/data/models.ts`, `src/data/benchmarks.ts`, `src/lib/score.ts`, and `src/lib/editorial.ts` implement the separate curated editorial/ModelOps domain.
 - `scripts/sync-data.mjs` owns external synchronization. `scripts/aa-public-snapshot.mjs` validates and normalizes the full Free v2 AA projection; `scripts/generated-snapshot-module.mjs` is the canonical legacy TypeScript renderer used by sync and trusted auto-merge parsing. `src/lib/aaPublicSnapshot.ts` and `src/lib/aaRankings.ts` provide the strict frontend contract and pure selectors. The first credentialed 643-row generated baseline was explicitly approved on 2026-09-04.
 - The local public frontend uses `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, `src/pages/`, and the public chart components for the four-card home, five complete leaderboard views, and the one-shot `#/advisor` experience. `src/features/advisor/` owns the strict client contract, form, request lifecycle, and result presentation.
