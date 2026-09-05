@@ -40,6 +40,7 @@ _MAX_CITATION_ANNOTATIONS = 30
 _MAX_WEB_ACTIONS = 60
 _MAX_WEB_ACTION_QUERIES = 60
 _MAX_WEB_ACTION_QUERY_LENGTH = 1_024
+_SAFE_QUOTED_REFORMULATION_SUFFIXES = ("", " model")
 _CONTINUATION_MARKER = re.compile(
     r"\Aws_call_id=call_(?=.{1,128}\Z)[A-Za-z0-9]+(?:_[A-Za-z0-9]+)*\Z",
     re.ASCII,
@@ -343,7 +344,8 @@ def _safe_reformulated_queries(
             )
         for scope in scopes:
             for anchor in _candidate_search_anchors(candidate):
-                reformulations.add(f'site:{scope} "{anchor}"')
+                for suffix in _SAFE_QUOTED_REFORMULATION_SUFFIXES:
+                    reformulations.add(f'site:{scope} "{anchor}"{suffix}')
                 if _is_safe_unquoted_search_anchor(anchor):
                     reformulations.add(f"site:{scope} {anchor}")
     return frozenset(reformulations)

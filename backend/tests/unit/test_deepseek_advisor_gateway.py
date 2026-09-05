@@ -374,7 +374,9 @@ def test_search_accepts_safe_provider_reformulations_and_continuation_marker(
                     "type": "search",
                     "queries": [
                         'site:artificialanalysis.ai "Claude Fable 5.1"',
+                        'site:artificialanalysis.ai "Claude Fable 5.1" model',
                         'site:anthropic.com "Claude Fable 5.1"',
+                        'site:anthropic.com "Claude Fable 5.1" model',
                         'site:platform.claude.com "Claude Fable 5.1"',
                         'site:openai.com "GPT-5.6 Sol (xhigh)"',
                         "site:github.com/openai GPT-5.6 Sol",
@@ -389,9 +391,9 @@ def test_search_accepts_safe_provider_reformulations_and_continuation_marker(
 
     assert len(verifications) == 2
     assert "advisor_web_action_diagnostics" in caplog.text
-    assert "queries=7" in caplog.text
+    assert "queries=9" in caplog.text
     assert "exact_queries=1" in caplog.text
-    assert "reformulated_queries=5" in caplog.text
+    assert "reformulated_queries=7" in caplog.text
     assert "continuation_markers=1" in caplog.text
     assert "Claude Fable 5.1" not in caplog.text
     assert "call_00_5CYfabc" not in caplog.text
@@ -408,16 +410,27 @@ def test_search_accepts_safe_provider_reformulations_and_continuation_marker(
         'site:openai.com\u3000"OpenAI Test Model"',
         "site:openai.com Anthropic Test Model",
         'site:openai.com "Anthropic Test Model"',
+        'site:openai.com "Anthropic Test Model" model',
+        'site:openai.com.evil "OpenAI Test Model" model',
         "site:github.com/openai Anthropic Test Model",
         "site:openai.com model identity",
         "site:artificialanalysis.ai Unknown Test Model",
         "site:openai.com OpenAI Test",
         "site:openai.com OpenAI Test Model Extra",
+        'site:openai.com "OpenAI Test Model" Model',
+        'site:openai.com "OpenAI Test Model" models',
+        'site:openai.com "OpenAI Test Model" model identity',
+        'site:openai.com "OpenAI Test Model"  model',
+        'site:openai.com "OpenAI Test Model" ｍｏｄｅｌ',
+        'site:openai.com "OpenAI Test Model" model site:evil.example',
+        "site:openai.com OpenAI Test Model model",
+        'site:openai.com "OpenAI Test Model model"',
         "site:openai.com openai test model",
         "site:openai.com  OpenAI Test Model",
         "site:openai.com OpenAI Test\nModel",
         f"site:openai.com OpenAI Test Model {_PRIVATE_REQUIREMENT}",
         f'site:openai.com "OpenAI Test Model" {_PRIVATE_REQUIREMENT}',
+        f'site:openai.com "OpenAI Test Model" model {_PRIVATE_REQUIREMENT}',
         f'site:openai.com "OpenAI Test Model {_PRIVATE_REQUIREMENT}"',
         "ws_call_id=call_",
         "ws_call_id=call_abc-123",
@@ -543,6 +556,23 @@ def test_reformulation_does_not_strip_model_semantics_or_malformed_qualifiers(
         return _output_response(
             _verification_output(),
             query=f'site:openai.com "{unsafe_base}"',
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+        _run_verify(handler, candidates=(named_candidate,))
+
+
+def test_model_suffix_does_not_enable_a_stripped_semantic_qualifier() -> None:
+    candidate = _candidate()
+    named_candidate = RankedAdvisorCandidate(
+        candidate_slot=candidate.candidate_slot,
+        model=candidate.model.model_copy(update={"raw_name": "OpenAI Model (Vision)"}),
+    )
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            query='site:openai.com "OpenAI Model" model',
         )
 
     with pytest.raises(AdvisorGatewayError, match="unapproved query"):
