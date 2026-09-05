@@ -16,7 +16,7 @@ Refactor the existing AI model leaderboard into the simple four-card product def
 - The deployed backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
 - GitHub Actions verifies pull requests, deploys Pages, prepares App-signed data PRs, and conditionally auto-merges the current narrow class of routine generated refreshes.
 
-The deployment statements above describe `origin/main` after pull request #15. Phase 5 has completed final visual acceptance and remains isolated in pull request #16; it is not merged or deployed.
+The deployment statements above describe `origin/main` after pull request #15. Phase 5 has completed final visual acceptance in pull request #16. Its merge and Pages-publication state is external GitHub state and must be checked live rather than frozen here.
 
 ## Confirmed product target
 
@@ -124,9 +124,9 @@ The product direction and Phase 1 design baseline are confirmed.
    - locally bundled image-only QR popover shown by pointer hover or keyboard focus, without visible account, scan-instruction, close, backdrop, or modal copy;
    - nine exact-ID provider/product SVGs—using Claude for Anthropic, Gemini for Google, Grok for xAI, GLM for Z AI, Kimi for Kimi, Qwen for Alibaba, and Meta for Meta—with prototype-safe initial fallback for every unmapped creator, plus locally bundled social SVGs, pinned attribution, and a production-distributed third-party notice;
    - responsive footer/popover styling with no page-level horizontal overflow in the checked 1053px browser viewport.
-6. **Full verification, documentation, and publication — local gates, Phase 1–4 publication, Phase 5 retargeting, and exact-head pull-request verification are complete; Phase 5 review and merge remain.**
+6. **Full verification, documentation, and publication — local gates, Phase 1–4 publication, Phase 5 retargeting, and exact-head pull-request verification are complete; the user authorized the Phase 5 merge and focused Pages acceptance on 2026-09-05.**
 
-Phase 1–4 was squash-merged through pull request #15 and is deployed from `main` revision `4eff849`. Phase 5 stays isolated on `codex/phase-5-assets` in pull request #16, now directly based on `main` with a green exact-head verification check.
+Phase 1–4 was squash-merged through pull request #15 and is deployed from `main` revision `4eff849`. Phase 5's final reviewed branch is `codex/phase-5-assets` in pull request #16, directly based on `main`; its final merge and Pages acceptance outcome must be read live.
 
 ## Frozen decisions
 
@@ -195,7 +195,7 @@ Phase 5 adds or modifies:
 
 ## Remaining after the Phase 1–4 publication
 
-- Phase 5 has final visual acceptance and completed local Phase 6 gates. Pull request #16 is based directly on `main`, contains exactly the expected 35 Phase 5 files, and has a successful exact-head verification check at `4521fed`; it remains open and unmerged.
+- Phase 5 has final visual acceptance and completed local Phase 6 gates. Pull request #16 is based directly on `main`, contains exactly the expected 35 Phase 5 files, and reached a successful exact-head verification check before merge authorization.
 - A fresh bounded legacy DeepSeek smoke returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing or replacing its value.
 - Two bounded live advisor requests reached the deployed Phase 4 endpoint and returned deterministic AA-only recommendations. The diagnostic request preserved the model-parsed `coding` purpose and `api_access` hard requirement, proving that key-backed intent parsing succeeded, but returned zero accepted citations after 36.79 seconds. The strongest current explanation is that the five-candidate, 19-query live-verification step exhausted its 30-second hard timeout; this remains a high-confidence inference because the fallback response and current log event intentionally do not distinguish timeout, provider rejection, strict wire/citation rejection, or a successful search with no accepted citations.
 - The local machine has no Docker command, so the repository-root image was not built; only packaging contracts were checked statically and through tests.
@@ -268,7 +268,7 @@ Not yet verified:
 - the exact live-verification failure branch, because production currently collapses timeout, provider/wire rejection, and zero accepted evidence into the same AA-only response and logs only the exception class;
 - the Zeabur one-replica/one-worker setting and exact trusted-proxy CIDRs;
 - a local repository-root Docker build, because Docker is unavailable on this machine;
-- Phase 5 Pages publication, because pull request #16 remains unmerged. Exact-head pull-request status must still be read from GitHub rather than treated as a frozen project-state fact.
+- Phase 5 Pages publication must be accepted from the live deployment after the authorized merge. Exact-head pull-request and deployment status must still be read from GitHub rather than treated as frozen project-state facts.
 
 The last recorded pre-refactor production baseline also includes:
 
@@ -293,12 +293,11 @@ Phase 5 and local Phase 6 verification on `codex/phase-5-assets`:
 - Full backend pytest, Ruff, and mypy gates pass; deterministic evaluations pass 29/29.
 - Changed-file scans find no secret-like values, no unsafe SVG scripting/event/remote-reference content, and no workflow or generated-data modifications.
 - GitHub pull request #15 passed exact-head verification and was squash-merged into `main` as `4eff8492e4da25898e2623be96c3b454200d577f` on 2026-09-05; the resulting `main` tree exactly matched the reviewed Phase 1–4 head.
-- GitHub pull request #16 was retargeted to `main` after an ancestry-only merge that did not change its Phase 5 tree. At exact head `4521fed53dfdf9db281dd9d4a36ded3ffef98f81`, GitHub reports it open, mergeable, clean, with 35 expected files and a successful `Verify pull request` check.
+- GitHub pull request #16 was retargeted to `main` after an ancestry-only merge that did not change its Phase 5 tree. At the final pre-authorization head recorded here, GitHub reported it mergeable and clean, with 35 expected files and a successful `Verify pull request` check.
 
 Those older production results describe the deployed architecture and must not be cited as verification of the new target.
 
 ## Next
 
-1. Review pull request #16 against `main`; do not merge it without separate authorization.
+1. Complete the user-authorized pull request #16 merge with an allowed linear-history method and run focused Pages acceptance against the deployed revision. The backend should not redeploy for a Phase 5-only diff.
 2. Track the deployed advisor live-verification issue as a separate backend change from `main`: first add non-sensitive stage/error telemetry and a live contract probe, then change timeout/query/wire handling only after the actual branch is identified.
-3. If pull request #16 is approved, re-check its exact head, merge it with an allowed linear-history method, and run focused Pages acceptance. The backend should not redeploy for a Phase 5-only diff.
