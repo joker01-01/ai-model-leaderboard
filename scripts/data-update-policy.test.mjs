@@ -6,7 +6,15 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
+import {
+  AA_FREE_V2_SCHEMA_FINGERPRINT,
+  AA_PUBLIC_METRIC_FIELDS,
+  AA_PUBLIC_SOURCE_URL,
+  buildAaPublicReport,
+  renderAaPublicSnapshotModule,
+} from "./aa-public-snapshot.mjs";
 import { evaluateDataUpdatePolicy, parseGeneratedSnapshotModule } from "./data-update-policy.mjs";
+import { renderLegacySnapshotModule } from "./generated-snapshot-module.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const policyScript = resolve(scriptDirectory, "data-update-policy.mjs");
@@ -149,6 +157,72 @@ function arenaSnapshot() {
   };
 }
 
+function aaPublicSnapshot({ count = 10, observedAt = "2026-09-03" } = {}) {
+  return {
+    schemaVersion: 1,
+    source: {
+      url: AA_PUBLIC_SOURCE_URL,
+      observedAt,
+      schemaFingerprint: AA_FREE_V2_SCHEMA_FINGERPRINT,
+      intelligenceIndexVersion: 4.1,
+      pagination: {
+        pageSize: 100,
+        totalPages: 1,
+        declaredTotalRows: null,
+        fetchedRowCount: count,
+      },
+    },
+    models: Array.from({ length: count }, (_, index) => ({
+      sourceId: `public-${String(index).padStart(2, "0")}`,
+      sourceSlug: index === 0 ? null : `public-${index}`,
+      rawName: index === 1 ? null : `Public Model ${String(index).padStart(2, "0")}`,
+      creatorId: index === 2 ? null : `creator-${index}`,
+      creatorName: index === 2 ? null : `Creator ${index}`,
+      releaseDate: index === 3 ? null : "2026-08-01",
+      observedAt,
+      intelligence: 100 - index,
+      coding: 90 - index,
+      agentic: 80 - index,
+      inputPricePerMillion: index,
+      outputPricePerMillion: index * 2,
+      timeToFirstAnswerSeconds: index / 10,
+      outputTokensPerSecond: 200 - index,
+    })),
+  };
+}
+
+function aaPublicReport(snapshot) {
+  const finiteMetricCounts = Object.fromEntries(AA_PUBLIC_METRIC_FIELDS.map((metric) => [
+    metric,
+    snapshot.models.filter((model) => Number.isFinite(model[metric])).length,
+  ]));
+  const missingIdentity = Object.fromEntries([
+    "sourceSlug",
+    "rawName",
+    "creatorId",
+    "creatorName",
+    "releaseDate",
+  ].map((field) => {
+    const sourceIds = snapshot.models
+      .filter((model) => model[field] === null)
+      .map((model) => model.sourceId);
+    return [field, { count: sourceIds.length, sourceIds }];
+  }));
+  return {
+    schemaVersion: snapshot.schemaVersion,
+    source: {
+      url: snapshot.source.url,
+      observedAt: snapshot.source.observedAt,
+      schemaFingerprint: snapshot.source.schemaFingerprint,
+      intelligenceIndexVersion: snapshot.source.intelligenceIndexVersion,
+    },
+    pagination: structuredClone(snapshot.source.pagination),
+    rowCount: snapshot.models.length,
+    finiteMetricCounts,
+    missingIdentity,
+  };
+}
+
 function eligibleInput() {
   const baseReport = report();
   const headReport = structuredClone(baseReport);
@@ -212,19 +286,272 @@ function eligibleInput() {
   };
 }
 
+function withPublicAa(input = eligibleInput()) {
+  const baseSnapshot = aaPublicSnapshot();
+  const headSnapshot = aaPublicSnapshot({ observedAt: "2026-09-04" });
+  input.changes.push(
+    { status: "M", path: "src/data/generated/aaPublicSnapshot.ts" },
+    { status: "modified", filename: "data/aa/generated/snapshot.json" },
+    { status: "M", path: "data/aa/generated/sync-report.json" },
+  );
+  input.base.aaPublicSnapshot = structuredClone(baseSnapshot);
+  input.base.aaPublicJson = structuredClone(baseSnapshot);
+  input.base.aaPublicReport = aaPublicReport(baseSnapshot);
+  input.head.aaPublicSnapshot = structuredClone(headSnapshot);
+  input.head.aaPublicJson = structuredClone(headSnapshot);
+  input.head.aaPublicReport = aaPublicReport(headSnapshot);
+  return input;
+}
+
+function replaceHeadPublicAa(input, snapshot) {
+  input.head.aaPublicSnapshot = structuredClone(snapshot);
+  input.head.aaPublicJson = structuredClone(snapshot);
+  input.head.aaPublicReport = aaPublicReport(snapshot);
+}
+
 test("accepts routine value, rank, count, and observation-time refreshes", () => {
   assert.deepEqual(evaluateDataUpdatePolicy(eligibleInput()), { eligible: true, reasons: [] });
 });
 
-test("parses the generated TypeScript snapshot initializer without evaluating code", () => {
-  const parsed = parseGeneratedSnapshotModule(
-    'export interface Snapshot { models: object }\n\nexport const AA_SNAPSHOT: Snapshot = {"models":{}};\n',
-    "AA_SNAPSHOT",
-  );
-  assert.deepEqual(parsed, { models: {} });
+test("accepts routine full public AA value, date, membership, and exact-threshold changes", () => {
+  const contractSnapshot = aaPublicSnapshot();
+  assert.deepEqual(aaPublicReport(contractSnapshot), buildAaPublicReport(contractSnapshot));
+
+  const dateAndValue = withPublicAa();
+  dateAndValue.head.aaPublicSnapshot.models[0].intelligence = 101;
+  dateAndValue.head.aaPublicJson.models[0].intelligence = 101;
+  dateAndValue.head.aaPublicReport = aaPublicReport(dateAndValue.head.aaPublicJson);
+  assert.deepEqual(evaluateDataUpdatePolicy(dateAndValue), { eligible: true, reasons: [] });
+
+  const addition = withPublicAa();
+  replaceHeadPublicAa(addition, aaPublicSnapshot({ count: 11, observedAt: "2026-09-04" }));
+  assert.deepEqual(evaluateDataUpdatePolicy(addition), { eligible: true, reasons: [] });
+
+  const exactTwentyPercentDrop = withPublicAa();
+  replaceHeadPublicAa(exactTwentyPercentDrop, aaPublicSnapshot({ count: 8, observedAt: "2026-09-04" }));
+  assert.deepEqual(evaluateDataUpdatePolicy(exactTwentyPercentDrop), { eligible: true, reasons: [] });
+
+  const exactMetricDrop = withPublicAa();
+  const metricSnapshot = structuredClone(exactMetricDrop.head.aaPublicJson);
+  metricSnapshot.models[0].agentic = null;
+  metricSnapshot.models[1].agentic = null;
+  replaceHeadPublicAa(exactMetricDrop, metricSnapshot);
+  assert.deepEqual(evaluateDataUpdatePolicy(exactMetricDrop), { eligible: true, reasons: [] });
+});
+
+test("rejects the first public AA baseline instead of treating added artifacts as routine", () => {
+  const input = withPublicAa();
+  delete input.base.aaPublicSnapshot;
+  delete input.base.aaPublicJson;
+  delete input.base.aaPublicReport;
+  for (const change of input.changes.slice(-3)) change.status = "added";
+
+  const result = evaluateDataUpdatePolicy(input);
+  assert.equal(result.eligible, false);
+  assert.ok(result.reasons.includes(
+    "public AA baseline is missing from base; first full snapshot requires human review",
+  ));
+  assert.equal(result.reasons.some((reason) => reason.includes("must be modified")), false);
+});
+
+test("rejects public AA schema, wire-contract, index-version, and identity metadata changes", () => {
+  const schema = withPublicAa();
+  const schemaSnapshot = structuredClone(schema.head.aaPublicJson);
+  schemaSnapshot.schemaVersion = 2;
+  replaceHeadPublicAa(schema, schemaSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(schema).reasons.includes(
+    "public AA schema version changed; human review required",
+  ));
+
+  const fingerprint = withPublicAa();
+  const fingerprintSnapshot = structuredClone(fingerprint.head.aaPublicJson);
+  fingerprintSnapshot.source.schemaFingerprint = "sha256:changed-contract";
+  replaceHeadPublicAa(fingerprint, fingerprintSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(fingerprint).reasons.includes(
+    "public AA schema fingerprint changed; human review required",
+  ));
+
+  const indexVersion = withPublicAa();
+  const versionSnapshot = structuredClone(indexVersion.head.aaPublicJson);
+  versionSnapshot.source.intelligenceIndexVersion = 4.2;
+  replaceHeadPublicAa(indexVersion, versionSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(indexVersion).reasons.includes(
+    "public AA Intelligence Index version changed; human review required",
+  ));
+
+  const pageSize = withPublicAa();
+  const pageSizeSnapshot = structuredClone(pageSize.head.aaPublicJson);
+  pageSizeSnapshot.source.pagination.pageSize = 50;
+  replaceHeadPublicAa(pageSize, pageSizeSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(pageSize).reasons.includes(
+    "public AA pagination pageSize changed; human review required",
+  ));
+
+  const metadata = withPublicAa();
+  const metadataSnapshot = structuredClone(metadata.head.aaPublicJson);
+  metadataSnapshot.models[4].rawName = "Renamed Public Model";
+  replaceHeadPublicAa(metadata, metadataSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(metadata).reasons.includes(
+    "public AA identity metadata changed: public-04",
+  ));
+});
+
+test("rejects greater-than-20-percent public row or metric loss but skips zero-base ratios", () => {
+  const rowDrop = withPublicAa();
+  replaceHeadPublicAa(rowDrop, aaPublicSnapshot({ count: 7, observedAt: "2026-09-04" }));
+  const rowDropResult = evaluateDataUpdatePolicy(rowDrop);
+  assert.equal(rowDropResult.eligible, false);
+  assert.ok(rowDropResult.reasons.includes("public AA fetchedRowCount dropped by more than 20%"));
+
+  const metricDrop = withPublicAa();
+  const metricSnapshot = structuredClone(metricDrop.head.aaPublicJson);
+  metricSnapshot.models[0].coding = null;
+  metricSnapshot.models[1].coding = null;
+  metricSnapshot.models[2].coding = null;
+  replaceHeadPublicAa(metricDrop, metricSnapshot);
+  const metricDropResult = evaluateDataUpdatePolicy(metricDrop);
+  assert.equal(metricDropResult.eligible, false);
+  assert.ok(metricDropResult.reasons.includes(
+    "public AA finiteMetricCounts.coding dropped by more than 20%",
+  ));
+
+  const zeroBase = withPublicAa();
+  for (const model of zeroBase.base.aaPublicSnapshot.models) model.agentic = null;
+  zeroBase.base.aaPublicJson = structuredClone(zeroBase.base.aaPublicSnapshot);
+  zeroBase.base.aaPublicReport = aaPublicReport(zeroBase.base.aaPublicJson);
+  for (const model of zeroBase.head.aaPublicSnapshot.models) model.agentic = null;
+  zeroBase.head.aaPublicJson = structuredClone(zeroBase.head.aaPublicSnapshot);
+  zeroBase.head.aaPublicReport = aaPublicReport(zeroBase.head.aaPublicJson);
+  assert.deepEqual(evaluateDataUpdatePolicy(zeroBase), { eligible: true, reasons: [] });
+});
+
+test("rejects malformed, duplicate, or incompletely paginated public AA rows", () => {
+  const duplicate = withPublicAa();
+  const duplicateSnapshot = structuredClone(duplicate.head.aaPublicJson);
+  duplicateSnapshot.models.push(structuredClone(duplicateSnapshot.models[0]));
+  duplicateSnapshot.source.pagination.fetchedRowCount += 1;
+  replaceHeadPublicAa(duplicate, duplicateSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(duplicate).reasons.includes(
+    'head.aaPublicSnapshot.models contains duplicate sourceId "public-00"',
+  ));
+
+  const invalid = withPublicAa();
+  const invalidSnapshot = structuredClone(invalid.head.aaPublicJson);
+  invalidSnapshot.models[0].inputPricePerMillion = -1;
+  replaceHeadPublicAa(invalid, invalidSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(invalid).reasons.includes(
+    "head.aaPublicSnapshot.models[0].inputPricePerMillion must be non-negative",
+  ));
+
+  for (const invalidUrl of [
+    "http://artificialanalysis.ai/api/v2/language/models/free",
+    "https://user:password@artificialanalysis.ai/api/v2/language/models/free",
+    "https://artificialanalysis.ai/api/v2/language/models/free?raw=1",
+    "https://artificialanalysis.ai/api/v2/language/models/free#data",
+  ]) {
+    const invalidSource = withPublicAa();
+    const invalidSourceSnapshot = structuredClone(invalidSource.head.aaPublicJson);
+    invalidSourceSnapshot.source.url = invalidUrl;
+    replaceHeadPublicAa(invalidSource, invalidSourceSnapshot);
+    assert.ok(evaluateDataUpdatePolicy(invalidSource).reasons.includes(
+      "head.aaPublicSnapshot.source.url must be HTTPS without credentials, query, or fragment",
+    ));
+  }
+
+  const declaredTotal = withPublicAa();
+  const declaredTotalSnapshot = structuredClone(declaredTotal.head.aaPublicJson);
+  declaredTotalSnapshot.source.pagination.declaredTotalRows = 10;
+  replaceHeadPublicAa(declaredTotal, declaredTotalSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(declaredTotal).reasons.includes(
+    "head.aaPublicSnapshot.source.pagination.declaredTotalRows must be null for Free v2",
+  ));
+
+  const incomplete = withPublicAa();
+  const incompleteSnapshot = structuredClone(incomplete.head.aaPublicJson);
+  incompleteSnapshot.source.pagination.totalPages = 2;
+  replaceHeadPublicAa(incomplete, incompleteSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(incomplete).reasons.includes(
+    "head.aaPublicSnapshot.source.pagination does not prove complete pagination",
+  ));
+
+  const tooManyPages = withPublicAa();
+  const tooManyPagesSnapshot = structuredClone(tooManyPages.head.aaPublicJson);
+  tooManyPagesSnapshot.source.pagination.totalPages = 51;
+  replaceHeadPublicAa(tooManyPages, tooManyPagesSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(tooManyPages).reasons.includes(
+    "head.aaPublicSnapshot.source.pagination.totalPages must be a safe integer from 1 through 50",
+  ));
+
+  const unsafeCount = withPublicAa();
+  const unsafeCountSnapshot = structuredClone(unsafeCount.head.aaPublicJson);
+  unsafeCountSnapshot.source.pagination.pageSize = 1e20;
+  replaceHeadPublicAa(unsafeCount, unsafeCountSnapshot);
+  assert.ok(evaluateDataUpdatePolicy(unsafeCount).reasons.includes(
+    "head.aaPublicSnapshot.source.pagination.pageSize must be a positive safe integer",
+  ));
+});
+
+test("rejects public AA TypeScript/JSON drift and report inconsistencies", () => {
+  const semanticDrift = withPublicAa();
+  semanticDrift.head.aaPublicJson.models[0].intelligence = 42;
+  semanticDrift.head.aaPublicReport = aaPublicReport(semanticDrift.head.aaPublicJson);
+  assert.ok(evaluateDataUpdatePolicy(semanticDrift).reasons.includes(
+    "head public AA TypeScript snapshot and backend JSON are not semantically equal",
+  ));
+
+  const reportDrift = withPublicAa();
+  reportDrift.head.aaPublicReport.finiteMetricCounts.intelligence -= 1;
+  reportDrift.head.aaPublicReport.missingIdentity.rawName.count = 0;
+  const reportResult = evaluateDataUpdatePolicy(reportDrift);
+  assert.ok(reportResult.reasons.includes(
+    "head.aaPublicReport.finiteMetricCounts.intelligence is inconsistent with the public AA snapshot",
+  ));
+  assert.ok(reportResult.reasons.includes(
+    "head.aaPublicReport.missingIdentity.rawName is inconsistent with the public AA snapshot",
+  ));
+});
+
+test("parses only canonical generated TypeScript snapshot modules without evaluating code", () => {
+  const input = eligibleInput();
+  for (const [constantName, snapshot] of [
+    ["AA_SNAPSHOT", input.head.aaSnapshot],
+    ["ARENA_SNAPSHOT", input.head.arenaSnapshot],
+  ]) {
+    const canonicalModule = renderLegacySnapshotModule(constantName, snapshot);
+    assert.deepEqual(parseGeneratedSnapshotModule(canonicalModule, constantName), snapshot);
+    assert.deepEqual(
+      parseGeneratedSnapshotModule(canonicalModule.replaceAll("\n", "\r\n"), constantName),
+      snapshot,
+    );
+    assert.throws(
+      () => parseGeneratedSnapshotModule(
+        `globalThis.compromised = true;\n${canonicalModule}`,
+        constantName,
+      ),
+      /must match the canonical generated form/,
+    );
+  }
   assert.throws(
     () => parseGeneratedSnapshotModule("export const OTHER = {};", "AA_SNAPSHOT"),
     /missing export const AA_SNAPSHOT declaration/,
+  );
+
+  const publicSnapshot = aaPublicSnapshot();
+  const canonicalPublicModule = renderAaPublicSnapshotModule(publicSnapshot);
+  assert.deepEqual(
+    parseGeneratedSnapshotModule(canonicalPublicModule, "AA_PUBLIC_SNAPSHOT"),
+    publicSnapshot,
+  );
+  assert.deepEqual(
+    parseGeneratedSnapshotModule(canonicalPublicModule.replaceAll("\n", "\r\n"), "AA_PUBLIC_SNAPSHOT"),
+    publicSnapshot,
+  );
+  assert.throws(
+    () => parseGeneratedSnapshotModule(
+      `globalThis.compromised = true;\n${canonicalPublicModule}`,
+      "AA_PUBLIC_SNAPSHOT",
+    ),
+    /must match the canonical generated form/,
   );
 });
 

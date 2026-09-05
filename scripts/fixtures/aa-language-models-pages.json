@@ -1,0 +1,155 @@
+{
+  "pages": [
+    {
+      "tier": "free",
+      "intelligence_index_version": 4.1,
+      "pagination": {
+        "page": 1,
+        "page_size": 3,
+        "total_pages": 2,
+        "has_more": true
+      },
+      "data": [
+        {
+          "id": "model-alpha",
+          "name": "Alpha Reasoning (Max)",
+          "slug": "alpha-reasoning-max",
+          "release_date": "2026-08-20",
+          "model_creator": {
+            "id": "creator-north",
+            "name": "North Lab"
+          },
+          "evaluations": {
+            "artificial_analysis_intelligence_index": 80,
+            "artificial_analysis_coding_index": 70,
+            "artificial_analysis_agentic_index": 65
+          },
+          "artificial_analysis_intelligence_index_cost": {
+            "total_cost": 10,
+            "cost_per_task": {
+              "total_cost": 0.1
+            }
+          },
+          "pricing": {
+            "price_1m_input_tokens": 3,
+            "price_1m_output_tokens": 15,
+            "price_1m_cache_hit_tokens": 0.3,
+            "price_1m_cache_write_tokens": 3.75
+          },
+          "performance": {
+            "median_output_tokens_per_second": 100,
+            "median_time_to_first_token_seconds": 0.5,
+            "median_time_to_first_answer_token_seconds": 2.5,
+            "median_end_to_end_response_time_seconds": 7.5
+          }
+        },
+        {
+          "id": "model-beta",
+          "name": "Beta Chat",
+          "slug": "beta-chat",
+          "release_date": null,
+          "model_creator": {
+            "id": "creator-south",
+            "name": "South AI"
+          },
+          "evaluations": {
+            "artificial_analysis_intelligence_index": 80,
+            "artificial_analysis_coding_index": 70,
+            "artificial_analysis_agentic_index": null
+          },
+          "artificial_analysis_intelligence_index_cost": {
+            "total_cost": 0,
+            "cost_per_task": {
+              "total_cost": 0
+            }
+          },
+          "pricing": {
+            "price_1m_input_tokens": 0,
+            "price_1m_output_tokens": 0
+          },
+          "performance": {
+            "median_output_tokens_per_second": 0,
+            "median_time_to_first_token_seconds": 0,
+            "median_time_to_first_answer_token_seconds": 0,
+            "median_end_to_end_response_time_seconds": 0
+          }
+        },
+        {
+          "id": "model-gamma",
+          "name": null,
+          "slug": "gamma-preview",
+          "release_date": "2026-07-01",
+          "model_creator": {
+            "id": "creator-north",
+            "name": "North Lab"
+          },
+          "evaluations": {
+            "artificial_analysis_intelligence_index": 51,
+            "artificial_analysis_coding_index": null,
+            "artificial_analysis_agentic_index": 30
+          },
+          "pricing": {
+            "price_1m_input_tokens": null,
+            "price_1m_output_tokens": 8
+          },
+          "performance": {
+            "median_output_tokens_per_second": 55,
+            "median_time_to_first_answer_token_seconds": null
+          }
+        }
+      ]
+    },
+    {
+      "tier": "free",
+      "intelligence_index_version": 4.1,
+      "pagination": {
+        "page": 2,
+        "page_size": 3,
+        "total_pages": 2,
+        "has_more": false
+      },
+      "data": [
+        {
+          "id": "model-delta",
+          "name": "Delta Mini",
+          "release_date": null,
+          "model_creator": null,
+          "evaluations": {
+            "artificial_analysis_intelligence_index": null,
+            "artificial_analysis_coding_index": 42,
+            "artificial_analysis_agentic_index": 42
+          },
+          "pricing": {
+            "price_1m_input_tokens": 1,
+            "price_1m_output_tokens": 1
+          },
+          "performance": {
+            "median_output_tokens_per_second": 60,
+            "median_time_to_first_answer_token_seconds": 4
+          }
+        },
+        {
+          "id": "model-epsilon",
+          "slug": null,
+          "release_date": "2026-06-15",
+          "model_creator": {
+            "id": "creator-east",
+            "name": "East Models"
+          },
+          "evaluations": {
+            "artificial_analysis_intelligence_index": -2,
+            "artificial_analysis_agentic_index": -5
+          },
+          "pricing": {
+            "price_1m_input_tokens": 0.5,
+            "price_1m_output_tokens": null
+          },
+          "performance": {
+            "median_output_tokens_per_second": null,
+            "median_time_to_first_answer_token_seconds": 1.2
+          }
+        }
+      ]
+    }
+  ]
+}

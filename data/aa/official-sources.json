@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "artificialAnalysis": [
+    {
+      "host": "artificialanalysis.ai",
+      "allowSubdomains": true,
+      "pathPrefix": "/"
+    }
+  ],
+  "creators": [
+    {
+      "creatorId": "e67e56e3-15cd-43db-b679-da4660a69f41",
+      "sources": [
+        {
+          "kind": "official_site",
+          "host": "openai.com",
+          "allowSubdomains": true,
+          "pathPrefix": "/"
+        },
+        {
+          "kind": "official_github",
+          "host": "github.com",
+          "allowSubdomains": false,
+          "pathPrefix": "/openai/"
+        }
+      ]
+    },
+    {
+      "creatorId": "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128",
+      "sources": [
+        {
+          "kind": "official_site",
+          "host": "anthropic.com",
+          "allowSubdomains": true,
+          "pathPrefix": "/"
+        },
+        {
+          "kind": "official_site",
+          "host": "platform.claude.com",
+          "allowSubdomains": false,
+          "pathPrefix": "/"
+        },
+        {
+          "kind": "official_github",
+          "host": "github.com",
+          "allowSubdomains": false,
+          "pathPrefix": "/anthropics/"
+        }
+      ]
+    },
+    {
+      "creatorId": "faddc6d9-2c14-445f-9b28-56726f59c793",
+      "sources": [
+        {
+          "kind": "official_site",
+          "host": "ai.google.dev",
+          "allowSubdomains": false,
+          "pathPrefix": "/"
+        },
+        {
+          "kind": "official_site",
+          "host": "cloud.google.com",
+          "allowSubdomains": false,
+          "pathPrefix": "/"
+        },
+        {
+          "kind": "official_github",
+          "host": "github.com",
+          "allowSubdomains": false,
+          "pathPrefix": "/google-gemini/"
+        }
+      ]
+    },
+    {
+      "creatorId": "58b835bf-4c87-4f87-a846-df4b692c6e7d",
+      "sources": [
+        {
+          "kind": "official_site",
+          "host": "deepseek.com",
+          "allowSubdomains": true,
+          "pathPrefix": "/"
+        },
+        {
+          "kind": "official_github",
+          "host": "github.com",
+          "allowSubdomains": false,
+          "pathPrefix": "/deepseek-ai/"
+        }
+      ]
+    },
+    {
+      "creatorId": "a1e3ddcf-d3e4-44a5-9e8f-029a69850875",
+      "sources": [
+        {
+          "kind": "official_site",
+          "host": "x.ai",
+          "allowSubdomains": true,
+          "pathPrefix": "/"
+        },
+        {
+          "kind": "official_github",
+          "host": "github.com",
+          "allowSubdomains": false,
+          "pathPrefix": "/xai-org/"
+        }
+      ]
+    }
+  ]
+}

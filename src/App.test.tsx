@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
-import { AA_INTELLIGENCE_LEADERBOARD, AA_LEADERBOARD_LIMIT } from "./lib/aaLeaderboard";
 
 beforeEach(() => {
-  localStorage.clear();
+  window.location.hash = "#/";
+  Object.defineProperty(window, "scrollTo", {
+    configurable: true,
+    value: vi.fn(),
+  });
   Object.defineProperty(window, "matchMedia", {
     configurable: true,
     value: vi.fn().mockImplementation(() => ({
@@ -19,33 +22,65 @@ beforeEach(() => {
   });
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  window.location.hash = "";
+});
 
-describe("App leaderboard modes", () => {
-  it("keeps the public board on Intelligence-only source data without count labels", async () => {
-    const user = userEvent.setup();
+describe("public product routes", () => {
+  it("opens as a four-card directory with the approved destinations", () => {
     const { container } = render(<App />);
 
-    expect(screen.getByRole("tab", { name: "智能指数" })).toBeTruthy();
-    expect(screen.queryByLabelText("国家或地区筛选")).toBeNull();
-    expect(screen.queryByText("只看开源")).toBeNull();
-    expect(container.textContent).not.toMatch(/Top\s*20/i);
-    expect(container.textContent).not.toContain("当前共");
-    expect(container.textContent).not.toContain("个模型有同版本智能指数");
-    expect(screen.getByText("公开评测榜 · 智能指数")).toBeTruthy();
-    expect(screen.getByText(
-      AA_INTELLIGENCE_LEADERBOARD.length === AA_LEADERBOARD_LIMIT ? "AA 完整榜已同步" : "AA 完整榜待同步",
-    )).toBeTruthy();
-    expect(container.querySelectorAll(".board .rows > .row")).toHaveLength(AA_INTELLIGENCE_LEADERBOARD.length);
-    if (AA_INTELLIGENCE_LEADERBOARD.length === 0) {
-      expect(screen.getByRole("heading", { name: "AA 数据暂不可用" })).toBeTruthy();
-    }
-    expect(container.textContent).not.toContain("官方数据已同步");
+    expect(screen.getByRole("heading", { level: 1, name: "AI 模型排行榜" })).toBeTruthy();
+    const links = screen.getAllByRole("link");
+    expect(links.find((link) => link.textContent?.includes("模型能力榜单"))?.getAttribute("href"))
+      .toBe("#/ability/intelligence");
+    expect(links.find((link) => link.textContent?.includes("模型速度榜单"))?.getAttribute("href"))
+      .toBe("#/efficiency/speed");
+    expect(links.find((link) => link.textContent?.includes("模型价格榜单"))?.getAttribute("href"))
+      .toBe("#/efficiency/price");
+    expect(links.find((link) => link.textContent?.includes("按需求选模型"))?.getAttribute("href"))
+      .toBe("#/advisor");
+    expect(container.querySelectorAll(".directory-card")).toHaveLength(4);
+    expect(container.textContent).not.toContain("编辑推荐榜");
+    expect(container.textContent).not.toContain("把模型选择变成可核验结论");
+  });
 
-    await user.click(screen.getByRole("button", { name: /编辑推荐榜/ }));
+  it("navigates to a complete ability view and always returns home", async () => {
+    const user = userEvent.setup();
+    render(<App />);
 
-    expect(screen.getByLabelText("国家或地区筛选")).toBeTruthy();
-    expect(screen.getByText("只看开源")).toBeTruthy();
-    expect(screen.getByRole("tab", { name: "编程" })).toBeTruthy();
+    await user.click(screen.getByRole("link", { name: /模型能力榜单/ }));
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1, name: "模型能力榜单" })).toBeTruthy());
+    expect(screen.getByRole("link", { name: "综合智能" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.queryByRole("searchbox")).toBeNull();
+    expect(screen.queryByText(/条结果/)).toBeNull();
+    expect(screen.queryByText(/更新日期/)).toBeNull();
+
+    await user.click(screen.getByRole("link", { name: "返回首页" }));
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1, name: "AI 模型排行榜" })).toBeTruthy());
+  });
+
+  it("opens the one-shot advisor form without the legacy console", () => {
+    window.location.hash = "#/advisor";
+    const { container } = render(<App />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "按需求选模型" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "你的需求" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "部署地区（可选）" })).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "我有明确预算" })).toBeTruthy();
+    expect((screen.getByRole("button", { name: "获取推荐" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(container.textContent).not.toContain("写下任务、预算和部署要求");
+    expect(container.textContent).not.toContain("写清任务和最重要的偏好");
+    expect(container.textContent).not.toContain("仅作为官方资料核验要求");
+    expect(container.textContent).not.toContain("推荐服务未配置");
+    expect(container.textContent).not.toContain("下一阶段接入");
+    expect(container.querySelector(".agent-panel")).toBeNull();
+  });
+
+  it("renders the home directory for an unknown hash", () => {
+    window.location.hash = "#/unknown";
+    render(<App />);
+    expect(screen.getByRole("heading", { level: 1, name: "AI 模型排行榜" })).toBeTruthy();
   });
 });

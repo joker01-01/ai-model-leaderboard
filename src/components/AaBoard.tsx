@@ -1,14 +1,16 @@
 import type { AaLeaderboardEntry } from "../lib/aaLeaderboard";
 
-export default function AaBoard({ entries, expanded, sourceUrl, onToggle }: {
+export default function AaBoard({ entries, expanded, sourceUrl, scaleMax: requestedScaleMax, onToggle }: {
   entries: AaLeaderboardEntry[];
   expanded: string | null;
   sourceUrl: string;
+  scaleMax?: number;
   onToggle: (sourceId: string) => void;
 }) {
+  const scaleMax = Math.max(1, requestedScaleMax ?? 0, ...entries.map((entry) => entry.value));
   return (
-    <section className="board" aria-label="公开评测榜排名">
-      <div className="board-head" aria-hidden="true"><span>名次</span><span>模型配置</span><span className="right">智能指数</span><span>开发者</span><span className="right">发布</span><span className="right">来源</span><span /></div>
+    <section className="board board-aa" aria-label="公开评测榜排名">
+      <div className="board-head" aria-hidden="true"><span>名次</span><span>模型配置</span><span>智能指数</span><span className="right">发布</span><span className="right">来源</span><span /></div>
       {entries.length === 0 && <p className="empty">没有找到符合条件的 AA 模型配置，换个搜索词试试。</p>}
       <ol className="rows">{entries.map((entry) => (
         <AaRow
@@ -16,6 +18,7 @@ export default function AaBoard({ entries, expanded, sourceUrl, onToggle }: {
           entry={entry}
           expanded={expanded === entry.sourceId}
           sourceUrl={sourceUrl}
+          scaleMax={scaleMax}
           onToggle={() => onToggle(entry.sourceId)}
         />
       ))}</ol>
@@ -23,19 +26,20 @@ export default function AaBoard({ entries, expanded, sourceUrl, onToggle }: {
   );
 }
 
-function AaRow({ entry, expanded, sourceUrl, onToggle }: {
+function AaRow({ entry, expanded, sourceUrl, scaleMax, onToggle }: {
   entry: AaLeaderboardEntry;
   expanded: boolean;
   sourceUrl: string;
+  scaleMax: number;
   onToggle: () => void;
 }) {
+  const barWidth = `${Math.max(3, Math.min(100, (entry.value / scaleMax) * 100))}%`;
   return (
-    <li className={`row${expanded ? " is-expanded" : ""}`} style={{ animationDelay: `${Math.min(entry.rank * 34, 680)}ms` }}>
+    <li className={`row${expanded ? " is-expanded" : ""}`}>
       <div className="row-main">
         <span className={`rank${entry.rank === 1 ? " rank-1" : entry.rank <= 3 ? " rank-top" : ""}`}>{String(entry.rank).padStart(2, "0")}</span>
         <div className="who"><p className="who-name">{entry.modelVersion}</p><p className="who-maker">{entry.creatorName ?? "AA 未提供开发者资料"} · {entry.sourceSlug}</p></div>
-        <div className="aa-score"><strong>{entry.value.toFixed(1)}</strong><span>AA</span></div>
-        <div className="meta">{entry.creatorName ?? "AA 未提供"}</div>
+        <div className="score aa-score"><span className="score-bar" aria-hidden="true"><i style={{ width: barWidth }} /></span><strong className="score-num">{entry.value.toFixed(1)}</strong></div>
         <div className="meta release">{entry.releaseDate ?? "AA 未提供"}</div>
         <div className="meta aa-source"><a href={sourceUrl} target="_blank" rel="noopener noreferrer">查看 ↗</a></div>
         <button type="button" className="toggle" aria-expanded={expanded} onClick={onToggle} aria-label={expanded ? `收起${entry.modelVersion}详情` : `展开${entry.modelVersion}详情`}><span className="chev">▾</span></button>

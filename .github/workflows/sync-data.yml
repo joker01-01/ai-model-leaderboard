@@ -96,18 +96,23 @@ jobs:
           branch: chore/refresh-leaderboard-data
           delete-branch: true
           add-paths: |
+            data/aa/generated/snapshot.json
+            data/aa/generated/sync-report.json
             data/modelops/generated/catalog.json
             data/modelops/generated/evidence.json
             data/sync-report.json
+            src/data/generated/aaPublicSnapshot.ts
             src/data/generated/aaSnapshot.ts
             src/data/generated/arenaSnapshot.ts
           commit-message: "chore: refresh official leaderboard snapshots"
           title: "chore: refresh official leaderboard snapshots"
           body: |
             这是定时同步生成的数据更新：
+            - `src/data/generated/aaPublicSnapshot.ts` 与 `data/aa/generated/snapshot.json` 保存语义一致的完整 AA 源条目，覆盖 Intelligence、Coding、Agentic、价格与速度七项指标
+            - `data/aa/generated/sync-report.json` 记录完整分页、响应结构、七项有限值覆盖和缺失身份字段
             - `data/sync-report.json` 中的匹配、缺失和歧义
-            - 公开榜读取完整 AA 分页结果，并保留当前 Intelligence 前 20 个源条目；不同推理、努力配置不合并
+            - legacy 兼容快照继续保留 Intelligence 前 20 个源条目；不同推理、努力配置不合并
             - 编辑推荐榜与 ModelOps Agent 仅更新精选目录中精确版本匹配的 AA Intelligence / Coding 证据
             - Arena 只作详情中的用户偏好参考，不改变主榜名次
-            - 只有允许的生成文件、公开榜成员与指数版本、精选目录匹配集合与来源身份保持稳定，且所有检查通过时才会自动合并
-            - 公开榜成员/元数据/指数版本变化、新增或丢失精选匹配、歧义、来源身份变化及其他异常会保留此 PR，等待人工审核
+            - 首份完整 AA 快照必须人工审核；同结构基线建立后，完整榜普通成员、数值、日期和排序变化可在覆盖率门槛及所有检查通过时自动合并
+            - 完整榜结构/指纹/指数版本/现有身份元数据变化、超过 20% 的行数或单项覆盖下降，以及 legacy 精选匹配、来源身份或兼容榜异常会保留此 PR，等待人工审核

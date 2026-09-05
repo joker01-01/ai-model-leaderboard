@@ -102,11 +102,31 @@ jobs:
               return JSON.parse(await readTextAtRef(filePath, ref));
             }
 
+            async function readTextAtRefOrNull(filePath, ref) {
+              try {
+                return await readTextAtRef(filePath, ref);
+              } catch (error) {
+                if (error?.status === 404) return null;
+                throw error;
+              }
+            }
+
+            async function readJsonAtRefOrNull(filePath, ref) {
+              const source = await readTextAtRefOrNull(filePath, ref);
+              return source === null ? null : JSON.parse(source);
+            }
+
             const [
               baseCatalog,
               headCatalog,
               baseAaSource,
               headAaSource,
+              baseAaPublicSource,
+              headAaPublicSource,
+              baseAaPublicJson,
+              headAaPublicJson,
+              baseAaPublicReport,
+              headAaPublicReport,
               baseArenaSource,
               headArenaSource,
               baseReport,
@@ -118,6 +138,12 @@ jobs:
               readJsonAtRef("data/modelops/generated/catalog.json", expectedHeadSha),
               readTextAtRef("src/data/generated/aaSnapshot.ts", expectedBaseSha),
               readTextAtRef("src/data/generated/aaSnapshot.ts", expectedHeadSha),
+              readTextAtRefOrNull("src/data/generated/aaPublicSnapshot.ts", expectedBaseSha),
+              readTextAtRefOrNull("src/data/generated/aaPublicSnapshot.ts", expectedHeadSha),
+              readJsonAtRefOrNull("data/aa/generated/snapshot.json", expectedBaseSha),
+              readJsonAtRefOrNull("data/aa/generated/snapshot.json", expectedHeadSha),
+              readJsonAtRefOrNull("data/aa/generated/sync-report.json", expectedBaseSha),
+              readJsonAtRefOrNull("data/aa/generated/sync-report.json", expectedHeadSha),
               readTextAtRef("src/data/generated/arenaSnapshot.ts", expectedBaseSha),
               readTextAtRef("src/data/generated/arenaSnapshot.ts", expectedHeadSha),
               readJsonAtRef("data/sync-report.json", expectedBaseSha),
@@ -131,6 +157,11 @@ jobs:
               base: {
                 catalog: baseCatalog,
                 aaSnapshot: policy.parseGeneratedSnapshotModule(baseAaSource, "AA_SNAPSHOT"),
+                aaPublicSnapshot: baseAaPublicSource === null
+                  ? null
+                  : policy.parseGeneratedSnapshotModule(baseAaPublicSource, "AA_PUBLIC_SNAPSHOT"),
+                aaPublicJson: baseAaPublicJson,
+                aaPublicReport: baseAaPublicReport,
                 arenaSnapshot: policy.parseGeneratedSnapshotModule(baseArenaSource, "ARENA_SNAPSHOT"),
                 syncReport: baseReport,
                 evidence: baseEvidence,
@@ -138,6 +169,11 @@ jobs:
               head: {
                 catalog: headCatalog,
                 aaSnapshot: policy.parseGeneratedSnapshotModule(headAaSource, "AA_SNAPSHOT"),
+                aaPublicSnapshot: headAaPublicSource === null
+                  ? null
+                  : policy.parseGeneratedSnapshotModule(headAaPublicSource, "AA_PUBLIC_SNAPSHOT"),
+                aaPublicJson: headAaPublicJson,
+                aaPublicReport: headAaPublicReport,
                 arenaSnapshot: policy.parseGeneratedSnapshotModule(headArenaSource, "ARENA_SNAPSHOT"),
                 syncReport: headReport,
                 evidence: headEvidence,

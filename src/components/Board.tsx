@@ -9,7 +9,6 @@ import {
 } from "../lib/entries";
 import { competitionRanks } from "../lib/ranking";
 import {
-  DIM_KEYS,
   DIM_LABELS,
   OBJECTIVE_DIM_KEYS,
   OBJECTIVE_DIM_LABELS,
@@ -42,8 +41,8 @@ export default function Board({ mode, entries, sortKey, expanded, onToggle }: {
     : "以下模型暂时没有同版本 AA 智能指数，编辑榜不使用手工分数替代，因此暂不显示推荐分。";
 
   return (
-    <section className="board" aria-label={`${mode === "objective" ? "公开评测榜" : "编辑推荐榜"}排名`}>
-      <div className="board-head" aria-hidden="true"><span>名次</span><span>模型</span><span className="right">{sortLabel}</span><span>{mode === "objective" ? "评测覆盖" : "六项评分"}</span><span className="right">价格带</span><span className="right">发布</span><span /></div>
+    <section className="board board-editorial" aria-label={`${mode === "objective" ? "公开评测榜" : "编辑推荐榜"}排名`}>
+      <div className="board-head" aria-hidden="true"><span>名次</span><span>模型</span><span>{sortLabel}</span><span className="right">价格带</span><span className="right">发布</span><span /></div>
       {entries.length === 0 && <p className="empty">没有找到符合条件的模型，换个搜索词试试。</p>}
       <ol className="rows">{rankedEntries.map((entry, index) => (
         <Row
@@ -87,14 +86,12 @@ function Row({ entry, mode, rank, sortKey, expanded, onToggle }: {
   const { model } = entry;
   const dimScore = entryValue(entry, mode, sortKey);
   const hasScore = Number.isFinite(dimScore);
-  const bars = mode === "objective" ? OBJECTIVE_DIM_KEYS : DIM_KEYS;
   return (
-    <li className={`row${expanded ? " is-expanded" : ""}${!hasScore ? " is-pending" : ""}${rank === null ? " is-unranked" : ""}`} style={rank === null ? undefined : { animationDelay: `${Math.min(rank * 34, 680)}ms` }}>
+    <li className={`row${expanded ? " is-expanded" : ""}${!hasScore ? " is-pending" : ""}${rank === null ? " is-unranked" : ""}`}>
       <div className="row-main">
         <span className={`rank${rank === 1 ? " rank-1" : rank !== null && rank <= 3 ? " rank-top" : ""}`}>{rank === null ? "—" : String(rank).padStart(2, "0")}</span>
         <div className="who"><p className="who-name">{model.name}</p><p className="who-maker">{model.flag} {model.maker} · {model.country}</p><ul className="chips">{model.badges.map((badge) => <li key={badge} className="chip">{badge}</li>)}</ul></div>
-        <div className={`score${!hasScore ? " score-pending" : ""}`}><span className="score-num">{hasScore ? dimScore.toFixed(1) : "待补"}</span><span className="score-bar"><i style={{ width: `${hasScore ? Math.max(0, Math.min(100, dimScore)) : 0}%` }} /></span></div>
-        <div className="spark" role="img" aria-label={mode === "objective" ? "四项能力得分" : "六项评分"}>{bars.map((key) => { const value = mode === "objective" ? entry.objectiveDims[key as ObjectiveDimKey] : entry.editorialDims[key as DimKey]; return <span key={key} title={`${mode === "objective" ? OBJECTIVE_DIM_LABELS[key as ObjectiveDimKey] : DIM_LABELS[key as DimKey]} ${value ?? "待补"}`} className={`spark-bar${sortKey === key ? " is-active" : ""}`} style={{ height: `${Math.max(8, value ?? 8)}%` }} />; })}</div>
+        <div className={`score${!hasScore ? " score-pending" : ""}`}><span className="score-bar" aria-hidden="true"><i style={{ width: `${hasScore ? Math.max(0, Math.min(100, dimScore)) : 0}%` }} /></span><span className="score-num">{hasScore ? dimScore.toFixed(1) : "待补"}</span></div>
         <div className="meta"><span className={`tier tier-${model.priceTier}`}>{model.priceTier}</span></div><div className="meta release">{model.release}</div>
         <button type="button" className="toggle" aria-expanded={expanded} onClick={onToggle} aria-label={expanded ? `收起${model.name}详情` : `展开${model.name}详情`}><span className="chev">▾</span></button>
       </div>
