@@ -41,7 +41,7 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
     const updateAbilityPreviewScale = () => {
       let nextMaximum = 100;
       const hasDesktopColumns = typeof window.matchMedia === "function"
-        && window.matchMedia("(min-width: 1025px)").matches;
+        && window.matchMedia("(max-width: 620px), (min-width: 1025px)").matches;
 
       if (hasDesktopColumns && leadingAbilityValue > 0 && leadingPriceValue >= 0) {
         // The full-width ability plot and half-width price plot have different origins.

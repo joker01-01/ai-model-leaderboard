@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -28,6 +28,28 @@ afterEach(() => {
 });
 
 describe("public product routes", () => {
+  it("scales a desktop canvas on phones and restores normal layout after resizing", () => {
+    const originalWidth = window.innerWidth;
+    try {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 });
+      const { container } = render(<App />);
+      const canvas = container.querySelector<HTMLElement>(".public-app")!;
+      expect(canvas.style.width).toBe("1100px");
+      expect(Number(canvas.style.zoom)).toBeCloseTo(390 / 1100);
+
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: 430 });
+      fireEvent(window, new Event("resize"));
+      expect(Number(canvas.style.zoom)).toBeCloseTo(430 / 1100);
+
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: 1024 });
+      fireEvent(window, new Event("resize"));
+      expect(canvas.style.width).toBe("");
+      expect(canvas.style.zoom).toBe("");
+    } finally {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: originalWidth });
+    }
+  });
+
   it("opens as a four-card directory with the approved destinations", () => {
     const { container } = render(<App />);
 
