@@ -7,7 +7,7 @@ Refactor the existing AI model leaderboard into the simple four-card product def
 ## Current repository baseline
 
 - Working directory for the Phase 5 task: `C:\Users\ADMIN\.codex\worktrees\d8e0\ai-model-leaderboard` (physical alias `D:\CodexData\.codex\worktrees\d8e0\ai-model-leaderboard`).
-- The task worktree is on `codex/phase-5-assets`, branched from Phase 1–4 commit `a538dbb`. Pull request [#15](https://github.com/joker01-01/ai-model-leaderboard/pull/15) remains scoped to `codex/phase-4-advisor` and incorporates `origin/main` revision `cdb94b63d2dedbd2d8328bbc7290a47fa118bc8c` through merge commit `9cb152b`.
+- The task worktree is on `codex/phase-5-assets`, branched from Phase 1–4 commit `a538dbb` and published as stacked pull request [#16](https://github.com/joker01-01/ai-model-leaderboard/pull/16). Pull request [#15](https://github.com/joker01-01/ai-model-leaderboard/pull/15) remains scoped to `codex/phase-4-advisor` and incorporates `origin/main` revision `cdb94b63d2dedbd2d8328bbc7290a47fa118bc8c` through merge commit `9cb152b`.
 - React 19, TypeScript, and Vite build the GitHub Pages frontend.
 - The published public board currently opens directly and renders the first 20 finite AA Intelligence entries from a complete paginated fetch.
 - The deployed frontend still contains the curated editorial board and technical Agent evidence console. The local Phase 1–4 working tree replaces their public entry points with the confirmed four-card directory and one-shot advisor while preserving the legacy implementations.
@@ -17,7 +17,7 @@ Refactor the existing AI model leaderboard into the simple four-card product def
 - The local backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
 - GitHub Actions verifies pull requests, deploys Pages, prepares App-signed data PRs, and conditionally auto-merges the current narrow class of routine generated refreshes.
 
-The deployment statements above describe `origin/main`. Phases 1–4 are committed on the pull-request branch but are not merged or published. Phase 5 has completed final visual acceptance on its separate branch, and Phase 6 verification/publication work is in progress.
+The deployment statements above describe `origin/main`. Phases 1–4 are committed on the pull-request branch but are not merged or published. Phase 5 has completed final visual acceptance and is published for isolated stacked review; neither pull request is merged or deployed.
 
 ## Confirmed product target
 
@@ -125,9 +125,9 @@ The product direction and Phase 1 design baseline are confirmed.
    - locally bundled image-only QR popover shown by pointer hover or keyboard focus, without visible account, scan-instruction, close, backdrop, or modal copy;
    - nine exact-ID provider/product SVGs—using Claude for Anthropic, Gemini for Google, Grok for xAI, GLM for Z AI, Kimi for Kimi, Qwen for Alibaba, and Meta for Meta—with prototype-safe initial fallback for every unmapped creator, plus locally bundled social SVGs, pinned attribution, and a production-distributed third-party notice;
    - responsive footer/popover styling with no page-level horizontal overflow in the checked 1053px browser viewport.
-6. **Full verification, documentation, and publication — local Phase 6 gates and documentation are complete; protected stacked review and later deployment acceptance remain.**
+6. **Full verification, documentation, and publication — local Phase 6 gates, documentation, and stacked pull-request publication are complete; protected review and later deployment acceptance remain.**
 
-Phase 4 is committed on `codex/phase-4-advisor`. Pull request #15 is the Phase 1–4 review boundary; it has not been merged or deployed. Phase 5 stays isolated on `codex/phase-5-assets` as a separate stacked-review slice.
+Phase 4 is committed on `codex/phase-4-advisor`. Pull request #15 is the Phase 1–4 review boundary; it has not been merged or deployed. Phase 5 stays isolated on `codex/phase-5-assets` in stacked pull request #16.
 
 ## Frozen decisions
 
@@ -196,8 +196,8 @@ Phase 5 adds or modifies:
 
 ## Remaining after the Phase 1–4 working tree
 
-- Phase 5 has final visual acceptance and completed local Phase 6 gates. It is isolated in its own stacked review based on `codex/phase-4-advisor`; pull request #15 intentionally remains scoped to Phase 1–4.
-- A bounded legacy DeepSeek smoke against the current pre-refactor Zeabur deployment returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing its value. The Phase 4 advisor's live web-verification path remains unverified until this pull request is merged and Zeabur redeploys it.
+- Phase 5 has final visual acceptance and completed local Phase 6 gates. Pull request #16 is based on `codex/phase-4-advisor`, so pull request #15 intentionally remains scoped to Phase 1–4.
+- A fresh bounded legacy DeepSeek smoke after pull request #16 publication returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing or replacing its value. The Phase 4 advisor's live web-verification path remains unverified until pull request #15 is merged and Zeabur redeploys it.
 - The local machine has no Docker command, so the repository-root image was not built; only packaging contracts were checked statically and through tests.
 - Before Zeabur publication, verify one replica/one worker and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
 - Pull request #15 must land before the Phase 5 stacked pull request can be retargeted to `main`; neither pull request is authorized to merge merely by creating the stacked review.
@@ -287,11 +287,12 @@ Phase 5 and local Phase 6 verification on `codex/phase-5-assets`:
 - Full backend pytest, Ruff, and mypy gates pass; deterministic evaluations pass 29/29.
 - Changed-file scans find no secret-like values, no unsafe SVG scripting/event/remote-reference content, and no workflow or generated-data modifications.
 - GitHub pull request #15 remained open and mergeable at exact head `a538dbb8e6c1da4fa25b78fa875e72a3d2f283ce`; its `Verify pull request` check completed successfully on 2026-09-05.
+- GitHub pull request #16 was created as an open, mergeable stacked review based on `codex/phase-4-advisor`; its latest head must keep the `Verify pull request` check green before merge.
 
 Those older production results describe the deployed architecture and must not be cited as verification of the new target.
 
 ## Next
 
-1. Keep the Phase 5 review stacked on `codex/phase-4-advisor` so pull request #15 remains unchanged.
-2. Confirm the masked `MODELOPS_MODEL_API_KEY` variable still exists on the Zeabur `modelops-agent-api` service; do not overwrite it without a new user-supplied value.
-3. After pull request #15 is merged, retarget the Phase 5 pull request to `main`. Merge and run Pages/Zeabur acceptance only when separately authorized, re-checking the exact head first.
+1. Review pull request #16 while keeping it stacked on `codex/phase-4-advisor` so pull request #15 remains unchanged.
+2. After pull request #15 is merged, retarget pull request #16 to `main`.
+3. Merge and run Pages/Zeabur acceptance only when separately authorized, re-checking each exact head first.
