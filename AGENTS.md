@@ -2,9 +2,9 @@
 
 ## Overview
 
-This repository is an AI model leaderboard with a React/Vite frontend and FastAPI/LangGraph backend. The user-confirmed product direction is defined in `DESIGN.md`. Historical implementation plans are archived under `docs/archive/` and do not impose new phase gates on maintenance of the published product.
+This repository is an AI model leaderboard with a React/Vite frontend and FastAPI/LangGraph backend. The user-confirmed product direction is defined in `DESIGN.md`. Superseded implementation plans have been removed; use Git history for historical decisions, not as new phase gates on maintenance of the published product.
 
-Those documents describe intended behavior, not proof that it exists. Use `PROJECT_STATE.md`, the current code, generated data, tests, and deployed revision before claiming a phase is implemented or published.
+The design describes intended behavior, not proof that it exists. Use `PROJECT_STATE.md`, the current code, generated data, tests, and deployed revision before claiming a phase is implemented or published.
 
 Preserve the working product and its evidence boundaries through small, phase-scoped changes. Do not start a later phase while an earlier phase is awaiting user review.
 
