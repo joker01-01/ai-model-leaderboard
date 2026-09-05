@@ -17,3 +17,38 @@
 - **按需求选模型**：根据需求和预算筛选，结合官方资料核验给出推荐。
 
 支持桌面和手机浏览。数据来源于 [Artificial Analysis](https://artificialanalysis.ai/)，更新日期见网站页脚。
+
+## 页面预览
+
+### 首页
+
+![首页：模型能力、速度、价格与按需求选模型入口](docs/screenshots/home.jpg)
+
+<details>
+<summary>查看全部榜单和选模型页面</summary>
+
+### 综合智能
+
+![综合智能榜](docs/screenshots/intelligence.jpg)
+
+### 编程智能
+
+![编程智能榜](docs/screenshots/coding.jpg)
+
+### 智能体能力
+
+![智能体能力榜](docs/screenshots/agentic.jpg)
+
+### 模型速度
+
+![模型速度榜：首字延迟与输出速度](docs/screenshots/speed.jpg)
+
+### 模型价格
+
+![模型价格榜：输入价格与输出价格](docs/screenshots/price.jpg)
+
+### 按需求选模型
+
+![按需求选模型：需求、部署地区与预算表单](docs/screenshots/advisor.jpg)
+
+</details>
