@@ -164,4 +164,4 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 - 首页社交页脚、Bilibili/GitHub/微信公众号入口、本地二维码、正式品牌图标和最终界面修正已在 Phase 5 完成视觉验收，并通过本地 Phase 6 门禁。
 - 内部精选目录仍只有受控的精确版本集合；完整公开榜成员不会自动成为 ModelOps Agent 证据。
 - 指标是带观测日期的第三方快照，不是厂商官方结论；价格、速度和模型配置会变化。
-- Phase 1–4 已推送并进入 pull request #15；Phase 5 将通过独立的堆叠 pull request 审查。两者都尚未合并，也未执行新版本的 Pages 或 Zeabur 发布验收；以 [`PROJECT_STATE.md`](PROJECT_STATE.md) 为准。
+- Phase 1–4 已推送并进入 pull request #15；Phase 5 通过独立的堆叠 pull request 与 #15 隔离审查。两者都尚未合并，也未执行新版本的 Pages 或 Zeabur 发布验收；以 [`PROJECT_STATE.md`](PROJECT_STATE.md) 为准。

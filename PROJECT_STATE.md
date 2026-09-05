@@ -125,9 +125,9 @@ The product direction and Phase 1 design baseline are confirmed.
    - locally bundled image-only QR popover shown by pointer hover or keyboard focus, without visible account, scan-instruction, close, backdrop, or modal copy;
    - nine exact-ID provider/product SVGs—using Claude for Anthropic, Gemini for Google, Grok for xAI, GLM for Z AI, Kimi for Kimi, Qwen for Alibaba, and Meta for Meta—with prototype-safe initial fallback for every unmapped creator, plus locally bundled social SVGs, pinned attribution, and a production-distributed third-party notice;
    - responsive footer/popover styling with no page-level horizontal overflow in the checked 1053px browser viewport.
-6. **Full verification, documentation, and publication — local Phase 6 gates and documentation are complete; the Phase 5 commit, push, stacked pull request, and later deployment acceptance remain.**
+6. **Full verification, documentation, and publication — local Phase 6 gates and documentation are complete; protected stacked review and later deployment acceptance remain.**
 
-Phase 4 is committed on `codex/phase-4-advisor`. Pull request #15 is the Phase 1–4 review boundary; it has not been merged or deployed. Phase 5 remains an uncommitted separate-branch review slice.
+Phase 4 is committed on `codex/phase-4-advisor`. Pull request #15 is the Phase 1–4 review boundary; it has not been merged or deployed. Phase 5 stays isolated on `codex/phase-5-assets` as a separate stacked-review slice.
 
 ## Frozen decisions
 
@@ -196,7 +196,7 @@ Phase 5 adds or modifies:
 
 ## Remaining after the Phase 1–4 working tree
 
-- Phase 5 has final visual acceptance and completed local Phase 6 gates. It still needs its own commit, push, and stacked pull request based on `codex/phase-4-advisor`; pull request #15 intentionally remains scoped to Phase 1–4.
+- Phase 5 has final visual acceptance and completed local Phase 6 gates. It is isolated in its own stacked review based on `codex/phase-4-advisor`; pull request #15 intentionally remains scoped to Phase 1–4.
 - A bounded legacy DeepSeek smoke against the current pre-refactor Zeabur deployment returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing its value. The Phase 4 advisor's live web-verification path remains unverified until this pull request is merged and Zeabur redeploys it.
 - The local machine has no Docker command, so the repository-root image was not built; only packaging contracts were checked statically and through tests.
 - Before Zeabur publication, verify one replica/one worker and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
@@ -292,6 +292,6 @@ Those older production results describe the deployed architecture and must not b
 
 ## Next
 
-1. Commit and push `codex/phase-5-assets`, then create a stacked pull request whose base is `codex/phase-4-advisor` so pull request #15 remains unchanged.
+1. Keep the Phase 5 review stacked on `codex/phase-4-advisor` so pull request #15 remains unchanged.
 2. Confirm the masked `MODELOPS_MODEL_API_KEY` variable still exists on the Zeabur `modelops-agent-api` service; do not overwrite it without a new user-supplied value.
 3. After pull request #15 is merged, retarget the Phase 5 pull request to `main`. Merge and run Pages/Zeabur acceptance only when separately authorized, re-checking the exact head first.

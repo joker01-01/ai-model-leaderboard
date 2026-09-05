@@ -1,6 +1,6 @@
 # AI Model Leaderboard Full-Product Refactor Plan
 
-> Execution plan for the user-confirmed product direction in `DESIGN.md`. Phases 1–4 are implemented and locally verified on pull request #15. Phase 5 has completed implementation, local verification, and final visual acceptance on its separate branch; Phase 6 commit, protected pull-request publication, and post-merge deployment acceptance remain governed by `PROJECT_STATE.md`.
+> Execution plan for the user-confirmed product direction in `DESIGN.md`. Phases 1–4 are implemented and locally verified on pull request #15. Phase 5 has completed implementation, local verification, and final visual acceptance on its separate branch; Phase 6 protected stacked review and post-merge deployment acceptance remain governed by `PROJECT_STATE.md`.
 
 ## 1. Status and implementation boundary
 
