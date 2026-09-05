@@ -4,6 +4,13 @@
 
 Refactor the existing AI model leaderboard into the simple four-card product defined in `DESIGN.md`, backed by complete source-native Artificial Analysis metrics and a one-shot DeepSeek-assisted model advisor, while preserving the curated exact-version ModelOps domain and protected data-publication workflow.
 
+## Mobile proportional release
+
+- User authorized publication of the proportional-layout trial on 2026-09-06. Release branch `codex/mobile-proportional-release` is based on current `origin/main` at `db4bfda` (merged PR #16), preserving all Phase 5 assets, sorting, footer, and the existing advisor. The older local trial remains saved separately as `73b2b22`.
+- At widths up to 620px, a 1100px canvas is uniformly scaled to the viewport; resize restores normal layout above that breakpoint. Tablet reflow is retained at 621-1024px. Home leading-fill alignment uses the desktop calculation on scaled phones too.
+- Local frontend tests pass 195/195; TypeScript/Vite build passes with the existing >500 kB chunk advisory. Browser checks at 390px confirm no horizontal page overflow or clipped ranking values on home, ability, speed, price, and the idle advisor. Physical-device readability remains for user review; 15px labels scale to about 5.3px at 390px.
+- Publication uses the protected-main PR verification and Pages deployment workflow; check live GitHub status for the release outcome.
+
 ## Current repository baseline
 
 - Working directory for the Phase 5 task: `C:\Users\ADMIN\.codex\worktrees\d8e0\ai-model-leaderboard` (physical alias `D:\CodexData\.codex\worktrees\d8e0\ai-model-leaderboard`).
@@ -299,5 +306,5 @@ Those older production results describe the deployed architecture and must not b
 
 ## Next
 
-1. Complete the user-authorized pull request #16 merge with an allowed linear-history method and run focused Pages acceptance against the deployed revision. The backend should not redeploy for a Phase 5-only diff.
+1. Publish the authorized mobile proportional-layout release through a protected PR and verify its Pages deployment. PR #16 is already merged as `db4bfda`.
 2. Track the deployed advisor live-verification issue as a separate backend change from `main`: first add non-sensitive stage/error telemetry and a live contract probe, then change timeout/query/wire handling only after the actual branch is identified.

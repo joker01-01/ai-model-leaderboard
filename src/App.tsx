@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { CreatorOption } from "./components/LeaderboardLayout";
 import { AA_PUBLIC_SNAPSHOT } from "./data/generated/aaPublicSnapshot";
@@ -26,6 +26,13 @@ const PRIMARY_CREATORS: readonly CreatorOption[] = Object.freeze(
 
 export default function App() {
   const route = useHashRoute();
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const updateWidth = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+  const mobileScale = viewportWidth <= 620 ? viewportWidth / 1100 : null;
   const sharedProps = useMemo(() => ({
     snapshot: PUBLIC_SNAPSHOT,
     presentations: PRESENTATIONS,
@@ -33,7 +40,10 @@ export default function App() {
   }), []);
 
   return (
-    <div className="public-app">
+    <div
+      className="public-app"
+      style={mobileScale === null ? undefined : { width: 1100, zoom: mobileScale }}
+    >
       {route.page === "home" && (
         <HomePage snapshot={PUBLIC_SNAPSHOT} displayNames={DISPLAY_NAMES} />
       )}
