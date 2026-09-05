@@ -7,9 +7,11 @@ import hashlib
 import json
 import logging
 import re
+from collections.abc import Collection, Mapping
+from dataclasses import dataclass
 from math import isfinite
 from typing import Annotated, Literal, TypeAlias, cast
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urldefrag, urljoin, urlsplit
 
 import httpx
 from pydantic import Field, ValidationError, field_validator, model_validator
@@ -40,6 +42,7 @@ _MAX_CITATION_ANNOTATIONS = 30
 _MAX_WEB_ACTIONS = 60
 _MAX_WEB_ACTION_QUERIES = 60
 _MAX_WEB_ACTION_QUERY_LENGTH = 1_024
+_MAX_WEB_ACTION_ID_LENGTH = 512
 _SAFE_QUOTED_REFORMULATION_SUFFIXES = ("", " model")
 _CONTINUATION_MARKER = re.compile(
     r"\Aws_call_id=call_(?=.{1,128}\Z)[A-Za-z0-9]+(?:_[A-Za-z0-9]+)*\Z",
@@ -82,6 +85,25 @@ candidate, or change candidate order. Return only the supplied schema. A satisfi
 verdict must be supported by a URL citation annotation on the output_text; otherwise use unverified.
 Use candidateSlot, never a model/provider ID, in the structured result.
 """
+_SEARCH_CONTINUATION_INSTRUCTIONS = """Use only the restored web-search results supplied in the
+input items. Do not search again or call any tool. Inspect only the numbered frozen candidate slots
+from the supplied JSON. Return only the supplied schema. A satisfied or contradicted verdict must
+be supported by a URL citation annotation on the output_text; otherwise use unverified. Use
+candidateSlot, never a model/provider ID, in the structured result.
+"""
+
+
+@dataclass(frozen=True, slots=True)
+class _QueryMatch:
+    kind: Literal["exact", "reformulated", "auxiliary", "continuation"]
+    candidate_slot: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class _ValidatedWebActions:
+    primary_candidate_slots: frozenset[int]
+    replay_items: tuple[JsonObject, ...]
+    has_message: bool
 
 
 class _SearchCheck(StrictModel):
@@ -281,10 +303,23 @@ def _web_action_url_is_allowed(
     url: str,
     candidates: tuple[RankedAdvisorCandidate, ...],
     official_sources: OfficialSourcesRepository,
+    *,
+    allow_fragment: bool = False,
 ) -> bool:
-    if len(url) > 2_048:
+    if (
+        not url
+        or len(url) > 2_048
+        or url.strip() != url
+        or any(character.isspace() or _is_disallowed_control(character) for character in url)
+    ):
         return False
-    if official_sources.validate_aa_citation_url(url) is not None:
+    try:
+        checked_url = urldefrag(url).url if allow_fragment else url
+    except ValueError:
+        return False
+    if not checked_url:
+        return False
+    if official_sources.validate_aa_citation_url(checked_url) is not None:
         return True
     creator_ids = {
         candidate.model.creator_id
@@ -292,8 +327,28 @@ def _web_action_url_is_allowed(
         if candidate.model.creator_id is not None
     }
     return any(
-        official_sources.validate_citation_url(creator_id, url) is not None
+        official_sources.validate_citation_url(creator_id, checked_url) is not None
         for creator_id in creator_ids
+    )
+
+
+def _is_disallowed_control(character: str) -> bool:
+    codepoint = ord(character)
+    return (
+        codepoint < 32
+        or 0x7F <= codepoint <= 0x9F
+        or 0xD800 <= codepoint <= 0xDFFF
+        or codepoint in {0x2028, 0x2029}
+    )
+
+
+def _is_bounded_action_text(value: object, *, max_length: int) -> bool:
+    return (
+        isinstance(value, str)
+        and bool(value)
+        and len(value) <= max_length
+        and value.strip() == value
+        and not any(_is_disallowed_control(character) for character in value)
     )
 
 
@@ -329,12 +384,15 @@ def _candidate_search_anchors(candidate: RankedAdvisorCandidate) -> tuple[str, .
 def _safe_reformulated_queries(
     candidates: tuple[RankedAdvisorCandidate, ...],
     official_sources: OfficialSourcesRepository,
-) -> frozenset[str]:
+    checks: tuple[VerificationCheckKind, ...],
+) -> tuple[dict[int, frozenset[str]], dict[int, frozenset[str]]]:
     aa_scopes = tuple(
         _search_scope(rule.host, rule.path_prefix)
         for rule in official_sources.registry.artificial_analysis
     )
-    reformulations: set[str] = set()
+    reformulations_by_slot: dict[int, frozenset[str]] = {}
+    auxiliary_by_slot: dict[int, frozenset[str]] = {}
+    api_access_requested = VerificationCheckKind.API_ACCESS in checks
     for candidate in candidates:
         scopes = list(aa_scopes)
         if candidate.model.creator_id is not None:
@@ -342,27 +400,137 @@ def _safe_reformulated_queries(
                 _search_scope(rule.host, rule.path_prefix)
                 for rule in official_sources.sources_for(candidate.model.creator_id)
             )
+        full_name = _safe_query_term(_candidate_name(candidate))
+        reformulations: set[str] = set()
         for scope in scopes:
             for anchor in _candidate_search_anchors(candidate):
                 for suffix in _SAFE_QUOTED_REFORMULATION_SUFFIXES:
                     reformulations.add(f'site:{scope} "{anchor}"{suffix}')
                 if _is_safe_unquoted_search_anchor(anchor):
                     reformulations.add(f"site:{scope} {anchor}")
-    return frozenset(reformulations)
+
+        match = _TRAILING_CONFIGURATION.fullmatch(full_name)
+        source_slug = (
+            None
+            if candidate.model.source_slug is None
+            else _safe_query_term(candidate.model.source_slug)
+        )
+        if match is not None:
+            base = match.group("base").strip()
+            qualifier = match.group("qualifier")
+            groups = tuple(group.strip() for group in qualifier.split(","))
+            group_tokens = tuple(
+                tuple(token.casefold() for token in _CONFIGURATION_TOKEN.findall(group))
+                for group in groups
+            )
+            valid_groups = (
+                bool(groups)
+                and all(groups)
+                and _CONFIGURATION_QUALIFIER.fullmatch(qualifier) is not None
+                and all(tokens for tokens in group_tokens)
+                and all(
+                    token in _CONFIGURATION_WORDS
+                    for tokens in group_tokens
+                    for token in tokens
+                )
+            )
+            if valid_groups:
+                non_adaptive_groups = tuple(
+                    group
+                    for group, tokens in zip(groups, group_tokens, strict=True)
+                    if tokens != ("adaptive", "reasoning")
+                )
+                fallback_groups = tuple(
+                    group
+                    for group, tokens in zip(groups, group_tokens, strict=True)
+                    if "fallback" in tokens
+                )
+                efforts = tuple(
+                    token
+                    for tokens in group_tokens
+                    for token in tokens
+                    if token in {"high", "low", "max", "medium", "xhigh"}
+                )
+                effort = efforts[0] if len(set(efforts)) == 1 else None
+                quoted_groups = " ".join(f'"{group}"' for group in groups)
+                quoted_non_adaptive = " ".join(
+                    f'"{group}"' for group in non_adaptive_groups
+                )
+                quoted_fallback = " ".join(
+                    f'"{group}"' for group in fallback_groups
+                )
+                for scope in scopes:
+                    if api_access_requested:
+                        reformulations.add(
+                            f'site:{scope} "{base}" {quoted_groups} model api'
+                        )
+                        if quoted_non_adaptive:
+                            reformulations.add(
+                                f'site:{scope} "{base}" {quoted_non_adaptive} model api'
+                            )
+                        reformulations.add(
+                            f'"{full_name}" site:{scope} model API access'
+                        )
+                        if effort is not None and quoted_fallback:
+                            reformulations.add(
+                                f'site:{scope} "{base}" {effort} {quoted_fallback} model api'
+                            )
+                    if quoted_non_adaptive:
+                        reformulations.add(
+                            f'"{base}" {quoted_non_adaptive} site:{scope}'
+                        )
+                    if effort is not None and source_slug:
+                        if api_access_requested:
+                            reformulations.add(
+                                f'site:{scope} "{source_slug}" {effort} model api'
+                            )
+                        reformulations.add(
+                            f'site:{scope} "{source_slug}" "{effort}" model'
+                        )
+                if effort is not None and source_slug and fallback_groups:
+                    for aa_scope in aa_scopes:
+                        reformulations.add(
+                            f'site:{aa_scope}/models "{source_slug}" "{effort}" fallback'
+                        )
+
+        reformulations_by_slot[candidate.candidate_slot] = frozenset(reformulations)
+        auxiliary_by_slot[candidate.candidate_slot] = frozenset({f'"{full_name}"'})
+    return reformulations_by_slot, auxiliary_by_slot
+
+
+def _matching_candidate_slots(
+    query: str,
+    queries_by_slot: Mapping[int, Collection[str]],
+) -> frozenset[int]:
+    return frozenset(
+        candidate_slot
+        for candidate_slot, candidate_queries in queries_by_slot.items()
+        if query in candidate_queries
+    )
 
 
 def _search_query_kind(
     query: str,
     *,
-    allowed_queries: set[str],
-    reformulated_queries: frozenset[str],
-) -> Literal["exact", "reformulated", "continuation"] | None:
-    if query in allowed_queries:
-        return "exact"
+    allowed_queries_by_slot: dict[int, tuple[str, ...]],
+    reformulated_queries_by_slot: dict[int, frozenset[str]],
+    auxiliary_queries_by_slot: dict[int, frozenset[str]],
+) -> _QueryMatch | None:
     if _CONTINUATION_MARKER.fullmatch(query) is not None:
-        return "continuation"
-    if query in reformulated_queries:
-        return "reformulated"
+        return _QueryMatch(kind="continuation", candidate_slot=None)
+    exact_slots = _matching_candidate_slots(query, allowed_queries_by_slot)
+    reformulated_slots = _matching_candidate_slots(query, reformulated_queries_by_slot)
+    auxiliary_slots = _matching_candidate_slots(query, auxiliary_queries_by_slot)
+    all_slots = exact_slots | reformulated_slots | auxiliary_slots
+    if len(all_slots) != 1:
+        return None
+    candidate_slot = next(iter(all_slots))
+    if candidate_slot in exact_slots:
+        return _QueryMatch(kind="exact", candidate_slot=candidate_slot)
+    if candidate_slot in reformulated_slots:
+        return _QueryMatch(kind="reformulated", candidate_slot=candidate_slot)
+    if candidate_slot in auxiliary_slots:
+        return _QueryMatch(kind="auxiliary", candidate_slot=candidate_slot)
     return None
 
 
@@ -370,39 +538,70 @@ def _validate_web_actions(
     payload: object,
     *,
     candidates: tuple[RankedAdvisorCandidate, ...],
-    allowed_queries: tuple[str, ...],
+    allowed_queries_by_slot: dict[int, tuple[str, ...]],
+    checks: tuple[VerificationCheckKind, ...],
     official_sources: OfficialSourcesRepository,
-) -> None:
+) -> _ValidatedWebActions:
     if (
         not isinstance(payload, dict)
         or payload.get("status") != "completed"
         or not isinstance(payload.get("output"), list)
     ):
         raise AdvisorGatewayError("advisor web search returned an invalid response")
-    allowed = set(allowed_queries)
-    reformulated = _safe_reformulated_queries(candidates, official_sources)
+    reformulated_by_slot, auxiliary_by_slot = _safe_reformulated_queries(
+        candidates,
+        official_sources,
+        checks,
+    )
     completed_search = False
+    primary_candidate_slots: set[int] = set()
+    replay_items: list[JsonObject] = []
+    action_ids: set[str] = set()
+    has_message = False
     action_count = 0
     query_count = 0
     exact_query_count = 0
     reformulated_query_count = 0
+    auxiliary_query_count = 0
     continuation_marker_count = 0
     failed_open_page_count = 0
+    failed_find_in_page_count = 0
     for item in cast(list[object], payload["output"]):
-        if not isinstance(item, dict) or item.get("type") != "web_search_call":
+        if not isinstance(item, dict):
+            raise AdvisorGatewayError("advisor web search returned an invalid output item")
+        if item.get("type") == "message":
+            has_message = True
             continue
+        if item.get("type") != "web_search_call" or set(item) != {
+            "type",
+            "id",
+            "status",
+            "action",
+        }:
+            raise AdvisorGatewayError("advisor web search returned an invalid output item")
         action_count += 1
         if action_count > _MAX_WEB_ACTIONS:
             raise AdvisorGatewayError("advisor web search returned too many actions")
+        action_id = item.get("id")
+        if (
+            not _is_bounded_action_text(action_id, max_length=_MAX_WEB_ACTION_ID_LENGTH)
+            or any(character.isspace() for character in cast(str, action_id))
+            or action_id in action_ids
+        ):
+            raise AdvisorGatewayError("advisor web search returned an invalid action ID")
+        action_ids.add(cast(str, action_id))
         action_status = item.get("status")
         action = item.get("action")
         if not isinstance(action, dict) or not isinstance(action.get("type"), str):
             raise AdvisorGatewayError("advisor web search returned an invalid action")
         action_type = cast(str, action["type"])
-        # Production has returned failed open_page items inside an otherwise completed
-        # response. Keep that observed wire exception narrower than the documented states.
-        is_failed_open_page = action_status == "failed" and action_type == "open_page"
-        if action_status != "completed" and not is_failed_open_page:
+        # Production has returned failed navigation items inside an otherwise completed
+        # response. They are fully validated metadata, but never replayed or used as evidence.
+        is_failed_navigation = action_status == "failed" and action_type in {
+            "open_page",
+            "find_in_page",
+        }
+        if action_status != "completed" and not is_failed_navigation:
             raise AdvisorGatewayError("advisor web search returned an incomplete action")
         if action_type == "search":
             if set(action).difference({"type", "query", "queries", "sources"}):
@@ -436,17 +635,22 @@ def _validate_web_actions(
                     raise AdvisorGatewayError("advisor web search returned an invalid search query")
                 query_kind = _search_query_kind(
                     search_query,
-                    allowed_queries=allowed,
-                    reformulated_queries=reformulated,
+                    allowed_queries_by_slot=allowed_queries_by_slot,
+                    reformulated_queries_by_slot=reformulated_by_slot,
+                    auxiliary_queries_by_slot=auxiliary_by_slot,
                 )
                 if query_kind is None:
                     raise AdvisorGatewayError("advisor web search used an unapproved query")
-                if query_kind == "exact":
+                if query_kind.kind == "exact":
                     exact_query_count += 1
                     completed_search = True
-                elif query_kind == "reformulated":
+                    primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
+                elif query_kind.kind == "reformulated":
                     reformulated_query_count += 1
                     completed_search = True
+                    primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
+                elif query_kind.kind == "auxiliary":
+                    auxiliary_query_count += 1
                 else:
                     continuation_marker_count += 1
             raw_sources = action.get("sources")
@@ -466,41 +670,85 @@ def _validate_web_actions(
                         )
                     ):
                         raise AdvisorGatewayError("advisor web search used an unapproved source URL")
+            replay_items.append(cast(JsonObject, item))
             continue
         if action_type == "open_page":
             if set(action) != {"type", "url"} or not isinstance(action.get("url"), str):
                 raise AdvisorGatewayError("advisor web search returned an invalid open_page action")
-            if not _web_action_url_is_allowed(cast(str, action["url"]), candidates, official_sources):
+            if not _web_action_url_is_allowed(
+                cast(str, action["url"]),
+                candidates,
+                official_sources,
+                allow_fragment=True,
+            ):
                 raise AdvisorGatewayError("advisor web search opened an unapproved URL")
-            if is_failed_open_page:
+            if is_failed_navigation:
                 failed_open_page_count += 1
-            continue
-        if action_type == "find_in_page":
+        elif action_type == "find_in_page":
             if (
                 set(action) != {"type", "url", "pattern"}
                 or not isinstance(action.get("url"), str)
                 or not isinstance(action.get("pattern"), str)
             ):
                 raise AdvisorGatewayError("advisor web search returned an invalid find_in_page action")
-            pattern = cast(str, action["pattern"])
-            if not pattern or pattern.strip() != pattern or len(pattern) > 200:
+            if not _is_bounded_action_text(action["pattern"], max_length=200):
                 raise AdvisorGatewayError("advisor web search returned an invalid find pattern")
-            if not _web_action_url_is_allowed(cast(str, action["url"]), candidates, official_sources):
+            if not _web_action_url_is_allowed(
+                cast(str, action["url"]),
+                candidates,
+                official_sources,
+                allow_fragment=True,
+            ):
                 raise AdvisorGatewayError("advisor web search inspected an unapproved URL")
-            continue
-        raise AdvisorGatewayError("advisor web search returned an invalid action")
+            if is_failed_navigation:
+                failed_find_in_page_count += 1
+        elif action_type != "search":
+            raise AdvisorGatewayError("advisor web search returned an invalid action")
+        if action_status == "completed":
+            replay_items.append(cast(JsonObject, item))
     if not completed_search:
         raise AdvisorGatewayError("advisor web search returned no approved search action")
     logger.info(
         "advisor_web_action_diagnostics actions=%d queries=%d exact_queries=%d "
-        "reformulated_queries=%d continuation_markers=%d failed_open_pages=%d",
+        "reformulated_queries=%d auxiliary_queries=%d continuation_markers=%d "
+        "failed_open_pages=%d failed_find_in_pages=%d",
         action_count,
         query_count,
         exact_query_count,
         reformulated_query_count,
+        auxiliary_query_count,
         continuation_marker_count,
         failed_open_page_count,
+        failed_find_in_page_count,
     )
+    return _ValidatedWebActions(
+        primary_candidate_slots=frozenset(primary_candidate_slots),
+        replay_items=tuple(replay_items),
+        has_message=has_message,
+    )
+
+
+def _message_only_output_parts(
+    payload: object,
+) -> tuple[tuple[str, tuple[_CitationAnnotation, ...]], ...]:
+    if (
+        not isinstance(payload, dict)
+        or payload.get("status") != "completed"
+        or not isinstance(payload.get("output"), list)
+        or not cast(list[object], payload["output"])
+        or any(
+            not isinstance(item, dict)
+            or item.get("type") != "message"
+            or item.get("status") != "completed"
+            or item.get("role") != "assistant"
+            for item in cast(list[object], payload["output"])
+        )
+    ):
+        raise AdvisorGatewayError(
+            "advisor provider returned an invalid continuation response",
+            failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+        )
+    return _output_parts(payload)
 
 
 def _citation_id(url: str) -> str:
@@ -817,10 +1065,11 @@ class DeepSeekAdvisorGateway:
         }
         payload = await self._post(body)
         try:
-            _validate_web_actions(
+            validated_actions = _validate_web_actions(
                 payload,
                 candidates=candidates,
-                allowed_queries=allowed_queries,
+                allowed_queries_by_slot=queries_by_slot,
+                checks=checks,
                 official_sources=self._official_sources,
             )
         except AdvisorGatewayError as exc:
@@ -828,7 +1077,46 @@ class DeepSeekAdvisorGateway:
                 str(exc),
                 failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
             ) from None
-        parts = _output_parts(payload)
+        if validated_actions.has_message:
+            parts = _output_parts(payload)
+        else:
+            if not validated_actions.replay_items:
+                raise AdvisorGatewayError(
+                    "advisor provider returned no replayable web search calls",
+                    failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+                )
+            continuation_body: dict[str, object] = {
+                **body,
+                "instructions": _SEARCH_CONTINUATION_INSTRUCTIONS,
+                "input": [
+                    {"role": "user", "content": body["input"]},
+                    *validated_actions.replay_items,
+                ],
+                "tool_choice": "none",
+            }
+            continuation_body.pop("tools", None)
+            try:
+                encoded_continuation = json.dumps(
+                    continuation_body,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            except UnicodeEncodeError as exc:
+                raise AdvisorGatewayError(
+                    "advisor continuation request contained invalid text",
+                    failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+                ) from exc
+            if len(encoded_continuation) > self._max_response_bytes:
+                raise AdvisorGatewayError(
+                    "advisor continuation request exceeded the size limit",
+                    failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+                )
+            logger.info(
+                "advisor_web_continuation replayed_actions=%d",
+                len(validated_actions.replay_items),
+            )
+            continuation_payload = await self._post(continuation_body)
+            parts = _message_only_output_parts(continuation_payload)
         provider_annotation_count = sum(len(annotations) for _text, annotations in parts)
         text = "".join(part for part, _annotations in parts)
         try:
@@ -868,7 +1156,12 @@ class DeepSeekAdvisorGateway:
             used_citations: set[str] = set()
             for kind in checks:
                 raw_check = result_checks.get(kind)
-                if raw_check is None:
+                if (
+                    raw_check is None
+                    or candidate.candidate_slot not in validated_actions.primary_candidate_slots
+                ):
+                    if raw_check is not None and raw_check.verdict != EvidenceVerdict.UNVERIFIED:
+                        downgraded_check_count += 1
                     evidence_checks.append(CandidateEvidenceCheck(check=kind, verdict=EvidenceVerdict.UNVERIFIED))
                     continue
                 check_citations: list[str] = []
