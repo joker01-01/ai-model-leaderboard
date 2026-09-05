@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from decimal import Decimal
@@ -33,7 +34,12 @@ from app.domain.advisor import (
 from app.main import AdvisorRuntimeFactory, create_app
 from app.repositories.aa_snapshot import AaSnapshotRepository
 from app.repositories.official_sources import OfficialSourcesRepository
-from app.services.advisor_gateway import AdvisorGateway, AdvisorGatewayError, FakeAdvisorGateway
+from app.services.advisor_gateway import (
+    AdvisorGateway,
+    AdvisorGatewayError,
+    AdvisorGatewayFailureKind,
+    FakeAdvisorGateway,
+)
 from app.services.advisor_rate_limit import (
     ConcurrencyLease,
     NonBlockingConcurrencyGate,
@@ -397,6 +403,39 @@ def test_parse_and_search_failures_return_deterministic_aa_only_results() -> Non
         assert response.json()["verification_status"] == "aa_only"
         assert response.json()["citations"] == []
         assert "sensitive" not in response.text
+
+
+@pytest.mark.parametrize(
+    "failure_kind",
+    [
+        AdvisorGatewayFailureKind.TIMEOUT,
+        AdvisorGatewayFailureKind.PROVIDER_HTTP,
+        AdvisorGatewayFailureKind.PROVIDER_WIRE,
+    ],
+)
+def test_search_failure_logs_safe_stage_and_failure_kind(
+    failure_kind: AdvisorGatewayFailureKind,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_marker = "sensitive search failure"
+    gateway = FakeAdvisorGateway(
+        parsed_needs={_REQUIREMENT: _need()},
+        verification=AdvisorGatewayError(private_marker, failure_kind=failure_kind),
+    )
+    caplog.set_level(logging.INFO, logger="app.api.advisor")
+
+    with TestClient(_application(_runtime(gateway))) as client:
+        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
+
+    assert response.status_code == 200
+    assert response.json()["verification_status"] == "aa_only"
+    assert response.json()["citations"] == []
+    assert "advisor_verification_started" in caplog.text
+    assert "advisor_verification_fallback" in caplog.text
+    assert "stage=verification" in caplog.text
+    assert f"failure_kind={failure_kind.value}" in caplog.text
+    assert "duration_ms=" in caplog.text
+    assert private_marker not in caplog.text
 
 
 @pytest.mark.parametrize(

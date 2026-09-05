@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from collections.abc import Coroutine
 from dataclasses import dataclass
 from decimal import Decimal
@@ -44,7 +45,7 @@ from app.domain.advisor import (
 )
 from app.repositories.aa_snapshot import AaSnapshotRepository
 from app.repositories.official_sources import OfficialSourcesRepository
-from app.services.advisor_gateway import AdvisorGateway
+from app.services.advisor_gateway import AdvisorGateway, AdvisorGatewayError
 from app.services.advisor_rate_limit import NonBlockingConcurrencyGate, SlidingWindowRateLimiter
 from app.services.advisor_selector import apply_verification, select_verification_pool
 
@@ -524,6 +525,11 @@ async def _recommend(
             candidates=_aa_only_candidates(pool),
         )
     async with lease:
+        verification_started_at = time.perf_counter()
+        logger.info(
+            "advisor_verification_started stage=verification candidate_count=%d",
+            len(pool),
+        )
         try:
             verifications = await runtime.gateway.verify_candidates(
                 pool,
@@ -533,13 +539,29 @@ async def _recommend(
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            logger.info("advisor_verification_fallback error_type=%s", type(exc).__name__)
+            duration_ms = int((time.perf_counter() - verification_started_at) * 1_000)
+            failure_kind = exc.failure_kind.value if isinstance(exc, AdvisorGatewayError) else "unexpected"
+            logger.info(
+                "advisor_verification_fallback stage=verification failure_kind=%s "
+                "error_type=%s duration_ms=%d candidate_count=%d",
+                failure_kind,
+                type(exc).__name__,
+                duration_ms,
+                len(pool),
+            )
             return _response(
                 runtime,
                 need=need,
                 deployment_region=payload.deployment_region,
                 candidates=_aa_only_candidates(pool),
             )
+        logger.info(
+            "advisor_verification_completed stage=verification duration_ms=%d "
+            "candidate_count=%d verification_count=%d",
+            int((time.perf_counter() - verification_started_at) * 1_000),
+            len(pool),
+            len(verifications),
+        )
     try:
         _validate_candidate_citation_bindings(
             pool,
