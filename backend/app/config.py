@@ -60,7 +60,7 @@ class ApiSettings(StrictModel):
     model_api_key: SecretStr | None = None
     model_name: NonEmptyString = "deepseek-v4-flash"
     model_base_url: AbsoluteHttpsUrl = "https://api.deepseek.com"
-    model_timeout_seconds: Annotated[float, Field(gt=0, le=120)] = 30.0
+    model_timeout_seconds: Annotated[float, Field(gt=0, le=120)] = 60.0
     model_max_response_bytes: Annotated[int, Field(ge=1_024, le=5_000_000)] = 1_000_000
     provider_document_timeout_seconds: Annotated[float, Field(gt=0, le=30)] = 10.0
     provider_document_max_bytes: Annotated[int, Field(ge=1_024, le=5_000_000)] = 1_000_000

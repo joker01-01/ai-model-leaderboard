@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
+import re
 from math import isfinite
-from typing import Annotated, TypeAlias, cast
+from typing import Annotated, Literal, TypeAlias, cast
 from urllib.parse import urljoin, urlsplit
 
 import httpx
@@ -24,7 +26,7 @@ from app.domain.advisor import (
 )
 from app.domain.models import StrictModel
 from app.repositories.official_sources import OfficialSourceMatch, OfficialSourcesRepository
-from app.services.advisor_gateway import AdvisorGatewayError
+from app.services.advisor_gateway import AdvisorGatewayError, AdvisorGatewayFailureKind
 
 JsonValue: TypeAlias = (  # noqa: UP040 - mypy stable lacks PEP 695 type alias support
     None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
@@ -35,6 +37,38 @@ _JSON_MEDIA_TYPES = frozenset({"application/json", "application/problem+json"})
 _REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 _MAX_CITATION_REDIRECTS = 3
 _MAX_CITATION_ANNOTATIONS = 30
+_MAX_WEB_ACTIONS = 60
+_MAX_WEB_ACTION_QUERIES = 60
+_MAX_WEB_ACTION_QUERY_LENGTH = 1_024
+_CONTINUATION_MARKER = re.compile(
+    r"\Aws_call_id=call_(?=.{1,128}\Z)[A-Za-z0-9]+(?:_[A-Za-z0-9]+)*\Z",
+    re.ASCII,
+)
+_TRAILING_CONFIGURATION = re.compile(r"(?P<base>.+?)\s+\((?P<qualifier>[^()\r\n]*)\)\Z")
+_CONFIGURATION_TOKEN = re.compile(r"[A-Za-z0-9]+", re.ASCII)
+_CONFIGURATION_QUALIFIER = re.compile(
+    r"[A-Za-z0-9]+(?:[\s,./_-]+[A-Za-z0-9]+)*\Z",
+    re.ASCII,
+)
+_UNQUOTED_SEARCH_ANCHOR = re.compile(r"[A-Za-z0-9][A-Za-z0-9 .,'/_-]*\Z", re.ASCII)
+_CONFIGURATION_WORDS = frozenset(
+    {
+        "adaptive",
+        "default",
+        "effort",
+        "fallback",
+        "high",
+        "low",
+        "max",
+        "medium",
+        "non",
+        "nr",
+        "r",
+        "reasoning",
+        "xhigh",
+    }
+)
+logger = logging.getLogger(__name__)
 _INTENT_INSTRUCTIONS = """Extract only the user's model-advisor need into the supplied schema.
 Return one to three unique ability purposes in user-emphasized order. Use intelligence when none is
 stated. Return at most one explicit strongest, fastest, or cheapest objective. Return only explicit
@@ -161,10 +195,16 @@ class _CitationAnnotation(StrictModel):
 
 def _output_parts(payload: object) -> tuple[tuple[str, tuple[_CitationAnnotation, ...]], ...]:
     if not isinstance(payload, dict) or payload.get("status") != "completed":
-        raise AdvisorGatewayError("advisor provider returned an invalid response")
+        raise AdvisorGatewayError(
+            "advisor provider returned an invalid response",
+            failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+        )
     output = payload.get("output")
     if not isinstance(output, list):
-        raise AdvisorGatewayError("advisor provider returned no output text")
+        raise AdvisorGatewayError(
+            "advisor provider returned no output text",
+            failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+        )
 
     parts: list[tuple[str, tuple[_CitationAnnotation, ...]]] = []
     refused = False
@@ -219,11 +259,20 @@ def _output_parts(payload: object) -> tuple[tuple[str, tuple[_CitationAnnotation
                         continue
             parts.append((cast(str, part["text"]), tuple(annotations)))
     if refused:
-        raise AdvisorGatewayError("advisor provider refused the request")
+        raise AdvisorGatewayError(
+            "advisor provider refused the request",
+            failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+        )
     if not parts or not any(text for text, _annotations in parts):
-        raise AdvisorGatewayError("advisor provider returned no output text")
+        raise AdvisorGatewayError(
+            "advisor provider returned no output text",
+            failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+        )
     if sum(len(annotations) for _text, annotations in parts) > _MAX_CITATION_ANNOTATIONS:
-        raise AdvisorGatewayError("advisor provider returned too many citation annotations")
+        raise AdvisorGatewayError(
+            "advisor provider returned too many citation annotations",
+            failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+        )
     return tuple(parts)
 
 
@@ -247,6 +296,74 @@ def _web_action_url_is_allowed(
     )
 
 
+def _search_scope(host: str, path_prefix: str) -> str:
+    return host if path_prefix == "/" else f"{host}{path_prefix.rstrip('/')}"
+
+
+def _is_safe_unquoted_search_anchor(value: str) -> bool:
+    if _UNQUOTED_SEARCH_ANCHOR.fullmatch(value) is None:
+        return False
+    return not any(
+        token.casefold() in {"and", "or", "not"} or token.startswith(("+", "-"))
+        for token in value.split()
+    )
+
+
+def _candidate_search_anchors(candidate: RankedAdvisorCandidate) -> tuple[str, ...]:
+    full_name = _safe_query_term(_candidate_name(candidate))
+    anchors = [full_name]
+    match = _TRAILING_CONFIGURATION.fullmatch(full_name)
+    if match is not None:
+        qualifier = match.group("qualifier")
+        qualifier_tokens = tuple(token.casefold() for token in _CONFIGURATION_TOKEN.findall(qualifier))
+        if (
+            qualifier_tokens
+            and _CONFIGURATION_QUALIFIER.fullmatch(qualifier) is not None
+            and all(token in _CONFIGURATION_WORDS for token in qualifier_tokens)
+        ):
+            anchors.append(match.group("base").strip())
+    return tuple(dict.fromkeys(anchor for anchor in anchors if anchor))
+
+
+def _safe_reformulated_queries(
+    candidates: tuple[RankedAdvisorCandidate, ...],
+    official_sources: OfficialSourcesRepository,
+) -> frozenset[str]:
+    aa_scopes = tuple(
+        _search_scope(rule.host, rule.path_prefix)
+        for rule in official_sources.registry.artificial_analysis
+    )
+    reformulations: set[str] = set()
+    for candidate in candidates:
+        scopes = list(aa_scopes)
+        if candidate.model.creator_id is not None:
+            scopes.extend(
+                _search_scope(rule.host, rule.path_prefix)
+                for rule in official_sources.sources_for(candidate.model.creator_id)
+            )
+        for scope in scopes:
+            for anchor in _candidate_search_anchors(candidate):
+                reformulations.add(f'site:{scope} "{anchor}"')
+                if _is_safe_unquoted_search_anchor(anchor):
+                    reformulations.add(f"site:{scope} {anchor}")
+    return frozenset(reformulations)
+
+
+def _search_query_kind(
+    query: str,
+    *,
+    allowed_queries: set[str],
+    reformulated_queries: frozenset[str],
+) -> Literal["exact", "reformulated", "continuation"] | None:
+    if query in allowed_queries:
+        return "exact"
+    if _CONTINUATION_MARKER.fullmatch(query) is not None:
+        return "continuation"
+    if query in reformulated_queries:
+        return "reformulated"
+    return None
+
+
 def _validate_web_actions(
     payload: object,
     *,
@@ -261,10 +378,19 @@ def _validate_web_actions(
     ):
         raise AdvisorGatewayError("advisor web search returned an invalid response")
     allowed = set(allowed_queries)
+    reformulated = _safe_reformulated_queries(candidates, official_sources)
     completed_search = False
+    action_count = 0
+    query_count = 0
+    exact_query_count = 0
+    reformulated_query_count = 0
+    continuation_marker_count = 0
     for item in cast(list[object], payload["output"]):
         if not isinstance(item, dict) or item.get("type") != "web_search_call":
             continue
+        action_count += 1
+        if action_count > _MAX_WEB_ACTIONS:
+            raise AdvisorGatewayError("advisor web search returned too many actions")
         if item.get("status") != "completed":
             raise AdvisorGatewayError("advisor web search returned an incomplete action")
         action = item.get("action")
@@ -289,8 +415,33 @@ def _validate_web_actions(
                 ):
                     raise AdvisorGatewayError("advisor web search returned invalid search queries")
                 queries.extend(cast(list[str], raw_queries))
-            if not queries or len(queries) > len(allowed_queries) or any(query not in allowed for query in queries):
-                raise AdvisorGatewayError("advisor web search used an unapproved query")
+            if not queries:
+                raise AdvisorGatewayError("advisor web search returned an invalid search query")
+            query_count += len(queries)
+            if query_count > _MAX_WEB_ACTION_QUERIES:
+                raise AdvisorGatewayError("advisor web search returned too many search queries")
+            for search_query in queries:
+                if (
+                    not search_query
+                    or search_query.strip() != search_query
+                    or len(search_query) > _MAX_WEB_ACTION_QUERY_LENGTH
+                ):
+                    raise AdvisorGatewayError("advisor web search returned an invalid search query")
+                query_kind = _search_query_kind(
+                    search_query,
+                    allowed_queries=allowed,
+                    reformulated_queries=reformulated,
+                )
+                if query_kind is None:
+                    raise AdvisorGatewayError("advisor web search used an unapproved query")
+                if query_kind == "exact":
+                    exact_query_count += 1
+                    completed_search = True
+                elif query_kind == "reformulated":
+                    reformulated_query_count += 1
+                    completed_search = True
+                else:
+                    continuation_marker_count += 1
             raw_sources = action.get("sources")
             if raw_sources is not None:
                 if not isinstance(raw_sources, list) or len(raw_sources) > 20:
@@ -308,7 +459,6 @@ def _validate_web_actions(
                         )
                     ):
                         raise AdvisorGatewayError("advisor web search used an unapproved source URL")
-            completed_search = True
             continue
         if action_type == "open_page":
             if set(action) != {"type", "url"} or not isinstance(action.get("url"), str):
@@ -332,6 +482,15 @@ def _validate_web_actions(
         raise AdvisorGatewayError("advisor web search returned an invalid action")
     if not completed_search:
         raise AdvisorGatewayError("advisor web search returned no approved search action")
+    logger.info(
+        "advisor_web_action_diagnostics actions=%d queries=%d exact_queries=%d "
+        "reformulated_queries=%d continuation_markers=%d",
+        action_count,
+        query_count,
+        exact_query_count,
+        reformulated_query_count,
+        continuation_marker_count,
+    )
 
 
 def _citation_id(url: str) -> str:
@@ -374,7 +533,7 @@ class DeepSeekAdvisorGateway:
         model: str,
         base_url: str,
         official_sources: OfficialSourcesRepository,
-        timeout_seconds: float = 30.0,
+        timeout_seconds: float = 60.0,
         max_response_bytes: int = 1_000_000,
     ) -> None:
         if not api_key or api_key.strip() != api_key:
@@ -430,18 +589,35 @@ class DeepSeekAdvisorGateway:
                         if len(chunk) > self._max_response_bytes - len(content):
                             raise AdvisorGatewayError("advisor provider response exceeded the size limit")
                         content.extend(chunk)
-        except AdvisorGatewayError:
-            raise
+        except AdvisorGatewayError as exc:
+            if exc.failure_kind != AdvisorGatewayFailureKind.UNKNOWN:
+                raise
+            raise AdvisorGatewayError(
+                str(exc),
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+            ) from None
         except (TimeoutError, httpx.TimeoutException):
-            raise AdvisorGatewayError("advisor provider timed out") from None
+            raise AdvisorGatewayError(
+                "advisor provider timed out",
+                failure_kind=AdvisorGatewayFailureKind.TIMEOUT,
+            ) from None
         except httpx.HTTPStatusError as exc:
-            raise AdvisorGatewayError(f"advisor provider returned HTTP status {exc.response.status_code}") from None
+            raise AdvisorGatewayError(
+                f"advisor provider returned HTTP status {exc.response.status_code}",
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_HTTP,
+            ) from None
         except httpx.RequestError:
-            raise AdvisorGatewayError("advisor provider is unavailable") from None
+            raise AdvisorGatewayError(
+                "advisor provider is unavailable",
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_UNAVAILABLE,
+            ) from None
         try:
             return json.loads(content)
         except (UnicodeDecodeError, json.JSONDecodeError):
-            raise AdvisorGatewayError("advisor provider returned invalid JSON") from None
+            raise AdvisorGatewayError(
+                "advisor provider returned invalid JSON",
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+            ) from None
 
     async def parse_need(self, requirement: str) -> ParsedAdvisorNeed:
         body: dict[str, object] = {
@@ -469,7 +645,10 @@ class DeepSeekAdvisorGateway:
                 by_name=False,
             )
         except ValidationError:
-            raise AdvisorGatewayError("advisor provider returned invalid intent output") from None
+            raise AdvisorGatewayError(
+                "advisor provider returned invalid intent output",
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+            ) from None
 
     def _match_annotation_url(
         self,
@@ -548,7 +727,7 @@ class DeepSeekAdvisorGateway:
             )
         queries: list[str] = []
         for host, path_prefix in rules:
-            scope = host if path_prefix == "/" else f"{host}{path_prefix.rstrip('/')}"
+            scope = _search_scope(host, path_prefix)
             queries.append(f'site:{scope} "{name}" {suffix}'.strip())
         return tuple(dict.fromkeys(queries))
 
@@ -567,7 +746,10 @@ class DeepSeekAdvisorGateway:
                     deployment_region=deployment_region,
                 )
         except TimeoutError:
-            raise AdvisorGatewayError("advisor verification timed out") from None
+            raise AdvisorGatewayError(
+                "advisor verification timed out",
+                failure_kind=AdvisorGatewayFailureKind.TIMEOUT,
+            ) from None
 
     async def _verify_candidates(
         self,
@@ -624,13 +806,20 @@ class DeepSeekAdvisorGateway:
             },
         }
         payload = await self._post(body)
-        _validate_web_actions(
-            payload,
-            candidates=candidates,
-            allowed_queries=allowed_queries,
-            official_sources=self._official_sources,
-        )
+        try:
+            _validate_web_actions(
+                payload,
+                candidates=candidates,
+                allowed_queries=allowed_queries,
+                official_sources=self._official_sources,
+            )
+        except AdvisorGatewayError as exc:
+            raise AdvisorGatewayError(
+                str(exc),
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+            ) from None
         parts = _output_parts(payload)
+        provider_annotation_count = sum(len(annotations) for _text, annotations in parts)
         text = "".join(part for part, _annotations in parts)
         try:
             parsed = _SearchOutput.model_validate_json(
@@ -640,20 +829,31 @@ class DeepSeekAdvisorGateway:
                 by_name=False,
             )
         except ValidationError:
-            raise AdvisorGatewayError("advisor provider returned invalid verification output") from None
+            raise AdvisorGatewayError(
+                "advisor provider returned invalid verification output",
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+            ) from None
 
         requested_slots = set(candidate_slots)
         if any(result.candidate_slot not in requested_slots for result in parsed.candidates):
-            raise AdvisorGatewayError("advisor provider returned an unknown candidate slot")
+            raise AdvisorGatewayError(
+                "advisor provider returned an unknown candidate slot",
+                failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+            )
         results_by_slot = {result.candidate_slot: result for result in parsed.candidates}
         verifications: list[CandidateVerification] = []
         resolved_annotations: dict[tuple[int, str], OfficialSourceMatch | None] = {}
+        matched_annotation_count = 0
+        downgraded_check_count = 0
         for candidate in candidates:
             accepted: dict[str, OfficialCitation] = {}
             result = results_by_slot.get(candidate.candidate_slot)
             result_checks = {} if result is None else {check.check: check for check in result.checks}
             if any(kind not in checks for kind in result_checks):
-                raise AdvisorGatewayError("advisor provider returned an unrequested evidence check")
+                raise AdvisorGatewayError(
+                    "advisor provider returned an unrequested evidence check",
+                    failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+                )
             evidence_checks: list[CandidateEvidenceCheck] = []
             used_citations: set[str] = set()
             for kind in checks:
@@ -662,7 +862,9 @@ class DeepSeekAdvisorGateway:
                     evidence_checks.append(CandidateEvidenceCheck(check=kind, verdict=EvidenceVerdict.UNVERIFIED))
                     continue
                 check_citations: list[str] = []
-                for annotation in _annotations_for_summary(parts, raw_check.summary):
+                matching_annotations = _annotations_for_summary(parts, raw_check.summary)
+                matched_annotation_count += len(matching_annotations)
+                for annotation in matching_annotations:
                     cache_key = (candidate.candidate_slot, annotation.url)
                     if cache_key not in resolved_annotations:
                         resolved_annotations[cache_key] = await self._resolve_annotation(candidate, annotation)
@@ -683,6 +885,7 @@ class DeepSeekAdvisorGateway:
                 verdict = raw_check.verdict
                 if verdict != EvidenceVerdict.UNVERIFIED and not citation_ids:
                     verdict = EvidenceVerdict.UNVERIFIED
+                    downgraded_check_count += 1
                 if citation_ids:
                     used_citations.update(citation_ids)
                 evidence_checks.append(
@@ -700,4 +903,15 @@ class DeepSeekAdvisorGateway:
                     citations=tuple(accepted[citation_id] for citation_id in accepted if citation_id in used_citations),
                 )
             )
+        rejected_citation_count = sum(match is None for match in resolved_annotations.values())
+        accepted_citation_count = sum(len(verification.citations) for verification in verifications)
+        logger.info(
+            "advisor_citation_diagnostics provider_annotations=%d summary_annotation_matches=%d "
+            "rejected_citations=%d accepted_citations=%d checks_downgraded=%d",
+            provider_annotation_count,
+            matched_annotation_count,
+            rejected_citation_count,
+            accepted_citation_count,
+            downgraded_check_count,
+        )
         return tuple(verifications)

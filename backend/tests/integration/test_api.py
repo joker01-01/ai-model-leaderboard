@@ -203,12 +203,13 @@ def test_settings_parse_cors_and_numeric_environment_values() -> None:
         ApiSettings.from_env({"MODELOPS_TRUSTED_PROXY_CIDRS": "not-a-network"})
 
 
-def test_settings_default_to_deepseek_v4_flash() -> None:
+def test_settings_default_to_production_deepseek_configuration() -> None:
     settings = ApiSettings.from_env({})
 
     assert settings.model_api_key is None
     assert settings.model_name == "deepseek-v4-flash"
     assert settings.model_base_url == "https://api.deepseek.com"
+    assert settings.model_timeout_seconds == 60.0
 
 
 def test_docker_disables_uvicorn_proxy_header_rewriting() -> None:

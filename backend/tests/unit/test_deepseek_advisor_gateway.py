@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from collections.abc import Callable
 from datetime import date
 from typing import cast
@@ -21,12 +22,13 @@ from app.domain.advisor import (
     RankedAdvisorCandidate,
 )
 from app.repositories.official_sources import OfficialSourcesRepository
-from app.services.advisor_gateway import AdvisorGatewayError
+from app.services.advisor_gateway import AdvisorGatewayError, AdvisorGatewayFailureKind
 from app.services.deepseek_advisor_gateway import DeepSeekAdvisorGateway
 
 Handler = Callable[[httpx.Request], httpx.Response]
 
 _OPENAI_CREATOR_ID = "e67e56e3-15cd-43db-b679-da4660a69f41"
+_ANTHROPIC_CREATOR_ID = "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128"
 _PRIVATE_REQUIREMENT = "Recommend a model. PRIVATE_REQUIREMENT_MARKER"
 _INTENT_OUTPUT = {
     "abilityPurposes": ["coding"],
@@ -53,6 +55,45 @@ def _candidate() -> RankedAdvisorCandidate:
             output_price_per_million=4.0,
             time_to_first_answer_seconds=0.5,
             output_tokens_per_second=100.0,
+        ),
+    )
+
+
+def _anthropic_candidate() -> RankedAdvisorCandidate:
+    candidate = _candidate()
+    return RankedAdvisorCandidate(
+        candidate_slot=1,
+        model=candidate.model.model_copy(
+            update={
+                "source_id": "anthropic-test-model",
+                "source_slug": "anthropic-test-model",
+                "raw_name": "Anthropic Test Model",
+                "creator_id": _ANTHROPIC_CREATOR_ID,
+                "creator_name": "Anthropic",
+                "intelligence": 79.0,
+                "coding": 81.0,
+                "agentic": 77.0,
+                "input_price_per_million": 2.0,
+                "output_price_per_million": 8.0,
+                "time_to_first_answer_seconds": 0.6,
+                "output_tokens_per_second": 90.0,
+            }
+        ),
+    )
+
+
+def _unregistered_candidate() -> RankedAdvisorCandidate:
+    candidate = _candidate()
+    return RankedAdvisorCandidate(
+        candidate_slot=2,
+        model=candidate.model.model_copy(
+            update={
+                "source_id": "unregistered-test-model",
+                "source_slug": "unregistered-test-model",
+                "raw_name": "Unregistered Test Model",
+                "creator_id": "00000000-0000-0000-0000-000000000001",
+                "creator_name": "Unregistered",
+            }
         ),
     )
 
@@ -103,13 +144,14 @@ def _output_response(
 
 def _verification_output(
     *,
+    candidate_slot: int = 0,
     verdict: str = "satisfied",
     summary: str = "The official source identifies the model.",
 ) -> dict[str, object]:
     return {
         "candidates": [
             {
-                "candidateSlot": 0,
+                "candidateSlot": candidate_slot,
                 "checks": [
                     {
                         "check": "model_identity",
@@ -168,11 +210,12 @@ def _run_verify(
     handler: Handler,
     *,
     deployment_region: str | None = None,
+    candidates: tuple[RankedAdvisorCandidate, ...] | None = None,
 ) -> tuple[CandidateVerification, ...]:
     async def run() -> tuple[CandidateVerification, ...]:
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
             return await _gateway(client).verify_candidates(
-                (_candidate(),),
+                (_candidate(),) if candidates is None else candidates,
                 need=_need(),
                 deployment_region=deployment_region,
             )
@@ -296,6 +339,268 @@ def test_search_rejects_unapproved_queries() -> None:
 
     with pytest.raises(AdvisorGatewayError, match="unapproved query"):
         _run_verify(handler)
+
+
+def test_search_accepts_safe_provider_reformulations_and_continuation_marker(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    openai = _candidate()
+    anthropic = _anthropic_candidate()
+    candidates = (
+        RankedAdvisorCandidate(
+            candidate_slot=openai.candidate_slot,
+            model=openai.model.model_copy(update={"raw_name": "GPT-5.6 Sol (xhigh)"}),
+        ),
+        RankedAdvisorCandidate(
+            candidate_slot=anthropic.candidate_slot,
+            model=anthropic.model.model_copy(
+                update={
+                    "raw_name": (
+                        "Claude Fable 5.1 "
+                        "(Adaptive Reasoning, Max Effort, Default Fallback)"
+                    )
+                }
+            ),
+        ),
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        exact_query = _search_query(request)
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": exact_query},
+                {
+                    "type": "search",
+                    "queries": [
+                        'site:artificialanalysis.ai "Claude Fable 5.1"',
+                        'site:anthropic.com "Claude Fable 5.1"',
+                        'site:platform.claude.com "Claude Fable 5.1"',
+                        'site:openai.com "GPT-5.6 Sol (xhigh)"',
+                        "site:github.com/openai GPT-5.6 Sol",
+                        "ws_call_id=call_00_5CYfabc",
+                    ],
+                },
+            ],
+        )
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    verifications = _run_verify(handler, candidates=candidates)
+
+    assert len(verifications) == 2
+    assert "advisor_web_action_diagnostics" in caplog.text
+    assert "queries=7" in caplog.text
+    assert "exact_queries=1" in caplog.text
+    assert "reformulated_queries=5" in caplog.text
+    assert "continuation_markers=1" in caplog.text
+    assert "Claude Fable 5.1" not in caplog.text
+    assert "call_00_5CYfabc" not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "site:evil.example OpenAI Test Model",
+        'site:openai.com.evil "OpenAI Test Model"',
+        'site:openai.com/evil "OpenAI Test Model"',
+        'ＳＩＴＥ：ｏｐｅｎａｉ．ｃｏｍ "OpenAI Test Model"',
+        'site:openai.com\u2028"OpenAI Test Model"',
+        'site:openai.com\u3000"OpenAI Test Model"',
+        "site:openai.com Anthropic Test Model",
+        'site:openai.com "Anthropic Test Model"',
+        "site:github.com/openai Anthropic Test Model",
+        "site:openai.com model identity",
+        "site:artificialanalysis.ai Unknown Test Model",
+        "site:openai.com OpenAI Test",
+        "site:openai.com OpenAI Test Model Extra",
+        "site:openai.com openai test model",
+        "site:openai.com  OpenAI Test Model",
+        "site:openai.com OpenAI Test\nModel",
+        f"site:openai.com OpenAI Test Model {_PRIVATE_REQUIREMENT}",
+        f'site:openai.com "OpenAI Test Model" {_PRIVATE_REQUIREMENT}',
+        f'site:openai.com "OpenAI Test Model {_PRIVATE_REQUIREMENT}"',
+        "ws_call_id=call_",
+        "ws_call_id=call_abc-123",
+        "ws_call_id=call_abc__def",
+        "ws_call_id=call_abc_",
+        "ws_call_id=call_é",
+        f"ws_call_id=call_{'a' * 129}",
+        "ws_call_id=call_abc123 ",
+        "",
+        " ",
+        "x" * 1_025,
+    ],
+)
+def test_search_rejects_unsafe_provider_reformulations(query: str) -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(_verification_output(), query=query)
+
+    with pytest.raises(AdvisorGatewayError, match="search query|unapproved query"):
+        _run_verify(handler, candidates=(_candidate(), _anthropic_candidate()))
+
+
+def test_continuation_marker_cannot_replace_an_approved_search_query() -> None:
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            query="ws_call_id=call_00_A1b2C3",
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
+        _run_verify(handler)
+
+
+def test_unregistered_creator_reformulation_is_limited_to_aa_scope() -> None:
+    candidates = (_unregistered_candidate(),)
+
+    def aa_handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(candidate_slot=2),
+            query="site:artificialanalysis.ai Unregistered Test Model",
+        )
+
+    assert len(_run_verify(aa_handler, candidates=candidates)) == 1
+
+    def creator_handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(candidate_slot=2),
+            query="site:openai.com Unregistered Test Model",
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+        _run_verify(creator_handler, candidates=candidates)
+
+
+@pytest.mark.parametrize(
+    ("unsafe_name", "unquoted_query"),
+    [
+        (
+            "OpenAI Test Model OR site:evil.example",
+            "site:openai.com OpenAI Test Model OR site:evil.example",
+        ),
+        (
+            "OpenAI Test Model ＯＲ site：evil.example",
+            "site:openai.com OpenAI Test Model OR site:evil.example",
+        ),
+    ],
+)
+def test_unquoted_reformulation_is_not_derived_from_search_control_tokens_in_name(
+    unsafe_name: str,
+    unquoted_query: str,
+) -> None:
+    candidate = _candidate()
+    unsafe_candidate = RankedAdvisorCandidate(
+        candidate_slot=candidate.candidate_slot,
+        model=candidate.model.model_copy(update={"raw_name": unsafe_name}),
+    )
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            query=unquoted_query,
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+        _run_verify(handler, candidates=(unsafe_candidate,))
+
+
+def test_quoted_reformulation_keeps_search_syntax_in_a_frozen_candidate_name_literal() -> None:
+    candidate = _candidate()
+    unsafe_name = "OpenAI Test Model ＯＲ site：evil.example"
+    unsafe_candidate = RankedAdvisorCandidate(
+        candidate_slot=candidate.candidate_slot,
+        model=candidate.model.model_copy(update={"raw_name": unsafe_name}),
+    )
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            query=f'site:openai.com "{unsafe_name}"',
+        )
+
+    assert len(_run_verify(handler, candidates=(unsafe_candidate,))) == 1
+
+
+@pytest.mark.parametrize(
+    ("raw_name", "unsafe_base"),
+    [
+        ("OpenAI Model (Vision)", "OpenAI Model"),
+        ("OpenAI Model (High (Vision))", "OpenAI Model"),
+        ("OpenAI Model (High", "OpenAI Model"),
+    ],
+)
+def test_reformulation_does_not_strip_model_semantics_or_malformed_qualifiers(
+    raw_name: str,
+    unsafe_base: str,
+) -> None:
+    candidate = _candidate()
+    named_candidate = RankedAdvisorCandidate(
+        candidate_slot=candidate.candidate_slot,
+        model=candidate.model.model_copy(update={"raw_name": raw_name}),
+    )
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            query=f'site:openai.com "{unsafe_base}"',
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+        _run_verify(handler, candidates=(named_candidate,))
+
+
+def test_search_rejects_unknown_action_fields_and_excessive_total_queries() -> None:
+    def unknown_field_handler(request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {
+                    "type": "search",
+                    "query": _search_query(request),
+                    "providerExtension": True,
+                }
+            ],
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="invalid search action"):
+        _run_verify(unknown_field_handler)
+
+    def excessive_handler(request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {
+                    "type": "search",
+                    "queries": [
+                        _search_query(request),
+                        *(f"ws_call_id=call_{index}" for index in range(30)),
+                    ],
+                },
+                {
+                    "type": "search",
+                    "queries": [f"ws_call_id=call_{index}" for index in range(30, 60)],
+                },
+            ],
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="too many search queries"):
+        _run_verify(excessive_handler)
+
+    def excessive_actions_handler(request: httpx.Request) -> httpx.Response:
+        actions: list[dict[str, object]] = [
+            {"type": "search", "query": _search_query(request)}
+        ]
+        for _index in range(60):
+            actions.append(
+                {"type": "open_page", "url": "https://openai.com/research/test-model"}
+            )
+        return _output_response(
+            _verification_output(),
+            actions=actions,
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="too many actions"):
+        _run_verify(excessive_actions_handler)
 
 
 def test_search_output_accepts_only_the_advertised_wire_aliases() -> None:
@@ -450,6 +755,97 @@ def test_outside_domain_citation_is_rejected_without_fetching_it() -> None:
     assert verification.citations == ()
 
 
+def test_rejected_citation_emits_only_safe_aggregate_diagnostics(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    output = _verification_output()
+    private_marker = "PRIVATE_CITATION_MARKER"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        return _output_response(
+            output,
+            query=_search_query(request),
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=f"https://evil.example/{private_marker}",
+                    title=private_marker,
+                )
+            ],
+        )
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    (verification,) = _run_verify(handler)
+
+    assert verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert verification.citations == ()
+    assert "advisor_citation_diagnostics" in caplog.text
+    assert "provider_annotations=1" in caplog.text
+    assert "summary_annotation_matches=1" in caplog.text
+    assert "rejected_citations=1" in caplog.text
+    assert "accepted_citations=0" in caplog.text
+    assert "checks_downgraded=1" in caplog.text
+    assert private_marker not in caplog.text
+    assert "evil.example" not in caplog.text
+
+
+def test_no_citation_annotations_emit_zero_aggregate_diagnostics(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return _output_response(
+            _verification_output(),
+            query=_search_query(request),
+        )
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    (verification,) = _run_verify(handler)
+
+    assert verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert verification.citations == ()
+    assert "advisor_citation_diagnostics" in caplog.text
+    assert "provider_annotations=0" in caplog.text
+    assert "rejected_citations=0" in caplog.text
+    assert "accepted_citations=0" in caplog.text
+
+
+def test_accepted_citation_emits_only_safe_aggregate_diagnostics(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    official_url = "https://openai.com/research/private-test-model"
+    private_title = "PRIVATE_CITATION_TITLE"
+    output = _verification_output()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            assert request.url == httpx.URL(official_url)
+            return httpx.Response(200)
+        return _output_response(
+            output,
+            query=_search_query(request),
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=official_url,
+                    title=private_title,
+                )
+            ],
+        )
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    (verification,) = _run_verify(handler)
+
+    assert verification.checks[0].verdict == EvidenceVerdict.SATISFIED
+    assert len(verification.citations) == 1
+    assert "advisor_citation_diagnostics" in caplog.text
+    assert "provider_annotations=1" in caplog.text
+    assert "rejected_citations=0" in caplog.text
+    assert "accepted_citations=1" in caplog.text
+    assert official_url not in caplog.text
+    assert private_title not in caplog.text
+
+
 def test_same_domain_redirect_to_outside_domain_cannot_support_a_verdict() -> None:
     official_url = "https://openai.com/research/test-model"
     output = _verification_output()
@@ -571,3 +967,44 @@ def test_provider_response_requires_completed_top_level_status() -> None:
 
     with pytest.raises(AdvisorGatewayError, match="invalid response"):
         _run_parse(handler)
+
+
+@pytest.mark.parametrize(
+    ("response_factory", "expected_kind"),
+    [
+        (
+            lambda request: httpx.ReadTimeout("PRIVATE_TIMEOUT_DETAIL", request=request),
+            AdvisorGatewayFailureKind.TIMEOUT,
+        ),
+        (
+            lambda _request: httpx.Response(
+                429,
+                json={"error": "PRIVATE_HTTP_BODY"},
+            ),
+            AdvisorGatewayFailureKind.PROVIDER_HTTP,
+        ),
+        (
+            lambda _request: httpx.Response(
+                200,
+                content=b"{",
+                headers={"Content-Type": "application/json"},
+            ),
+            AdvisorGatewayFailureKind.PROVIDER_WIRE,
+        ),
+    ],
+)
+def test_provider_failures_have_stable_safe_failure_kinds(
+    response_factory: Callable[[httpx.Request], httpx.Response | Exception],
+    expected_kind: AdvisorGatewayFailureKind,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        result = response_factory(request)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    with pytest.raises(AdvisorGatewayError) as caught:
+        _run_verify(handler)
+
+    assert caught.value.failure_kind == expected_kind
+    assert "PRIVATE" not in str(caught.value)

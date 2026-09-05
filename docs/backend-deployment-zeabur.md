@@ -65,7 +65,7 @@ MODELOPS_MODEL_API_KEY=<DeepSeek API key>
 MODELOPS_MODEL_NAME=deepseek-v4-flash
 MODELOPS_MODEL_BASE_URL=https://api.deepseek.com
 MODELOPS_CORS_ORIGINS=https://joker01-01.github.io
-MODELOPS_MODEL_TIMEOUT_SECONDS=30
+MODELOPS_MODEL_TIMEOUT_SECONDS=60
 MODELOPS_MODEL_MAX_RESPONSE_BYTES=1000000
 MODELOPS_PROVIDER_DOCUMENT_TIMEOUT_SECONDS=10
 MODELOPS_PROVIDER_DOCUMENT_MAX_BYTES=1000000
@@ -75,6 +75,8 @@ MODELOPS_TRUSTED_PROXY_CIDRS=
 ```
 
 `MODELOPS_CORS_ORIGINS` contains origins only, so the GitHub Pages repository path must not be appended.
+
+Keep `MODELOPS_MODEL_TIMEOUT_SECONDS` at 60 for the production advisor. A live Zeabur probe confirmed that 30 seconds could terminate the bounded verification request before the provider returned, while the same request reached a provider response with a 60-second timeout.
 
 `MODELOPS_MODEL_API_KEY` is required for the legacy Agent and live advisor verification. Without it, the Phase 4 runtime deliberately keeps the deterministic AA-only advisor available while provider-backed paths degrade; `/healthz` does not validate provider credentials. Keep `MODELOPS_TRUSTED_PROXY_CIDRS` empty until Zeabur's exact forwarding networks have been reviewed, and never use a catch-all CIDR merely to enable forwarded client IPs.
 
@@ -163,6 +165,8 @@ $Advisor | Select-Object verification_status, citations
 ```
 
 HTTP 200 with a schema-valid result proves deterministic advisor availability. A `verified` or `partial` result, or any accepted item in `citations`, proves that this request also completed the bounded live-evidence path. An `aa_only` result is an intentional fallback and by itself does not distinguish a missing or invalid key from provider failure, web-capacity saturation, or rejected evidence.
+
+For an `aa_only` result, inspect the server-side `advisor_verification_*`, `advisor_web_action_diagnostics`, and `advisor_citation_diagnostics` events. They expose only bounded stage, duration, failure category, action/query counts, and aggregate citation counts; they intentionally omit keys, requirements, query text, URLs, titles, and provider response bodies.
 
 ### 6. Browser boundary
 

@@ -296,7 +296,7 @@ The first five rows form the verification pool. DeepSeek server-side web search 
 
 Deployment region is checked only from accepted official evidence and never inferred from a provider name. A missing region match is marked unverified rather than unsupported.
 
-DeepSeek's Responses `web_search` tool is accessed only through a server-side adapter. Search queries and URL acceptance come from a reviewed `creatorId` source registry, never from a user-provided URL or model-invented domain. A search summary is not evidence until every cited URL passes the registry binding.
+DeepSeek's Responses `web_search` tool is accessed only through a server-side adapter. Search queries and URL acceptance come from a reviewed `creatorId` source registry, never from a user-provided URL or model-invented domain. Returned search actions may contain an exact server-generated query, a bounded provider continuation marker, or a reformulation derived from one frozen candidate's complete name or its base name after removing only a recognized configuration suffix, paired with the matching creator/AA registry scope. Other partial names, appended text, cross-creator scopes, and unregistered domains fail closed. A search summary is not evidence until every cited URL passes the registry binding.
 
 Accepted web evidence is limited to:
 

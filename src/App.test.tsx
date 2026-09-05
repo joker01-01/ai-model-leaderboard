@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
+import { AA_PUBLIC_SNAPSHOT } from "./data/generated/aaPublicSnapshot";
 import * as chartAnimation from "./hooks/useChartAnimation";
 
 beforeEach(() => {
@@ -103,7 +104,7 @@ describe("public product routes", () => {
     expect(screen.getByRole("link", { name: "Bilibili" }).getAttribute("href"))
       .toBe("https://space.bilibili.com/691663896");
     expect(screen.getByRole("button", { name: "23号切片二维码" })).toBeTruthy();
-    expect(screen.getByText("更新日期：2026-09-04")).toBeTruthy();
+    expect(screen.getByText(`更新日期：${AA_PUBLIC_SNAPSHOT.source.observedAt}`)).toBeTruthy();
     expect(container.textContent).not.toContain("编辑推荐榜");
     expect(container.textContent).not.toContain("把模型选择变成可核验结论");
   });
