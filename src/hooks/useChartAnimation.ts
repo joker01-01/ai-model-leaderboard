@@ -2,12 +2,6 @@ import { useLayoutEffect, useRef } from "react";
 
 export const CHART_ANIMATION_DURATION_MS = 600;
 
-function prefersReducedMotion(): boolean {
-  return typeof window !== "undefined"
-    && typeof window.matchMedia === "function"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 function cubicBezierCoordinate(time: number, firstControl: number, secondControl: number): number {
   const inverse = 1 - time;
   return 3 * inverse * inverse * time * firstControl
@@ -38,12 +32,12 @@ export function easeChartProgress(linearProgress: number): number {
 }
 
 /** Animate only the entry viewport, without rerendering the full ranking each frame. */
-export function useChartAnimation(metricKey: string, durationMs = CHART_ANIMATION_DURATION_MS) {
-  const chartRef = useRef<HTMLDivElement>(null);
+export function useChartAnimation<T extends HTMLElement = HTMLDivElement>(metricKey: string, durationMs = CHART_ANIMATION_DURATION_MS) {
+  const chartRef = useRef<T>(null);
 
   useLayoutEffect(() => {
     const chart = chartRef.current;
-    if (chart === null || prefersReducedMotion() || durationMs <= 0
+    if (chart === null || durationMs <= 0
       || typeof Element.prototype.animate !== "function") return undefined;
 
     // Read all geometry before starting any animations or changing number text.

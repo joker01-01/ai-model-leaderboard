@@ -137,13 +137,14 @@ describe("useChartAnimation", () => {
     expect(frames.pendingCount).toBe(0);
   });
 
-  it("keeps final values with no animation or RAF for reduced motion", () => {
+  it("plays chart growth even when the system requests reduced motion", () => {
     setReducedMotion(true);
     const frames = installAnimationFrames();
     render(<Chart metricKey="intelligence" />);
+    expect(screen.getByTestId("visible").textContent).toBe("0");
+    expect(animate).toHaveBeenCalledTimes(2);
+    frames.advance(600);
     expect(screen.getByTestId("visible").textContent).toBe("65.7");
-    expect(animate).not.toHaveBeenCalled();
-    expect(frames.request).not.toHaveBeenCalled();
   });
 
   it("falls back to static exact values when Web Animations is unavailable", () => {

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import SiteFooter from "../components/SiteFooter";
 import SingleMetricChart from "../components/SingleMetricChart";
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import { selectAbilityRanking, selectPriceRanking, selectSpeedRanking } from "../lib/aaRankings";
 import type { AaPublicSnapshot } from "../lib/aaPublicSnapshot";
 import { alignedPreviewScaleMaximum, niceAxisMaximum } from "../lib/chartScale";
@@ -61,7 +62,7 @@ export default function HomePage({ snapshot, displayNames, previewLimit = 5 }: H
             leadingAbilityValue,
             abilityPlotRect.left,
             abilityPlotRect.width,
-            priceFillRect.right,
+            priceFillRect.left + Number.parseFloat(getComputedStyle(leadingPriceFill).width),
             100,
           );
         }
@@ -88,6 +89,10 @@ export default function HomePage({ snapshot, displayNames, previewLimit = 5 }: H
     };
   }, [leadingAbilityValue, leadingPriceValue, priceMax]);
 
+  const abilityAnimation = useChartAnimation<HTMLAnchorElement>(`home:ability:${previewLimit}:${abilityPreviewMax}`);
+  const speedAnimation = useChartAnimation<HTMLAnchorElement>(`home:speed:${previewLimit}`);
+  const priceAnimation = useChartAnimation<HTMLAnchorElement>(`home:price:${previewLimit}`);
+
   return (
     <main className="public-page home-page">
       <header className="home-header">
@@ -95,7 +100,7 @@ export default function HomePage({ snapshot, displayNames, previewLimit = 5 }: H
       </header>
 
       <section ref={gridRef} className="home-grid" aria-label="排行榜目录">
-        <a className="directory-card ability-card" href="#/ability/intelligence" aria-label="模型能力榜单">
+        <a ref={abilityAnimation} className="directory-card ability-card" href="#/ability/intelligence" aria-label="模型能力榜单">
           <header>
             <h2>模型能力榜单</h2>
           </header>
@@ -112,7 +117,7 @@ export default function HomePage({ snapshot, displayNames, previewLimit = 5 }: H
           )}
         </a>
 
-        <a className="directory-card speed-card" href="#/efficiency/speed" aria-label="模型速度榜单">
+        <a ref={speedAnimation} className="directory-card speed-card" href="#/efficiency/speed" aria-label="模型速度榜单">
           <header>
             <h2>模型速度榜单</h2>
           </header>
@@ -134,7 +139,7 @@ export default function HomePage({ snapshot, displayNames, previewLimit = 5 }: H
           )}
         </a>
 
-        <a className="directory-card price-card" href="#/efficiency/price" aria-label="模型价格榜单">
+        <a ref={priceAnimation} className="directory-card price-card" href="#/efficiency/price" aria-label="模型价格榜单">
           <header>
             <h2>模型价格榜单</h2>
           </header>

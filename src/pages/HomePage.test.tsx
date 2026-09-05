@@ -124,6 +124,23 @@ afterEach(() => {
 });
 
 describe("HomePage", () => {
+  it("animates all three desktop previews on entry", () => {
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ top: 100, bottom: 144, left: 0, right: 100, width: 100, height: 44 } as DOMRect);
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn().mockReturnValue({ matches: false }),
+    });
+    const animate = vi.fn(() => ({ cancel: vi.fn() }));
+    Object.defineProperty(Element.prototype, "animate", { configurable: true, value: animate });
+    try {
+      const { unmount } = render(<HomePage snapshot={snapshot()} displayNames={new Map()} />);
+      expect(animate).toHaveBeenCalledTimes(30);
+      unmount();
+    } finally {
+      Reflect.deleteProperty(Element.prototype, "animate");
+    }
+  });
+
   it("keeps the four directory links in visual reading order", async () => {
     const user = userEvent.setup();
     const data = snapshot();
@@ -194,12 +211,21 @@ describe("HomePage", () => {
   });
 
   it("aligns the leading desktop ability fill to the leading price fill without changing its value", () => {
+    const computedStyle = window.getComputedStyle.bind(window);
+    vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+      const style = computedStyle(element);
+      if (element.matches(".price-card .single-metric-chart__bar-fill")) {
+        Object.defineProperty(style, "width", { value: "200px" });
+      }
+      return style;
+    });
     const rectSpy = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
       if (this.matches(".ability-card .single-metric-chart__plot")) {
         return { left: 100, right: 1100, width: 1000 } as DOMRect;
       }
       if (this.matches(".price-card .single-metric-chart__bar-fill")) {
-        return { left: 700, right: 900, width: 200 } as DOMRect;
+        // The animated fill is visually partway through its growth.
+        return { left: 700, right: 740, width: 40 } as DOMRect;
       }
       return { left: 0, right: 0, width: 0 } as DOMRect;
     });
