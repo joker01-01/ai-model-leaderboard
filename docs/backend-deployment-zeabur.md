@@ -66,13 +66,17 @@ MODELOPS_MODEL_NAME=deepseek-v4-flash
 MODELOPS_MODEL_BASE_URL=https://api.deepseek.com
 MODELOPS_CORS_ORIGINS=https://joker01-01.github.io
 MODELOPS_MODEL_TIMEOUT_SECONDS=30
+MODELOPS_MODEL_MAX_RESPONSE_BYTES=1000000
 MODELOPS_PROVIDER_DOCUMENT_TIMEOUT_SECONDS=10
 MODELOPS_PROVIDER_DOCUMENT_MAX_BYTES=1000000
 MODELOPS_SSE_HEARTBEAT_SECONDS=15
 MODELOPS_GRAPH_RECURSION_LIMIT=32
+MODELOPS_TRUSTED_PROXY_CIDRS=
 ```
 
 `MODELOPS_CORS_ORIGINS` contains origins only, so the GitHub Pages repository path must not be appended.
+
+`MODELOPS_MODEL_API_KEY` is required for the legacy Agent and live advisor verification. Without it, the Phase 4 runtime deliberately keeps the deterministic AA-only advisor available while provider-backed paths degrade; `/healthz` does not validate provider credentials. Keep `MODELOPS_TRUSTED_PROXY_CIDRS` empty until Zeabur's exact forwarding networks have been reviewed, and never use a catch-all CIDR merely to enable forwarded client IPs.
 
 Do not add `AA_API_KEY`; it belongs to the separate data-sync workflow. `VITE_AGENT_API_URL` is injected only into the reviewed GitHub Pages build and is not a backend service variable.
 
@@ -106,14 +110,14 @@ Expected response:
 {"status":"ok"}
 ```
 
-A `503` response means the API key, generated JSON, or startup dependency is unavailable. Do not route frontend traffic to that deployment.
+A `503` response means generated JSON or another required startup dependency is unavailable. A `200` response proves repository-backed runtime readiness only: the Phase 4 service can return deterministic AA-only advisor results without a model key, so readiness does not prove that DeepSeek or live web verification works.
 
 ### 3. Non-streaming live request
 
 ```powershell
 curl.exe --fail --show-error `
   --header "Content-Type: application/json" `
-  --data '{"message":"Recommend a coding model using verified evidence."}' `
+  --data '{"message":"Recommend a model for Python coding. Provider region is cn-beijing. Monthly budget is 10 USD. Each request uses 1000 uncached input tokens, 0 cached input tokens, and 500 output tokens. There are 100 requests per month. Evaluate as of 2026-09-05."}' `
   "$ApiOrigin/api/v1/agent/query:invoke"
 ```
 
@@ -125,7 +129,7 @@ Acceptance requires a schema-valid response from the configured DeepSeek gateway
 curl.exe --no-buffer --fail --show-error `
   --header "Accept: text/event-stream" `
   --header "Content-Type: application/json" `
-  --data '{"message":"Recommend a coding model using verified evidence."}' `
+  --data '{"message":"Recommend a model for Python coding. Provider region is cn-beijing. Monthly budget is 10 USD. Each request uses 1000 uncached input tokens, 0 cached input tokens, and 500 output tokens. There are 100 requests per month. Evaluate as of 2026-09-05."}' `
   "$ApiOrigin/api/v1/agent/query"
 ```
 
@@ -138,7 +142,29 @@ Verify all of the following:
 - closing the client connection cancels unfinished server work;
 - a complete run finishes within the configured model/document timeouts without the gateway terminating the stream.
 
-### 5. Browser boundary
+### 5. Phase 4 advisor live verification
+
+After the Phase 4 revision is deployed, submit one bounded advisor request:
+
+```powershell
+$AdvisorBody = @{
+  requirement = "需要综合能力强并支持 API 调用的模型"
+  deployment_region = $null
+  budget = $null
+} | ConvertTo-Json
+
+$Advisor = Invoke-RestMethod `
+  -Method Post `
+  -Uri "$ApiOrigin/api/v1/advisor/recommend" `
+  -ContentType "application/json" `
+  -Body $AdvisorBody
+
+$Advisor | Select-Object verification_status, citations
+```
+
+HTTP 200 with a schema-valid result proves deterministic advisor availability. A `verified` or `partial` result, or any accepted item in `citations`, proves that this request also completed the bounded live-evidence path. An `aa_only` result is an intentional fallback and by itself does not distinguish a missing or invalid key from provider failure, web-capacity saturation, or rejected evidence.
+
+### 6. Browser boundary
 
 Check the browser preflight explicitly:
 
@@ -178,7 +204,7 @@ After recovery, the Zeabur 12-hour Usage graph showed low-single-digit CPU perce
 
 The purchased server is a fixed monthly resource. Start with one service and one Uvicorn worker. Observe CPU and memory before adding replicas or increasing limits.
 
-The public API currently has no authentication or rate limiting. CORS constrains browsers but does not prevent direct scripted requests. Expose the backend only through the reviewed Pages build and do not widen the configured browser origins without a separate review. Keep only a controlled small DeepSeek balance and review Usage regularly; enable an alert or quota only if the provider console explicitly offers it. Adding application authentication or rate limiting requires a separately approved scope.
+The public API has no authentication. CORS constrains browsers but does not prevent direct scripted requests. The Phase 4 advisor enforces five requests per client IP per ten minutes and allows at most two simultaneous web-backed recommendations in its single process; the preserved legacy Agent endpoints do not gain that limiter. Keep one Zeabur replica and one Uvicorn worker until a reviewed shared limiter exists, and configure only exact trusted proxy CIDRs before relying on forwarded client IPs. Expose the backend only through the reviewed Pages build, do not widen the configured browser origins without a separate review, keep a controlled small DeepSeek balance, and review provider usage regularly.
 
 ## Rollback
 
