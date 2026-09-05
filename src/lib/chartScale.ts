@@ -12,3 +12,30 @@ export function niceAxisMaximum(maximum: number): number {
 
   return mantissa * magnitude;
 }
+
+export function alignedPreviewScaleMaximum(
+  value: number,
+  plotLeft: number,
+  plotWidth: number,
+  targetFillRight: number,
+  fallbackMaximum: number,
+): number {
+  if (
+    !Number.isFinite(value)
+    || value <= 0
+    || !Number.isFinite(plotLeft)
+    || !Number.isFinite(plotWidth)
+    || plotWidth <= 0
+    || !Number.isFinite(targetFillRight)
+  ) {
+    return fallbackMaximum;
+  }
+
+  const targetRatio = (targetFillRight - plotLeft) / plotWidth;
+  if (targetRatio <= 0 || targetRatio >= 1) return fallbackMaximum;
+
+  const alignedMaximum = value / targetRatio;
+  return Number.isFinite(alignedMaximum) && alignedMaximum > value
+    ? alignedMaximum
+    : fallbackMaximum;
+}

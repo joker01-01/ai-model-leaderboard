@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import SingleMetricChart from "../components/SingleMetricChart";
 import { selectAbilityRanking, selectPriceRanking, selectSpeedRanking } from "../lib/aaRankings";
 import type { AaPublicSnapshot } from "../lib/aaPublicSnapshot";
-import { niceAxisMaximum } from "../lib/chartScale";
+import { alignedPreviewScaleMaximum, niceAxisMaximum } from "../lib/chartScale";
 
 interface HomePageProps {
   readonly snapshot: AaPublicSnapshot;
@@ -12,6 +12,7 @@ interface HomePageProps {
 
 export default function HomePage({ snapshot, displayNames }: HomePageProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const gridRef = useRef<HTMLElement>(null);
   const abilityRows = selectAbilityRanking(snapshot.models, "intelligence");
   const speedRows = selectSpeedRanking(snapshot.models);
   const priceRows = selectPriceRanking(snapshot.models);
@@ -20,11 +21,67 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
   const pricePreview = priceRows.slice(0, 5);
   const speedMax = niceAxisMaximum(Math.max(0, speedRows[0]?.primaryValue ?? 0));
   const priceMax = niceAxisMaximum(Math.max(0, priceRows[0]?.primaryValue ?? 0));
+  const leadingAbilityValue = abilityPreview[0]?.primaryValue ?? 0;
+  const leadingPriceValue = pricePreview[0]?.primaryValue ?? 0;
+  const [abilityPreviewMax, setAbilityPreviewMax] = useState(100);
 
   useEffect(() => {
     document.title = "AI 模型排行榜";
     titleRef.current?.focus({ preventScroll: true });
   }, []);
+
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    if (grid === null) return undefined;
+
+    const updateAbilityPreviewScale = () => {
+      let nextMaximum = 100;
+      const hasDesktopColumns = typeof window.matchMedia === "function"
+        && window.matchMedia("(min-width: 1025px)").matches;
+
+      if (hasDesktopColumns && leadingAbilityValue > 0 && leadingPriceValue >= 0) {
+        // The full-width ability plot and half-width price plot have different origins.
+        // Measure the visible price endpoint so their leading fills share one desktop edge.
+        const abilityPlot = grid.querySelector<HTMLElement>(
+          ".ability-card .single-metric-chart__plot",
+        );
+        const leadingPriceFill = grid.querySelector<HTMLElement>(
+          ".price-card .single-metric-chart__bar-fill",
+        );
+
+        if (abilityPlot !== null && leadingPriceFill !== null) {
+          const abilityPlotRect = abilityPlot.getBoundingClientRect();
+          const priceFillRect = leadingPriceFill.getBoundingClientRect();
+          nextMaximum = alignedPreviewScaleMaximum(
+            leadingAbilityValue,
+            abilityPlotRect.left,
+            abilityPlotRect.width,
+            priceFillRect.right,
+            100,
+          );
+        }
+      }
+
+      setAbilityPreviewMax((currentMaximum) => (
+        Math.abs(currentMaximum - nextMaximum) < 0.000001 ? currentMaximum : nextMaximum
+      ));
+    };
+
+    updateAbilityPreviewScale();
+    const alignmentFrame = typeof window.requestAnimationFrame === "function"
+      ? window.requestAnimationFrame(updateAbilityPreviewScale)
+      : null;
+    const resizeObserver = typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(updateAbilityPreviewScale);
+    resizeObserver?.observe(grid);
+    window.addEventListener("resize", updateAbilityPreviewScale);
+    return () => {
+      if (alignmentFrame !== null) window.cancelAnimationFrame(alignmentFrame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateAbilityPreviewScale);
+    };
+  }, [leadingAbilityValue, leadingPriceValue, priceMax]);
 
   return (
     <main className="public-page home-page">
@@ -32,7 +89,7 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
         <h1 ref={titleRef} tabIndex={-1}>AI 模型排行榜</h1>
       </header>
 
-      <section className="home-grid" aria-label="排行榜目录">
+      <section ref={gridRef} className="home-grid" aria-label="排行榜目录">
         <a className="directory-card ability-card" href="#/ability/intelligence" aria-label="模型能力榜单">
           <header>
             <h2>模型能力榜单</h2>
@@ -41,7 +98,7 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
             <SingleMetricChart
               rows={abilityPreview}
               displayNames={displayNames}
-              scaleMax={100}
+              scaleMax={abilityPreviewMax}
               progress={1}
               preview
             />
@@ -95,7 +152,6 @@ export default function HomePage({ snapshot, displayNames }: HomePageProps) {
 
         <a className="directory-card advisor-card" href="#/advisor" aria-label="按需求选模型">
           <div>
-            <p>按你的任务、预算和部署需求筛选</p>
             <h2>按需求选模型</h2>
           </div>
           <div className="advisor-card-action">

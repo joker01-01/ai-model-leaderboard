@@ -1,7 +1,15 @@
 import { compareUnicodeCodePoints, getAaNameSortKey, type AaRankedModel } from "./aaRankings";
 import type { AaPublicModel } from "./aaPublicSnapshot";
 
-export type AaCreatorBrand = "openai" | "anthropic" | "google" | "deepseek" | "xai";
+export type AaCreatorBrand =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "deepseek"
+  | "xai"
+  | "glm"
+  | "kimi"
+  | "qwen";
 export type AaCreatorTone = AaCreatorBrand | "other";
 
 export interface AaModelPresentation {
@@ -37,6 +45,21 @@ export const AA_FEATURED_CREATORS = Object.freeze([
     creatorId: "a1e3ddcf-d3e4-44a5-9e8f-029a69850875",
     brand: "xai" as const,
     label: "xAI",
+  }),
+  Object.freeze({
+    creatorId: "67437eb6-7dc1-4e93-befd-22c8b8ec2065",
+    brand: "glm" as const,
+    label: "GLM",
+  }),
+  Object.freeze({
+    creatorId: "0a177021-87dd-4250-9a37-f01df196bfe0",
+    brand: "kimi" as const,
+    label: "KIMI",
+  }),
+  Object.freeze({
+    creatorId: "d874d370-74d3-4fa0-ba00-5272f92f946b",
+    brand: "qwen" as const,
+    label: "Qwen",
   }),
 ]);
 

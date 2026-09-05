@@ -1,4 +1,10 @@
-import type { AaRankedModel } from "../lib/aaRankings";
+import {
+  defaultEfficiencySortDirection,
+  type AaEfficiencySort,
+  type AaEfficiencySortSide,
+  type AaRankedModel,
+  type AaSortDirection,
+} from "../lib/aaRankings";
 import { niceAxisMaximum } from "../lib/chartScale";
 import { getAaCreatorTone } from "../lib/modelPresentation";
 import ModelIdentity from "./ModelIdentity";
@@ -14,6 +20,8 @@ interface DualMetricChartProps {
   readonly preview?: boolean;
   readonly view: DualMetricView;
   readonly scaleRows: readonly AaRankedModel[];
+  readonly sort: AaEfficiencySort;
+  readonly onSortChange: (side: AaEfficiencySortSide) => void;
 }
 
 interface MetricPresentation {
@@ -217,25 +225,98 @@ function MetricSide({
   );
 }
 
-function MetricLegend({ view }: { readonly view: DualMetricView }) {
+function oppositeDirection(direction: AaSortDirection): AaSortDirection {
+  return direction === "ascending" ? "descending" : "ascending";
+}
+
+function directionLabel(direction: AaSortDirection): string {
+  return direction === "ascending" ? "从低到高" : "从高到低";
+}
+
+function SortIcon() {
+  return (
+    <svg
+      className="dual-metric-chart__sort-icon"
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path className="dual-metric-chart__sort-up" d="M5.25 13V3.25m0 0-2.5 2.5" />
+      <path className="dual-metric-chart__sort-down" d="M10.75 3v9.75m0 0 2.5-2.5" />
+    </svg>
+  );
+}
+
+function MetricSortButton({
+  side,
+  label,
+  view,
+  sort,
+  onSortChange,
+}: {
+  readonly side: AaEfficiencySortSide;
+  readonly label: string;
+  readonly view: DualMetricView;
+  readonly sort: AaEfficiencySort;
+  readonly onSortChange: (side: AaEfficiencySortSide) => void;
+}) {
+  const isActive = sort.side === side;
+  const nextDirection = isActive
+    ? oppositeDirection(sort.direction)
+    : defaultEfficiencySortDirection(view, side);
+  const accessibleLabel = isActive
+    ? `${label}，当前${directionLabel(sort.direction)}排序，点击切换为${directionLabel(nextDirection)}`
+    : `${label}，点击按${directionLabel(nextDirection)}排序`;
+
+  return (
+    <button
+      type="button"
+      className={`dual-metric-chart__legend-item dual-metric-chart__legend-item--${side}${isActive ? " is-active" : ""}`}
+      data-sort-direction={isActive ? sort.direction : undefined}
+      aria-label={accessibleLabel}
+      aria-pressed={isActive}
+      onClick={() => onSortChange(side)}
+    >
+      <span
+        className={`dual-metric-chart__legend-swatch dual-metric-chart__legend-swatch--${side}`}
+        aria-hidden="true"
+      />
+      <span aria-hidden="true">{label}</span>
+      <SortIcon />
+    </button>
+  );
+}
+
+function MetricLegend({
+  view,
+  sort,
+  onSortChange,
+}: {
+  readonly view: DualMetricView;
+  readonly sort: AaEfficiencySort;
+  readonly onSortChange: (side: AaEfficiencySortSide) => void;
+}) {
   const leftLabel = view === "speed" ? "首字延迟" : "输入价格";
   const rightLabel = view === "speed" ? "输出速度" : "输出价格";
 
   return (
     <div className={`dual-metric-chart__legend dual-metric-chart__legend--${view}`} role="group" aria-label="指标图例">
-      <span className="dual-metric-chart__legend-item">
-        <span
-          className="dual-metric-chart__legend-swatch dual-metric-chart__legend-swatch--left"
-          aria-hidden="true"
-        />
-        <span>{leftLabel}</span>
-      </span>
-      <span className="dual-metric-chart__legend-item">
-        <span
-          className="dual-metric-chart__legend-swatch dual-metric-chart__legend-swatch--right"
-          aria-hidden="true"
-        />
-        <span>{rightLabel}</span>
+      <MetricSortButton
+        side="left"
+        label={leftLabel}
+        view={view}
+        sort={sort}
+        onSortChange={onSortChange}
+      />
+      <MetricSortButton
+        side="right"
+        label={rightLabel}
+        view={view}
+        sort={sort}
+        onSortChange={onSortChange}
+      />
+      <span className="sr-only" aria-live="polite">
+        当前按{sort.side === "left" ? leftLabel : rightLabel}{directionLabel(sort.direction)}排序
       </span>
     </div>
   );
@@ -271,13 +352,15 @@ export default function DualMetricChart({
   preview = false,
   view,
   scaleRows,
+  sort,
+  onSortChange,
 }: DualMetricChartProps) {
   const currentProgress = preview ? 1 : clampProgress(progress);
   const scale = metricScale(view, scaleRows);
 
   return (
     <>
-      <MetricLegend view={view} />
+      <MetricLegend view={view} sort={sort} onSortChange={onSortChange} />
       {preview ? null : <MetricPairAxis view={view} scale={scale} />}
       <ol
         className={`dual-metric-chart dual-metric-chart--${view}${preview ? " dual-metric-chart--preview" : ""}`}

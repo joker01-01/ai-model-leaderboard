@@ -44,7 +44,7 @@ Hash routes are required so GitHub Pages can refresh and deep-link without a ser
 
 Unknown hashes return to the home page. Every detail-page back arrow always links to `#/`, including after a direct deep link; browser back/forward navigation remains functional through the hash history.
 
-Ability and efficiency detail headers center the page title and one concise description while the back control remains pinned to the left. Source attribution and the update date appear only in the home footer, not as a repeated third header line.
+Detail headers center the page title while the back control remains pinned to the left. Ability keeps one concise metric description; the speed and price headers contain only their titles. Source attribution and the update date appear only in the home footer.
 
 ## 3. Home page
 
@@ -68,7 +68,7 @@ The initial viewport contains the title `AI 模型排行榜` and four cards. It 
 └──────────────────────────────────────────────────────────────┘
 ```
 
-On desktop, the ability card spans the full first row. The speed and price cards share one edge in a two-column second row, and the advisor spans the full row below them. Home preview bars retain a clearly visible 20px thickness, with a square left edge and semicircular right edge. No single-metric chart draws a dark remainder track; each value sits 8px after the actual fill endpoint. Home and full-detail model names and values use 15px type, and all units stay visually quieter. All three ranking previews use the same single-bar row grammar and shared identity/plot widths: the ability bars begin on the same vertical baseline as the speed bars and end on the same vertical baseline as the price bars. Ability previews use the absolute 0–100 AA scale. Speed and price previews use a deterministic readable ceiling strictly above the largest observed value, so the first row does not define or fill the axis endpoint. At 1024px and below, all four cards stack in the order ability, speed, price, advisor so neither half-width chart becomes decorative or unreadably narrow; narrow preview rows place model identity above the bar to prevent horizontal overflow.
+On desktop, the ability card spans the full first row. The speed and price cards share one edge in a two-column second row, and the advisor spans the full row below them. Its `开始选择` action uses the advisor purple at 20–24px with a matching 42px arrow so the destination reads as a primary call to action. Home preview bars retain a clearly visible 20px thickness, with a square left edge and semicircular right edge. No single-metric chart draws a dark remainder track; each value sits 8px after the actual fill endpoint. Home and full-detail model names and values use 15px type, and all units stay visually quieter. All three ranking previews use the same single-bar row grammar and shared identity/plot widths: the ability plot begins on the speed plot's vertical baseline and its plot boundary ends on the price plot's vertical baseline. The leading visible ability fill also ends exactly on the leading visible price fill. To satisfy that visible desktop composition without filling either plot, the home ability preview uses a responsive linear ceiling derived from those rendered endpoints; lower ability rows retain their exact linear proportions. Speed and price previews use deterministic readable ceilings strictly above the largest observed value. At 1024px and below, all four cards stack in the order ability, speed, price, advisor, the ability preview returns to its absolute 0–100 AA scale, and narrow preview rows place model identity above the bar to prevent horizontal overflow.
 
 Card destinations and preview rules are fixed:
 
@@ -97,6 +97,9 @@ Competition ties do not expand a preview beyond five rows. Home previews do not 
 | Google | `#4285F4` | Google model names in full ability views |
 | DeepSeek | `#7C6DF2` | DeepSeek model names in full ability views |
 | xAI | `#F2C94C` | xAI model names in full ability views |
+| GLM | `#00C2FF` | GLM model names in public ranking views |
+| KIMI | `#C084FC` | KIMI model names in public ranking views |
+| Qwen | `#FF8A3D` | Qwen model names in public ranking views |
 | Other creator | `#EC4899` | Every unregistered or null creator name in full ability views |
 
 Muted text is derived from primary text with controlled opacity. Color does not replace a label, unit, selected state, or exact numeric value.
@@ -134,7 +137,7 @@ Rows contain:
 
 Ordering conveys rank; rows do not render visible rank numerals. Competition rank is still computed before filtering and exposed to assistive technology so ties and global position remain unambiguous without adding visual noise.
 
-The chart keeps one vivid cyan/teal gradient for every ability bar. Model-name text receives a stable accent by exact AA creator ID on both home previews and full ability pages: OpenAI green, Anthropic coral, Google blue, DeepSeek indigo, and xAI yellow. A null or unregistered creator name uses the fallback pink tone; creator names never determine color. The matching fixed creator-filter pill uses that family's 2px accent border, while `全部` uses neutral white. Creator color changes the model name only, never the bar or creator icon; speed and price charts retain their blue/amber metric semantics. Full ability bars are 18px high, square on the left and rounded only on the right, with no dark remainder track. The `0 / 25 / 50 / 75 / 100` axis is the actual fixed ability-index scale: a score of `65.7` fills exactly 65.7% of the plot. Every model name occupies the same bounded identity column and is explicitly right-aligned before its icon; an overlong label ellipsizes inside that column instead of protruding. The exact score follows its animated bar endpoint with an 8px gap. Rows use a tighter 44px desktop rhythm. A tab change recalculates order from the selected source metric and replays the data animation. Re-selecting the active tab does nothing.
+The chart keeps one vivid cyan/teal gradient for every ability bar. Model-name text receives a stable accent by exact AA creator ID on both home previews and full ability pages: OpenAI green, Anthropic coral, Google blue, DeepSeek indigo, xAI yellow, GLM cyan, KIMI lilac, and Qwen orange. A null or unregistered creator name uses the fallback pink tone; creator names never determine color. The matching fixed creator-filter pill uses that family's 2px accent border, while `全部` uses neutral white. Creator color changes the model name only, never the bar or creator icon; speed and price charts retain their blue/amber metric semantics. Full ability bars are 18px high, square on the left and rounded only on the right, with no dark remainder track. The `0 / 25 / 50 / 75 / 100` axis is the actual fixed ability-index scale: a score of `65.7` fills exactly 65.7% of the plot. Its leftmost zero-origin guide is 2px and visibly higher-contrast than the remaining 1px guides. Every model name occupies the same bounded identity column and is explicitly right-aligned before its icon; an overlong label ellipsizes inside that column instead of protruding. The exact score follows its animated bar endpoint with an 8px gap. Rows use a tighter 44px desktop rhythm. A tab change recalculates order from the selected source metric and replays the data animation. Re-selecting the active tab does nothing.
 
 Full ability rows sort by the selected value descending, name sort key by Unicode code-point order ascending, then `sourceId` ascending. Competition rank uses only the metric value; the other keys stabilize display order without changing ties.
 
@@ -142,14 +145,14 @@ Full ability rows sort by the selected value descending, name sort key by Unicod
 
 Speed and price are separate detail pages titled `模型速度榜单` and `模型价格榜单`. Their routes do not expose an internal speed/price switch; users choose the destination from the two independent home cards and return home to change leaderboard families.
 
-Every row renders one model identity exactly once. A fixed legend above each chart maps blue and amber to that page's two metrics. To the right of the identity, the two bars start from the same left edge, point in the same direction, and stack vertically in the legend order. Five solid vertical guides align both bars. Each guide label is a compact color-matched `blue value / amber value` pair calculated from the real scale of each metric, rather than a misleading shared 0–100 label. The identity uses the same fixed, right-aligned name-plus-icon columns as the ability page, and only the model name receives its exact creator tone. Both metric bars are 18px high, square on the left and rounded only on the right, with no dark remainder track. Each exact value follows its own animated endpoint with an 8px gap, and two-bar rows use compact spacing without horizontal dividers.
+Every row renders one model identity exactly once. Two legend buttons above each chart map blue and amber to that page's metrics and control ordering. Each button ends with one 16px sort glyph made from two complete vertical strokes: the left upward arrow keeps only the outer-left half of its arrowhead, and the right downward arrow keeps only the outer-right half. The selected metric adopts its metric color and emphasizes only the current direction; both halves remain visible on the inactive metric. To the right of the identity, the two bars start from the same left edge, point in the same direction, and stack vertically in legend order. Five solid vertical guides align both bars; the leftmost zero-origin guide is 2px and visibly higher-contrast than the remaining 1px guides. Each guide label is a compact color-matched `blue value / amber value` pair calculated from the real scale of each metric, rather than a misleading shared 0–100 label. The identity uses the same fixed, right-aligned name-plus-icon columns as the ability page, and only the model name receives its exact creator tone. Both metric bars are 18px high, square on the left and rounded only on the right, with no dark remainder track. Each exact value follows its own animated endpoint with an 8px gap, and two-bar rows use compact spacing without horizontal dividers.
 
 ### 6.1 Speed
 
-The fixed legend and row order are:
+The metric controls and bar order are:
 
 ```text
-blue: 首个答案 Token 时间   amber: 输出速度
+blue: 首个答案 Token 时间 [sort]   amber: 输出速度 [sort]
 模型名称 + 图标   [blue bar  →]
                   [amber bar →]
 ```
@@ -157,36 +160,36 @@ blue: 首个答案 Token 时间   amber: 输出速度
 - Both speed axes use a deterministic readable ceiling strictly above the largest observed value. The ceiling is selected from `1 / 1.25 / 1.5 / 2 / 2.5 / 3 / 4 / 5 / 6 / 8 × 10^n` after adding 5% headroom.
 - The blue bar encodes first-answer-time desirability as `(ceiling - value) / ceiling`, so lower latency is longer without allowing the fastest observed row to define the endpoint. The exact seconds and `越低越好` label remain visible.
 - The amber bar length is linear from zero to the readable output-speed ceiling. If the observed maximum is zero, all rows use the same 2% visual stub and still show `0 tokens/s`.
-- Default order is output speed from high to low.
+- Default order is output speed from high to low. Selecting first-answer latency initially sorts low to high; selecting output speed initially sorts high to low. Clicking the active metric toggles its direction.
 - Only rows with both required finite values appear.
-- Equal output speeds use the name sort key by Unicode code-point order ascending, then `sourceId` ascending; competition rank uses output speed only.
+- Equal active-sort values use the name sort key by Unicode code-point order ascending, then `sourceId` ascending; competition rank uses only the active sort metric and is recomputed before creator filtering.
 
 ### 6.2 Price
 
 ```text
-blue: 输入价格   amber: 输出价格
+blue: 输入价格 [sort]   amber: 输出价格 [sort]
 模型名称 + 图标   [blue bar  →]
                   [amber bar →]
 ```
 
 - The blue input-price bar and amber output-price bar start from the same left edge and stack vertically.
-- Order is output price from high to low, as explicitly selected for this product.
+- Default order is output price from high to low, as explicitly selected for this product. Selecting either price metric initially sorts high to low; clicking the active metric toggles its direction.
 - Each price side independently chooses the same deterministic readable ceiling above its largest observed price, then scales with `log1p(price) / log1p(sideCeiling)` because model prices span a large range and zero is valid. If one side's observed maximum is zero, all rows on that side use the same 2% visual stub and show the exact `$0` value.
 - Text always shows the exact linear price; the log scale changes only bar length.
 - Only rows with both required finite prices appear. A genuine zero price remains a valid value.
-- Equal output prices use the name sort key by Unicode code-point order ascending, then `sourceId` ascending; competition rank uses output price only.
+- Equal active-sort prices use the name sort key by Unicode code-point order ascending, then `sourceId` ascending; competition rank uses only the active sort metric and is recomputed before creator filtering.
 
-On mobile, each model remains one compact group: model identity first, then the two same-direction labelled bars and exact values. The page itself must not scroll horizontally.
+Changing an efficiency sort does not replay the entry animation. The native sort buttons expose their selected metric and current/next direction to assistive technology and retain a visible keyboard focus state. On mobile, each model remains one compact group: model identity first, then the two same-direction labelled bars and exact values. The page itself must not scroll horizontally.
 
 ## 7. Creator filters and ordering
 
-Full leaderboard pages deliberately omit search and result-count summary rows. Ability provides its three centered metric tabs; the independent speed and price pages provide no cross-leaderboard tabs. Every detail page centers its title, description, and visible creator controls.
+Full leaderboard pages deliberately omit search and result-count summary rows. Ability provides its three centered metric tabs; the independent speed and price pages provide no cross-leaderboard tabs. Every detail page centers its title and visible creator controls; only ability renders a header description.
 
 Fixed vendor controls are:
 
-`全部 / OpenAI / Anthropic / Google / DeepSeek / xAI`
+`全部 / OpenAI / Anthropic / Google / DeepSeek / xAI / GLM / KIMI / Qwen`
 
-Only these six fixed controls are exposed; there is no `更多` creator menu. Each outline is 2px. On mobile the controls may scroll horizontally with a visible affordance.
+Only these nine fixed controls are exposed; there is no `更多` creator menu. Each outline is 2px. On mobile the controls may scroll horizontally with a visible affordance.
 
 Ranking is computed before creator filtering, so a filtered row keeps its global competition-rank semantics even though rank numerals are not shown visually. Creator-filter changes do not replay chart animation.
 
@@ -240,6 +243,8 @@ Visible inputs:
 - optional deployment region;
 - `我有明确预算` switch;
 - when enabled: monthly budget, average input tokens, average output tokens, and monthly request count.
+
+The idle page deliberately keeps its copy sparse. It retains the `MODEL ADVISOR` kicker, title, field labels, placeholders, budget toggle copy, validation errors, and result states, but omits a header description, requirement/deployment helper paragraphs, and service-connection status copy.
 
 Input contracts are explicit:
 

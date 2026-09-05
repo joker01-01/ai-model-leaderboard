@@ -19,8 +19,9 @@ export interface CreatorOption {
 
 interface LeaderboardLayoutProps {
   readonly tone: "ability" | "efficiency";
+  readonly titleTone: "ability" | "speed" | "price";
   readonly title: string;
-  readonly description: string;
+  readonly description?: string;
   readonly tabs?: readonly LeaderboardTab[];
   readonly creatorId: string | null | undefined;
   readonly onCreatorChange: (creatorId: string | null | undefined) => void;
@@ -30,6 +31,7 @@ interface LeaderboardLayoutProps {
 
 export default function LeaderboardLayout({
   tone,
+  titleTone,
   title,
   description,
   tabs,
@@ -63,8 +65,14 @@ export default function LeaderboardLayout({
           <span aria-hidden="true">←</span>
         </a>
         <div>
-          <h1 ref={titleRef} tabIndex={-1}>{title}</h1>
-          <p>{description}</p>
+          <h1
+            ref={titleRef}
+            tabIndex={-1}
+            className={`leaderboard-title leaderboard-title--${titleTone}`}
+          >
+            {title}
+          </h1>
+          {description ? <p>{description}</p> : null}
         </div>
       </header>
 

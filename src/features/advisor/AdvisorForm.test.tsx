@@ -84,8 +84,13 @@ describe("AdvisorForm", () => {
     const user = userEvent.setup();
     render(<AdvisorForm apiOrigin="https://api.example.com" displayNames={new Map()} fetchImpl={fetchImpl} />);
 
+    expect(screen.getByLabelText("你的需求").hasAttribute("aria-describedby")).toBe(false);
+    expect(screen.getByLabelText("部署地区（可选）").hasAttribute("aria-describedby")).toBe(false);
+    expect(screen.queryByText("写清任务和最重要的偏好；系统只从完整 AA 榜单中筛选。")).toBeNull();
+    expect(screen.queryByText("仅作为官方资料核验要求，不代表该地区一定可用。")).toBeNull();
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
     expect(screen.getByText("请输入你的需求。")).toBeTruthy();
+    expect(screen.getByLabelText("你的需求").getAttribute("aria-describedby")).toBe("advisor-requirement-error");
     expect(fetchImpl).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("checkbox", { name: "我有明确预算" }));
@@ -329,7 +334,9 @@ describe("AdvisorForm", () => {
   it("keeps submission disconnected without a configured API origin", () => {
     render(<AdvisorForm apiOrigin={null} displayNames={new Map()} />);
 
-    expect(screen.getByText("推荐服务未配置，排行榜仍可正常使用。")).toBeTruthy();
+    expect(screen.queryByText("推荐服务未配置，排行榜仍可正常使用。")).toBeNull();
+    expect(screen.queryByText("一次提交，不保存历史。")).toBeNull();
+    expect(document.querySelector(".advisor-form-actions > p")).toBeNull();
     expect((screen.getByRole("button", { name: "获取推荐" }) as HTMLButtonElement).disabled).toBe(true);
     expect(within(screen.getByRole("form", { name: "模型推荐条件" })).getByLabelText("你的需求")).toBeTruthy();
   });

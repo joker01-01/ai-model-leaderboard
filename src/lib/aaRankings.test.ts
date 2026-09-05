@@ -57,6 +57,37 @@ describe("AA public ranking selectors", () => {
     ]);
   });
 
+  it("sorts speed by either metric and direction while preserving competition ties", () => {
+    const models = [
+      model("slow", {
+        rawName: "Slow",
+        timeToFirstAnswerSeconds: 3,
+        outputTokensPerSecond: 100,
+      }),
+      model("fast-a", {
+        rawName: "Same",
+        timeToFirstAnswerSeconds: 1,
+        outputTokensPerSecond: 200,
+      }),
+      model("fast-b", {
+        rawName: "Same",
+        timeToFirstAnswerSeconds: 1,
+        outputTokensPerSecond: 300,
+      }),
+    ];
+
+    const latencyAscending = selectSpeedRanking(models, {}, { side: "left", direction: "ascending" });
+    expect(latencyAscending.map((row) => [row.sourceId, row.rank, row.primaryValue])).toEqual([
+      ["fast-a", 1, 1],
+      ["fast-b", 1, 1],
+      ["slow", 3, 3],
+    ]);
+    expect(selectSpeedRanking(models, {}, { side: "left", direction: "descending" })
+      .map((row) => row.sourceId)).toEqual(["slow", "fast-a", "fast-b"]);
+    expect(selectSpeedRanking(models, {}, { side: "right", direction: "ascending" })
+      .map((row) => row.sourceId)).toEqual(["slow", "fast-a", "fast-b"]);
+  });
+
   it("requires both prices and orders price by output price from high to low", () => {
     const models = [
       model("premium", { inputPricePerMillion: 10, outputPricePerMillion: 50 }),
@@ -69,6 +100,21 @@ describe("AA public ranking selectors", () => {
       ["premium", 50],
       ["budget", 0],
     ]);
+  });
+
+  it("sorts price by input or output price in both directions", () => {
+    const models = [
+      model("cheap-input", { inputPricePerMillion: 0, outputPricePerMillion: 50 }),
+      model("middle", { inputPricePerMillion: 5, outputPricePerMillion: 0 }),
+      model("expensive-input", { inputPricePerMillion: 10, outputPricePerMillion: 20 }),
+    ];
+
+    expect(selectPriceRanking(models, {}, { side: "left", direction: "descending" })
+      .map((row) => row.sourceId)).toEqual(["expensive-input", "middle", "cheap-input"]);
+    expect(selectPriceRanking(models, {}, { side: "left", direction: "ascending" })
+      .map((row) => row.sourceId)).toEqual(["cheap-input", "middle", "expensive-input"]);
+    expect(selectPriceRanking(models, {}, { side: "right", direction: "ascending" })
+      .map((row) => row.sourceId)).toEqual(["middle", "expensive-input", "cheap-input"]);
   });
 
   it("assigns competition ranks from the primary metric before deterministic tie breaking", () => {

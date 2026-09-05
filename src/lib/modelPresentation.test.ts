@@ -165,7 +165,7 @@ describe("AA model presentation", () => {
     expect(reverse.get("missing")?.displayName).toBe(forward.get("missing")?.displayName);
   });
 
-  it("matches five featured brands strictly by creatorId and uses an initial otherwise", () => {
+  it("matches featured brands strictly by creatorId and uses an initial otherwise", () => {
     const featured = AA_FEATURED_CREATORS.map((creator) => model(creator.brand, {
       creatorId: creator.creatorId,
       creatorName: creator.brand === "xai" ? "SpaceXAI" : creator.label,
@@ -178,6 +178,26 @@ describe("AA model presentation", () => {
     }
     expect(index.get("wrong")?.creatorBrand).toBeNull();
     expect(index.get("wrong")?.creatorInitial).toBe("O");
+  });
+
+  it("binds the additional creator filters to the reviewed AA creator IDs", () => {
+    expect(AA_FEATURED_CREATORS.slice(-3)).toEqual([
+      {
+        creatorId: "67437eb6-7dc1-4e93-befd-22c8b8ec2065",
+        brand: "glm",
+        label: "GLM",
+      },
+      {
+        creatorId: "0a177021-87dd-4250-9a37-f01df196bfe0",
+        brand: "kimi",
+        label: "KIMI",
+      },
+      {
+        creatorId: "d874d370-74d3-4fa0-ba00-5272f92f946b",
+        brand: "qwen",
+        label: "Qwen",
+      },
+    ]);
   });
 
   it("resolves creator colors strictly by exact creatorId", () => {

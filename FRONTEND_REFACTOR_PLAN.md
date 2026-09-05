@@ -1,6 +1,6 @@
 # AI Model Leaderboard Full-Product Refactor Plan
 
-> Execution plan for the user-confirmed product direction in `DESIGN.md`. Phases 1–3 are implemented, visually accepted, and locally verified in the checkpoint containing this update. Phase 4 is next; implementation and publication claims still require the evidence recorded in `PROJECT_STATE.md`.
+> Execution plan for the user-confirmed product direction in `DESIGN.md`. Phases 1–4 are implemented and locally verified on pull request #15, and the Phase 3 public pages have completed visual acceptance. Phase 5 is next; implementation and publication claims still require the evidence recorded in `PROJECT_STATE.md`.
 
 ## 1. Status and implementation boundary
 
@@ -47,12 +47,12 @@ The existing curated catalog, exact-version evidence, editorial scoring, update-
 
 - Ability metrics are AA Intelligence, Coding, and Agentic.
 - Efficiency metrics are AA first-answer latency, output tokens per second, input price, and output price.
-- Home previews Intelligence, output speed, and output price as three independent single-bar charts. Full efficiency rows show one model identity followed by two same-direction bars stacked vertically under a fixed blue/amber legend.
+- Home previews Intelligence, output speed, and output price as three independent single-bar charts. Full efficiency rows show one model identity followed by two same-direction bars stacked vertically under blue/amber metric-sort controls.
 - Each view includes every source row with the finite values required by that view.
 - Source configurations remain separate and are keyed by `sourceId`; no family merge, public-page pagination, or fixed Top-20 limit is allowed. The sync job still validates and consumes every upstream API page.
 - Ability scores sort high to low.
-- Speed sorts by output tokens per second high to low.
-- Price sorts by output price high to low.
+- Speed defaults to output tokens per second high to low; its full view can select latency or throughput and toggle direction.
+- Price defaults to output price high to low; its full view can select input or output price and toggle direction.
 - Equal primary values sort by the deterministic name sort key from `DESIGN.md`, then `sourceId` ascending; competition rank uses only the primary metric.
 - Competition ranks are computed before creator filtering.
 - Public charts convey rank through order and do not render visible rank numerals; competition-rank semantics remain available to assistive technology.
@@ -448,16 +448,17 @@ Scope:
 Focused acceptance:
 
 - all routes deep-link, refresh, and navigate correctly;
-- every ability/efficiency detail header centers its title and concise description while the back control remains pinned left; source/date attribution stays in the home footer;
-- home previews use real current data and remain static; ability uses its absolute 0–100 scale, while speed and price use deterministic readable ceilings above the observed maxima so their first rows do not fill the endpoint;
+- every detail header centers its title while the back control remains pinned left; ability keeps its concise metric description, speed and price omit header descriptions, and source/date attribution stays in the home footer;
+- home previews use real current data and remain static; on desktop the ability preview uses a responsive linear ceiling that aligns its leading visible fill with the leading price fill without filling either plot, while stacked ability previews and every full ability page use the absolute 0–100 scale; speed and price use deterministic readable ceilings above the observed maxima;
 - desktop home gives ability a full-width row, places the speed and price single-bar previews in one common-edge two-column row, and gives the advisor a full-width row; mobile stacks all four cards in reading order;
-- the full-width ability bars align from the left speed-bar baseline through the right price-bar baseline; shared preview identity and value columns prevent the three charts from drifting apart;
-- speed and price open as independent detail pages with their own titles and no internal cross-leaderboard switch; each full efficiency row renders its model identity once and places the two same-direction metric bars in a vertical stack to its right under a fixed blue/amber legend;
-- detail pages omit search, result-count summaries, and the `更多` creator menu; the six fixed creator filters use 2px outlines, preserve global ranks, and do not replay animation; home-preview and full-ability model names use the exact creator-tone palette without recoloring their bars;
+- the advisor destination keeps its minimal copy while presenting `开始选择` as a prominent purple 20–24px action with a matching 42px arrow;
+- the full-width ability plot aligns from the left speed-plot baseline through the right price-plot boundary; its leading visible fill additionally ends on the leading visible price fill, and shared preview identity and value columns prevent the three charts from drifting apart;
+- speed and price open as independent detail pages with their own titles and no internal cross-leaderboard switch; each full efficiency row renders its model identity once and places the two same-direction metric bars in a vertical stack to its right under blue/amber metric-sort controls with the specified opposing half-arrow glyph;
+- detail pages omit search, result-count summaries, and the `更多` creator menu; the nine fixed creator filters use 2px outlines, preserve global ranks, and do not replay animation; home-preview and full-ability model names use the exact creator-tone palette without recoloring their bars;
 - ability metric tabs and every page's creator pills are centered; efficiency pages have no metric tabs; fixed creator pills use distinct exact-ID colors, and full model-name text uses the matching color while ability, speed, and price bars retain their metric colors;
 - full leaderboard rows have no horizontal divider lines;
-- full chart names and values use 15px type and names stay bounded in one right-aligned identity column; values follow their actual bar endpoints, full bars use 18px with square-left/rounded-right fills, no dark remainder track, and an 8px value gap; ability uses 44px desktop rows and the fixed `0 / 25 / 50 / 75 / 100` source-scale grid, while two-bar efficiency rows use deterministic readable ceilings strictly above both observed maxima, five solid guides labelled with compact blue/amber real-scale value pairs, and the smallest non-overlapping compact rhythm;
-- ability tabs replay about 600 ms of chart-level animation only when the selected metric changes; entering either independent efficiency page plays its initial animation;
+- full chart names and values use 15px type and names stay bounded in one right-aligned identity column; values follow their actual bar endpoints, full bars use 18px with square-left/rounded-right fills, no dark remainder track, and an 8px value gap; ability uses 44px desktop rows and the fixed `0 / 25 / 50 / 75 / 100` source-scale grid, while two-bar efficiency rows use deterministic readable ceilings strictly above both observed maxima, five solid guides labelled with compact blue/amber real-scale value pairs, and the smallest non-overlapping compact rhythm; every full chart makes the leftmost zero-origin guide 2px and higher-contrast than the remaining 1px guides, while home previews omit guides;
+- ability tabs replay about 600 ms of chart-level animation only when the selected metric changes; entering either independent efficiency page plays its initial animation, while creator and efficiency-sort changes do not replay it;
 - all-zero price, output-speed, or ability domains render the defined 2% stubs without `NaN` or division by zero;
 - reduced-motion users see final values immediately;
 - 390 px and 200% zoom have no page-level horizontal overflow;
@@ -488,6 +489,7 @@ Scope:
 Focused acceptance:
 
 - no key or raw provider response reaches the client or repository;
+- the idle advisor form omits the header description, field-helper paragraphs, and service-connection status copy while retaining labels, placeholders, validation errors, disabled state, and result feedback;
 - the strict model-produced need contract contains only ordered ability enums, one promoted objective, and the reviewed hard-requirement enums from `DESIGN.md`; validated request fields separately own region, budget, and token values, and model output cannot provide candidate IDs or URLs;
 - arbitrary user text/model output cannot choose URLs, expand the five-row pool, or override AA scores/order;
 - only registry-bound official creator domains, registry-bound official GitHub organizations, and AA can produce live evidence; search summaries alone do not;

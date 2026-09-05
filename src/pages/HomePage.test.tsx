@@ -118,7 +118,10 @@ beforeEach(() => {
   });
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("HomePage", () => {
   it("keeps the four directory links in visual reading order", async () => {
@@ -140,6 +143,7 @@ describe("HomePage", () => {
     expect(within(speed).getByRole("heading", { level: 2, name: "模型速度榜单" })).toBeTruthy();
     expect(within(price).getByRole("heading", { level: 2, name: "模型价格榜单" })).toBeTruthy();
     expect(within(advisor).getByRole("heading", { level: 2, name: "按需求选模型" })).toBeTruthy();
+    expect(within(advisor).queryByText("按你的任务、预算和部署需求筛选")).toBeNull();
     expect(within(advisor).getByText("开始选择")).toBeTruthy();
     expect(within(advisor).queryByText("下一阶段接入")).toBeNull();
     expect(document.activeElement).toBe(title);
@@ -187,6 +191,31 @@ describe("HomePage", () => {
     expect(within(rows[1]).getByText("第 1 名")).toBeTruthy();
     expect(within(rows[2]).getByText("第 3 名")).toBeTruthy();
     expect(within(preview).queryByText("Zeta")).toBeNull();
+  });
+
+  it("aligns the leading desktop ability fill to the leading price fill without changing its value", () => {
+    const rectSpy = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      if (this.matches(".ability-card .single-metric-chart__plot")) {
+        return { left: 100, right: 1100, width: 1000 } as DOMRect;
+      }
+      if (this.matches(".price-card .single-metric-chart__bar-fill")) {
+        return { left: 700, right: 900, width: 200 } as DOMRect;
+      }
+      return { left: 0, right: 0, width: 0 } as DOMRect;
+    });
+    const data = snapshot();
+    const presentations = buildAaModelPresentationIndex(data.models);
+    const displayNames = new Map(
+      Array.from(presentations, ([sourceId, presentation]) => [sourceId, presentation.displayName]),
+    );
+
+    render(<HomePage snapshot={data} displayNames={displayNames} />);
+
+    const abilityCard = screen.getByRole("link", { name: /模型能力榜单/ });
+    const leadingRow = within(abilityCard).getAllByRole("listitem")[0];
+    expect(leadingRow.querySelector<HTMLElement>(".single-metric-chart__bar-fill")?.style.width).toBe("80%");
+    expect(within(leadingRow).getByText("得分 100")).toBeTruthy();
+    expect(rectSpy).toHaveBeenCalled();
   });
 
   it("shows one output-speed bar for each of five static preview rows", () => {

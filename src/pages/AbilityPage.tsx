@@ -48,6 +48,7 @@ export default function AbilityPage({
   return (
     <LeaderboardLayout
       tone="ability"
+      titleTone="ability"
       title="模型能力榜单"
       description={DESCRIPTIONS[metric]}
       tabs={TABS.map((tab) => ({ ...tab, active: tab.metric === metric }))}

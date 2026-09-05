@@ -70,6 +70,10 @@ describe("public product routes", () => {
     expect(screen.getByRole("textbox", { name: "部署地区（可选）" })).toBeTruthy();
     expect(screen.getByRole("checkbox", { name: "我有明确预算" })).toBeTruthy();
     expect((screen.getByRole("button", { name: "获取推荐" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(container.textContent).not.toContain("写下任务、预算和部署要求");
+    expect(container.textContent).not.toContain("写清任务和最重要的偏好");
+    expect(container.textContent).not.toContain("仅作为官方资料核验要求");
+    expect(container.textContent).not.toContain("推荐服务未配置");
     expect(container.textContent).not.toContain("下一阶段接入");
     expect(container.querySelector(".agent-panel")).toBeNull();
   });

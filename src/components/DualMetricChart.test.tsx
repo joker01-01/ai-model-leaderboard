@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AaRankedModel } from "../lib/aaRankings";
 import DualMetricChart from "./DualMetricChart";
+
+const DEFAULT_SORT = Object.freeze({ side: "right", direction: "descending" } as const);
+const ignoreSortChange = () => undefined;
 
 afterEach(cleanup);
 
@@ -51,6 +55,8 @@ describe("DualMetricChart", () => {
         scaleRows={scaleRows}
         displayNames={new Map([["middle", "Middle Model"]])}
         progress={1}
+        sort={DEFAULT_SORT}
+        onSortChange={ignoreSortChange}
         view="speed"
       />,
     );
@@ -86,6 +92,8 @@ describe("DualMetricChart", () => {
         scaleRows={scaleRows}
         displayNames={new Map()}
         progress={1}
+        sort={DEFAULT_SORT}
+        onSortChange={ignoreSortChange}
         view="speed"
       />,
     );
@@ -118,6 +126,8 @@ describe("DualMetricChart", () => {
         scaleRows={scaleRows}
         displayNames={new Map()}
         progress={1}
+        sort={DEFAULT_SORT}
+        onSortChange={ignoreSortChange}
         view="price"
       />,
     );
@@ -151,6 +161,8 @@ describe("DualMetricChart", () => {
         scaleRows={[maximum]}
         displayNames={new Map()}
         progress={1}
+        sort={DEFAULT_SORT}
+        onSortChange={ignoreSortChange}
         view="price"
       />,
     );
@@ -168,6 +180,8 @@ describe("DualMetricChart", () => {
         scaleRows={[zero]}
         displayNames={new Map()}
         progress={0}
+        sort={DEFAULT_SORT}
+        onSortChange={ignoreSortChange}
         preview
         view="price"
       />,
@@ -190,6 +204,8 @@ describe("DualMetricChart", () => {
         scaleRows={[zero]}
         displayNames={new Map()}
         progress={1}
+        sort={DEFAULT_SORT}
+        onSortChange={ignoreSortChange}
         view="price"
       />,
     );
@@ -203,5 +219,40 @@ describe("DualMetricChart", () => {
     ]);
     expect(container.innerHTML).not.toContain("NaN");
     expect(container.innerHTML).not.toContain("Infinity");
+  });
+
+  it("renders two accessible sort controls with a split arrow icon", async () => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    const visible = row("visible", { timeToFirstAnswerSeconds: 1, outputTokensPerSecond: 100 });
+    const { container } = render(
+      <DualMetricChart
+        rows={[visible]}
+        scaleRows={[visible]}
+        displayNames={new Map()}
+        progress={1}
+        sort={DEFAULT_SORT}
+        onSortChange={onSortChange}
+        view="speed"
+      />,
+    );
+
+    const leftButton = screen.getByRole("button", { name: /首字延迟，点击按从低到高排序/ });
+    const rightButton = screen.getByRole("button", { name: /输出速度，当前从高到低排序/ });
+    expect(leftButton.getAttribute("aria-pressed")).toBe("false");
+    expect(rightButton.getAttribute("aria-pressed")).toBe("true");
+    expect(rightButton.getAttribute("data-sort-direction")).toBe("descending");
+    expect(container.querySelectorAll(".dual-metric-chart__sort-icon")).toHaveLength(2);
+    expect(container.querySelectorAll(".dual-metric-chart__sort-up")).toHaveLength(2);
+    expect(container.querySelectorAll(".dual-metric-chart__sort-down")).toHaveLength(2);
+    expect(container.querySelectorAll(".dual-metric-chart__sort-icon[aria-hidden='true']")).toHaveLength(2);
+    expect(container.querySelector(".dual-metric-chart__sort-up")?.getAttribute("d"))
+      .toBe("M5.25 13V3.25m0 0-2.5 2.5");
+    expect(container.querySelector(".dual-metric-chart__sort-down")?.getAttribute("d"))
+      .toBe("M10.75 3v9.75m0 0 2.5-2.5");
+
+    await user.click(leftButton);
+    await user.click(rightButton);
+    expect(onSortChange.mock.calls).toEqual([["left"], ["right"]]);
   });
 });

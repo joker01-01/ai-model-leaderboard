@@ -20,6 +20,7 @@ describe("LeaderboardLayout", () => {
     render(
       <LeaderboardLayout
         tone="ability"
+        titleTone="ability"
         title="模型能力榜单"
         description="完整能力数据"
         tabs={[
@@ -41,6 +42,9 @@ describe("LeaderboardLayout", () => {
     expect(screen.queryByRole("link", { name: "Artificial Analysis" })).toBeNull();
     expect(screen.queryByText(/更新日期/)).toBeNull();
     expect(screen.getByRole("link", { name: "返回首页" }).getAttribute("href")).toBe("#/");
+    expect(screen.getByRole("heading", { level: 1, name: "模型能力榜单" }).className)
+      .toContain("leaderboard-title--ability");
+    expect(screen.getByText("完整能力数据")).toBeTruthy();
     expect(screen.getByRole("link", { name: "综合智能" }).getAttribute("aria-current")).toBe("page");
     expect(screen.getByRole("link", { name: "编程智能" }).hasAttribute("aria-current")).toBe(false);
 
@@ -49,6 +53,19 @@ describe("LeaderboardLayout", () => {
     expect((document.activeElement as HTMLElement).id).toBe("leaderboard-content");
 
     expect(screen.getByRole("button", { name: "全部" }).getAttribute("data-creator-tone")).toBe("all");
+    expect(screen.getAllByLabelText("开发者筛选")[0]
+      .querySelectorAll("button").length).toBe(AA_FEATURED_CREATORS.length + 1);
+    expect(Array.from(screen.getByLabelText("开发者筛选").querySelectorAll("button"), (button) => button.textContent)).toEqual([
+      "全部",
+      "OpenAI",
+      "Anthropic",
+      "Google",
+      "DeepSeek",
+      "xAI",
+      "GLM",
+      "KIMI",
+      "Qwen",
+    ]);
     for (const creator of AA_FEATURED_CREATORS) {
       expect(screen.getByRole("button", { name: creator.label }).getAttribute("data-creator-tone")).toBe(creator.brand);
     }
@@ -64,8 +81,8 @@ describe("LeaderboardLayout", () => {
     render(
       <LeaderboardLayout
         tone="efficiency"
+        titleTone="speed"
         title="模型速度榜单"
-        description="完整速度数据"
         creatorId={undefined}
         onCreatorChange={vi.fn()}
         primaryCreators={[]}
@@ -76,6 +93,9 @@ describe("LeaderboardLayout", () => {
 
     expect(screen.queryByRole("navigation", { name: "榜单分类" })).toBeNull();
     expect(screen.getByLabelText("开发者筛选")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "模型速度榜单" }).className)
+      .toContain("leaderboard-title--speed");
+    expect(document.querySelector(".leaderboard-masthead p")).toBeNull();
   });
 
 });

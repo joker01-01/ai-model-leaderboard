@@ -225,12 +225,11 @@ export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: Advi
             rows={6}
             value={requirement}
             aria-invalid={errors.requirement ? "true" : undefined}
-            aria-describedby={errors.requirement ? "advisor-requirement-error" : "advisor-requirement-hint"}
+            aria-describedby={errors.requirement ? "advisor-requirement-error" : undefined}
             disabled={isRunning}
             placeholder="例如：为 Python 数据分析服务选择一个支持工具调用、成本可控的模型"
             onChange={(event) => { setRequirement(event.target.value); clearErrors(); }}
           />
-          <p id="advisor-requirement-hint" className="advisor-field-hint">写清任务和最重要的偏好；系统只从完整 AA 榜单中筛选。</p>
           {errors.requirement && <p id="advisor-requirement-error" className="advisor-field-error">{errors.requirement}</p>}
         </div>
 
@@ -243,12 +242,11 @@ export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: Advi
               maxLength={64}
               value={deploymentRegion}
               aria-invalid={errors.deploymentRegion ? "true" : undefined}
-              aria-describedby={errors.deploymentRegion ? "advisor-deployment-region-error" : "advisor-deployment-region-hint"}
+              aria-describedby={errors.deploymentRegion ? "advisor-deployment-region-error" : undefined}
               disabled={isRunning}
               placeholder="例如：Singapore"
               onChange={(event) => { setDeploymentRegion(event.target.value); clearErrors(); }}
             />
-            <p id="advisor-deployment-region-hint" className="advisor-field-hint">仅作为官方资料核验要求，不代表该地区一定可用。</p>
             {errors.deploymentRegion && <p id="advisor-deployment-region-error" className="advisor-field-error">{errors.deploymentRegion}</p>}
           </div>
 
@@ -307,9 +305,6 @@ export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: Advi
         )}
 
         <div className="advisor-form-actions">
-          <p className={isConnected ? "is-connected" : "is-disconnected"} role="status">
-            {isConnected ? "一次提交，不保存历史。" : "推荐服务未配置，排行榜仍可正常使用。"}
-          </p>
           <div>
             {isRunning && <button type="button" className="advisor-stop" onClick={() => controllerRef.current?.abort()}>停止推荐</button>}
             <button type="submit" className="advisor-submit" disabled={!isConnected || isRunning}>
