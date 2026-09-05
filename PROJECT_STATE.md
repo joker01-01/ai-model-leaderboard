@@ -18,7 +18,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - The public frontend, advisor form, brand assets, and home footer are published. Mobile presentation and animation fixes merged in PR #20 (`fd8771c`).
 - README is a concise product introduction with seven real page screenshots. PR #22 merged as `c869362`; its GitHub Pages deployment succeeded, checked on 2026-09-06.
 - Phones up to 620 CSS pixels fit a 760px single-column canvas to the available width. Home displays Top 3 per ranking; tablet/desktop display Top 5. Complete rankings retain every eligible row.
-- Detail entry and metric/creator/sort changes replay a 600ms animation. Visible bars use Web Animations transforms and one number-text RAF; reduced motion and unsupported browsers show final values.
+- Home previews, detail entry, and metric/creator/sort changes play a 600ms animation. Visible bars use Web Animations transforms and one number-text RAF per chart; unsupported browsers show final values. The user explicitly chose chart growth regardless of the OS reduced-motion setting.
 - Historical implementation plans and reuse research are under `docs/archive/`. They describe earlier decisions, not current deployment status.
 
 ## Important Decisions
@@ -40,7 +40,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 
 - Mobile/animation release: 198 frontend tests across 25 files and TypeScript/production build passed locally. Protected PR checks and Pages deployment passed.
 - Layout checks covered 360–480 CSS-pixel phone widths and 1440px desktop, including all public ranking views. No stable-state horizontal page overflow, clipped values, or overlapping metric ticks were found.
-- Animation regression tests cover visible-only work, no per-frame React rerender, button-triggered replay, interruption, and reduced motion.
+- Desktop animation correction: 199 frontend tests and production build pass. Regression coverage includes all three home previews, visible-only work, no per-frame React rerender, button-triggered replay, interruption, and growth under reduced motion. Home alignment uses untransformed fill widths so entry animation does not change its target scale.
 - README screenshots were visually reviewed; all seven image references resolve. PR #22 verification passed.
 - These are recorded checks of their respective revisions, not fresh backend/live-provider verification.
 

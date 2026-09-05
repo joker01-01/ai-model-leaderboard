@@ -233,7 +233,7 @@ A shared timeline drives entry-viewport bars with Web Animations transforms and 
 - Creator filtering and efficiency metric/direction changes: replay.
 - Home card previews: static.
 - Target duration: 600ms with `cubic-bezier(0.22, 1, 0.36, 1)`.
-- `prefers-reduced-motion: reduce`: render final values immediately.
+- Home and detail chart growth plays regardless of `prefers-reduced-motion`, following the explicit product preference. Unsupported Web Animations browsers still show exact final values. Other reduced-motion styles remain independent.
 
 Motion never changes sorting, rank, evidence, or the accessible final value.
 
