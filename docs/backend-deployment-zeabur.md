@@ -6,13 +6,13 @@ Deploy the existing stateless FastAPI service to a Zeabur-managed Tencent Cloud 
 
 ```text
 GitHub Pages
-  -> HTTPS POST /api/v1/agent/query (SSE)
+  -> HTTPS POST /api/v1/advisor/recommend (one-shot JSON)
   -> Zeabur / Tencent Cloud Singapore
   -> FastAPI + LangGraph
-  -> DeepSeek Responses API and exact-allowlisted provider documents
+  -> AA selection + DeepSeek Responses API and reviewed official sources
 ```
 
-This deployment does not add persistence, replay, authentication, data writes, automatic merge, or automatic publication. `prepare_data_update` remains a review-only proposal operation.
+The legacy `/api/v1/agent/query` SSE endpoint remains supported alongside the public advisor. Neither path adds persistence, replay, authentication, or data writes. `prepare_data_update` remains a review-only proposal operation. The advisor must remain at one replica and one Uvicorn worker while its rate and concurrency limits are in process; verify trusted-proxy CIDRs before trusting forwarded client IPs.
 
 ## Current deployment
 

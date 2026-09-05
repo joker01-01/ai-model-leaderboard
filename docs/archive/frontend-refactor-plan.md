@@ -1,3 +1,5 @@
+> 历史归档：以下内容保留实施前的方案和当时状态，不代表当前功能或发布情况。当前设计见 [DESIGN.md](../../DESIGN.md)，当前状态见 [PROJECT_STATE.md](../../PROJECT_STATE.md)。
+
 # AI Model Leaderboard Full-Product Refactor Plan
 
 > Execution plan for the user-confirmed product direction in `DESIGN.md`. Phases 1–4 are implemented and locally verified on pull request #15. Phase 5 has completed implementation, local verification, and final visual acceptance on its separate branch; Phase 6 protected stacked review and post-merge deployment acceptance remain governed by `PROJECT_STATE.md`.

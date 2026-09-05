@@ -1,3 +1,5 @@
+> 历史归档：以下内容保留实施前的方案和当时状态，不代表当前功能或发布情况。当前设计见 [DESIGN.md](../../DESIGN.md)，当前状态见 [PROJECT_STATE.md](../../PROJECT_STATE.md)。
+
 # ModelOps Agent Reuse Assessment
 
 Assessed on 2026-09-02 before implementation. The goal was to find a reusable FastAPI + LangGraph + SSE or model-selection project without importing unrelated platform scope.

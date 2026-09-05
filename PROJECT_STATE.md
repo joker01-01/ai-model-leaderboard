@@ -2,312 +2,50 @@
 
 ## Goal
 
-Refactor the existing AI model leaderboard into the simple four-card product defined in `DESIGN.md`, backed by complete source-native Artificial Analysis metrics and a one-shot DeepSeek-assisted model advisor, while preserving the curated exact-version ModelOps domain and protected data-publication workflow.
+Maintain the published AI model leaderboard and one-shot model advisor. Product behavior is defined in `DESIGN.md`; durable implementation and safety rules are in `AGENTS.md`.
 
-## Mobile layout and animation correction
+## Architecture
 
-- Verification: all 198 frontend tests pass across 25 files; TypeScript and production build pass (the existing bundle-size advisory remains). Diff whitespace and changed-file credential-pattern scans pass.
-- Latest user clarification: the 620px single-column version looked too large. Phones now fit a 760px single-column canvas (about 82% of the previous rendered size), excluding scrollbars. Home previews show Top 3 on phones and Top 5 on tablet/desktop; complete rankings remain uncapped. Phone blue/amber tick pairs stack vertically.
-- Resize and document-width observation maintain the fit when the vertical scrollbar appears; normal tablet/desktop layout returns above 620px. Existing assets, sorting, footer, advisor, generated data, and backend behavior are preserved.
-- The user clarified that single-column home layout is required before scaling; this is recorded in AGENTS.md and DESIGN.md. Physical-device readability remains subject to user review.
-- The old RAF set React state every frame, rerendering up to 630 rows and changing layout widths. `useChartAnimation` now animates entry-viewport bars with transforms and updates only visible number text. Offscreen rows stay final; reduced motion and missing Web Animations use static final values. Metric, creator and sort-direction changes replay; interrupted transitions retain the new exact metric values on reused rows.
-- Browser layout checks cover 360x780, 390x664, 393x660, 407x885, 412x839, 430x739, 440x763, 480x1040 and desktop 1440x900: zero page overflow, clipped ranking values or overlapping ticks. Device viewport references come from the Playwright device registry; 407px and 480px are generic 1220px/1440px physical-width mappings at DPR 3, not claimed hardware profiles.
-- These layout checks ran at host browser DPR approximately 1 with reduced motion enabled. Animated-mode verification uses deterministic tests: a 630-row fixture animates only the visible row, never rerenders React per frame, and restores exact values. Actual high-DPR WeChat GPU performance and frame rate remain unverified.
+- React 19 / TypeScript / Vite frontend deployed to GitHub Pages from protected `main`.
+- `src/App.tsx` and `src/lib/hashRoute.ts` expose the home directory, three ability views, speed, price, and advisor routes.
+- Public rankings read `src/data/generated/aaPublicSnapshot.ts` through strict AA contracts and deterministic selectors. The backend advisor reads the corresponding JSON snapshot.
+- FastAPI provides the one-shot advisor endpoint and the preserved legacy ModelOps invoke/SSE endpoints. Zeabur builds the repository-root Dockerfile from `main`.
+- Curated exact-version data, legacy UI/tools, and synchronization consumers remain separate from the public AA rankings. They still have tests and backend/sync dependencies and are not removed by documentation cleanup.
+- Scheduled synchronization prepares signed data PRs. Only qualifying generated-data changes can auto-merge after verification; code and documentation use protected PR review.
 
-## Current repository baseline
+## Current Status
 
-- Working directory for the Phase 5 task: `C:\Users\ADMIN\.codex\worktrees\d8e0\ai-model-leaderboard` (physical alias `D:\CodexData\.codex\worktrees\d8e0\ai-model-leaderboard`).
-- The task worktree is on `codex/phase-5-assets`, published as pull request [#16](https://github.com/joker01-01/ai-model-leaderboard/pull/16) against `main`. Pull request [#15](https://github.com/joker01-01/ai-model-leaderboard/pull/15) was squash-merged into `main` as `4eff8492e4da25898e2623be96c3b454200d577f`; ancestry-only merge commit `4521fed` keeps the Phase 5 tree unchanged while making that merged `main` revision an ancestor of pull request #16.
-- React 19, TypeScript, and Vite build the GitHub Pages frontend.
-- The published GitHub Pages frontend at `4eff849` serves the confirmed four-card directory, complete public AA leaderboard routes, and one-shot advisor while preserving the curated editorial board and technical Agent evidence console only as unlinked repository implementations.
-- The local full public snapshot contains 643 source-native rows; the separate legacy generated AA module still keeps its 20-row Intelligence compatibility board and curated exact-match `models` map.
-- The curated editorial and ModelOps paths use exact internal IDs, controlled AA/Arena/provider identifiers, reviewed evidence, deterministic export, and visible missing evidence.
-- The Phase 1–4 Python 3.12 FastAPI/LangGraph backend is deployed from `main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
-- The deployed backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
-- GitHub Actions verifies pull requests, deploys Pages, prepares App-signed data PRs, and conditionally auto-merges the current narrow class of routine generated refreshes.
+- The public frontend, advisor form, brand assets, and home footer are published. Mobile presentation and animation fixes merged in PR #20 (`fd8771c`).
+- README is a concise product introduction with seven real page screenshots. PR #22 merged as `c869362`; its GitHub Pages deployment succeeded, checked on 2026-09-06.
+- Phones up to 620 CSS pixels fit a 760px single-column canvas to the available width. Home displays Top 3 per ranking; tablet/desktop display Top 5. Complete rankings retain every eligible row.
+- Detail entry and metric/creator/sort changes replay a 600ms animation. Visible bars use Web Animations transforms and one number-text RAF; reduced motion and unsupported browsers show final values.
+- Historical implementation plans and reuse research are under `docs/archive/`. They describe earlier decisions, not current deployment status.
 
-The deployment statements above describe `origin/main` after pull request #15. Phase 5 has completed final visual acceptance in pull request #16. Its merge and Pages-publication state is external GitHub state and must be checked live rather than frozen here.
+## Important Decisions
 
-## Confirmed product target
+- Keep one source row per `sourceId`, preserve separate configurations, omit missing metrics, and never infer public values from curated models.
+- Mobile home stays one leaderboard per row; do not scale a desktop two-column layout onto phones.
+- Advisor ranking is deterministic from AA data. Official evidence can verify or exclude candidates but cannot invent candidates or reorder the AA selection.
+- Keep source mappings, generated-data policy, branch protection, credentials, and deployed legacy endpoints intact during repository housekeeping.
 
-The product direction and Phase 1 design baseline are confirmed.
+## Known Problems
 
-### Public information architecture
+- The last recorded live advisor probe on 2026-09-05 returned a valid AA-only fallback after successful intent parsing, with zero accepted citations. Timeout was a hypothesis, not a confirmed diagnosis. Live official-source verification remains unresolved and was not retested during documentation cleanup.
+- Zeabur replica/worker count and exact trusted-proxy CIDRs still need operational verification before scaling or trusting forwarded client IPs.
+- Real high-DPR WeChat animation frame rate remains unmeasured. Browser layout checks used host DPR approximately 1 and reduced motion.
+- A local Docker image build was not performed because Docker was unavailable during the earlier verification.
+- Vite reports a non-failing main-bundle size advisory above 500 kB.
 
-- Home title: `AI 模型排行榜`.
-- Four cards only:
-  - `模型能力榜单`
-  - `模型速度榜单`
-  - `模型价格榜单`
-  - `按需求选模型`
-- Hash routes:
-  - `#/`
-  - `#/ability/intelligence`
-  - `#/ability/coding`
-  - `#/ability/agentic`
-  - `#/efficiency/speed`
-  - `#/efficiency/price`
-  - `#/advisor`
-- The curated board and technical Agent console remain in the repository but have no new public navigation entry.
+## Verification
 
-### Public data
-
-- One validated full source-native AA record per `sourceId`.
-- The snapshot records its schema, exact source, observation date, selected Free v2 wire-contract projection fingerprint, AA Intelligence Index version, and complete-pagination proof; Coding/Agentic have no invented independent version. New `src/data/generated/aaPublicSnapshot.ts` and `data/aa/generated/snapshot.json` serialize the same validated object, with review evidence in `data/aa/generated/sync-report.json`.
-- The new public module exports `AA_PUBLIC_SNAPSHOT`; the Phase 3 working-tree UI consumes it directly. Existing `src/data/generated/aaSnapshot.ts` continues to export the legacy `AA_SNAPSHOT.models` curated exact matches and old 20-row compatibility field for preserved legacy consumers and the currently deployed pre-refactor revision.
-- Metrics: Intelligence, Coding, Agentic, input price, output price, first-answer time, and output tokens per second.
-- Each leaderboard includes all rows with its required finite values; no Top-20 cap, family merge, or public-page pagination. Sync still validates every upstream API page.
-- Ability sorts high to low. Speed defaults to first-answer latency low to high and price defaults to output price high to low; full efficiency pages let either displayed metric become the active sort and toggle its direction while recomputing global competition rank before creator filtering.
-- Equal primary values sort by the deterministic name sort key, then `sourceId`; competition rank uses the primary value only.
-- Creator filtering preserves pre-filter global competition rank, while public charts communicate rank by order and omit visible rank numerals.
-- Simplified names are display-only and remove a leading `Claude` brand token. Collision-only reasoning qualifiers use `R` / `NR` and merge with effort as forms such as `High·R`; chart names use a single-line ellipsis with the full simplified label on hover. Nullable raw names/slugs and exact `sourceId` identity remain stored. Missing name/slug never drops a finite-metric row and uses the transparent fallback defined in `DESIGN.md`.
-- Public full-data membership remains independent from the curated exact-version catalog.
-
-### Public advisor
-
-- One-shot free-text form with optional region and progressive budget inputs.
-- The idle advisor presentation retains its kicker, title, labels, placeholders, validation errors, budget toggle copy, and result states while omitting the header description, requirement/deployment helper paragraphs, and service-connection status copy.
-- DeepSeek extracts a strict intent contract.
-- Deterministic code selects five candidates from the full AA snapshot.
-- DeepSeek Responses built-in server-side web search verifies only those candidates against a reviewed creator-to-official-source registry.
-- AA-derived order remains fixed; official contradictions may remove a hard-constraint mismatch, then the first three survivors become one recommendation and up to two alternatives.
-- Result: one recommendation, two collapsed alternatives, relevant AA metrics, concise reason, collapsed sources, and an explicit verified/partial/AA-only state.
-- DeepSeek/search failure returns the deterministic AA result instead of an empty response.
-- Target transport: non-streaming JSON `POST /api/v1/advisor/recommend`.
-- Public controls: 5 advisor requests per IP per 10 minutes and at most 2 simultaneous web-backed recommendations across the one-replica/one-worker service. IP excess returns 429; web-capacity or provider failure returns deterministic AA fallback.
-
-### Presentation
-
-- Black canvas, thin rules, system fonts, no decorative marketing hero or glass-card wall.
-- Home uses a centered up-to-approximately-1480px data canvas with one shared square-edged grid: ability spans the first row, speed and price share the second row, and the advisor spans the final row. Mobile stacks all four cards in that order.
-- Home uses cyan Intelligence bars, inverse blue first-answer-latency bars, amber output-price bars, and a purple advisor accent. Full efficiency rows use blue/amber metric-sort controls and two same-direction vertically stacked bars to the right of one model identity.
-- Home previews show exactly five real rows and remain static. On desktop, ability uses a responsive linear preview ceiling that aligns its leading visible fill with the leading price fill while retaining headroom; at stacked widths and on every full ability page, ability uses the absolute 0–100 scale. Speed uses a readable ceiling above the slowest displayed top-five latency so faster rows remain visibly longer; price uses a readable ceiling above the observed output-price maximum.
-- Detail entry, ability-metric changes, creator changes, and efficiency sort changes replay the visible bars on a shared 600ms timeline; unchanged active-tab clicks do not. Ability, speed, and price detail titles reuse their matching home-card accent colors.
-- Detail headers center their titles while keeping the back control left. Ability, speed, and price omit header descriptions. Detail pages omit search, result summaries, and repeated source/date lines.
-- Only the ability page has internal metric tabs. Speed and price are independent detail pages with separate titles and no cross-leaderboard switch. Ability tabs and the nine fixed creator controls are centered. The creator controls use 2px distinct exact-ID borders and expose no `更多` menu; home-preview and every full-chart model name use the corresponding creator color, unregistered names use the fallback pink tone, ability bars remain cyan, and speed/price bars keep blue/amber metric colors. Full leaderboard rows have no horizontal dividers.
-- Full ability names and values use 15px type. Names are bounded and right-aligned before their icons; ability scores use a fixed 0-100 scale, so each bar endpoint matches its displayed score and the exact value follows with an 8px gap. Full ability bars use 18px height in 44px desktop rows and home previews use 20px; both are square-left/rounded-right, omit the dark remainder track, and place values 8px after the fill endpoint.
-- Full speed and price names and values also use 15px type. Names use the same fixed right-aligned identity column; both 18px metric bars omit the dark remainder track, end in a right semicircle, and place each value 8px after its own endpoint. Their two-bar rows use a compact non-overlapping rhythm, deterministic readable ceilings strictly above the observed maxima, and five solid guides labelled with compact blue/amber real-scale value pairs.
-- Every full public chart renders its leftmost zero-origin guide at 2px with higher contrast than the remaining 1px guides; home previews continue to omit vertical guides.
-- The advisor home card contains only `按需求选模型` and the `开始选择 →` action; its former explanatory kicker is intentionally omitted, while the action uses a prominent purple 20–24px label and 42px arrow.
-- Footer appears on home only: GitHub, Bilibili, WeChat account `23号切片`, AA attribution, and AA observation date; the superseded `WS` wordmark is absent.
-- The supplied WeChat QR was copied from `D:\qrcode1788526628636.jpg` into the local frontend asset `src/assets/wechat-qrcode.jpg` during Phase 5.
-
-## Phase status
-
-### Existing ModelOps milestones
-
-- Phases A–D of the earlier ModelOps plan are implemented and previously verified: reviewed generated data, strict backend contracts/tools/graph, FastAPI/DeepSeek transport, and the current frontend evidence console.
-- Zeabur repository-root packaging, health endpoint, GitHub integration, Pages deployment, and guarded data refresh flow have prior live acceptance evidence.
-- Those milestones are preserved; they do not prove the new product refactor.
-
-### New full-product refactor
-
-1. **Documentation baseline — approved and maintained in the working tree.**
-   - `DESIGN.md`
-   - `FRONTEND_REFACTOR_PLAN.md`
-   - `AGENTS.md`
-   - `PROJECT_STATE.md`
-2. **Full AA data layer — implementation, credentialed baseline generation, local verification, and explicit human baseline approval complete.**
-   - strict full Free v2 normalization and review report;
-   - isolated `--aa-public-only` generation/check mode;
-   - strict frontend parser and five pure ranking selectors;
-   - first-baseline/manual-review and later routine-refresh policy gates;
-   - sync and auto-merge workflow integration;
-   - first full Free v2 baseline: 643 unique source rows across four complete pages, observed 2026-09-04.
-3. **Four-card home and ranking pages — implementation, automated/browser verification, and renewed user visual acceptance complete.**
-   - dependency-free hash routes for home, three ability views, two efficiency views, and the advisor shell;
-   - confirmed home target: a full-width ability card, common-edge speed and price cards, and a full-width advisor card, with three static real-data five-row single-bar previews;
-   - confirmed full-efficiency target: one model identity per row, blue/amber metric-sort controls, and two same-direction metric bars stacked vertically to its right;
-   - complete 630/255/197/332/440-row leaderboard views;
-   - deterministic simplified names without a redundant leading `Claude` token, compact collision-only `R` / `NR` mode markers, global creator-ID filters, non-visible competition-rank semantics, and responsive single-bar/stacked-pair charts;
-   - one chart-level 600ms detail animation with reduced-motion support;
-   - legacy editorial board and technical Agent console preserved in the repository but removed from public navigation.
-4. **One-shot advisor and official web verification — implementation and offline/local-browser verification complete; the user authorized commit, push, and pull-request review.**
-   - strict one-shot form and JSON contracts with explicit verified, partial, AA-only, and all-live-candidates-rejected states;
-   - deterministic five-row selection from the full backend AA snapshot, including exact monthly-budget filtering and stable AA-derived order;
-   - bounded DeepSeek Responses intent extraction and built-in web-search verification against a reviewed creator/source registry;
-   - official citation, redirect, candidate-identity, source-kind, and evidence-closure validation before any live claim or hard-constraint elimination;
-   - per-IP five-per-ten-minute limiting and a non-queueing two-slot live-web gate for the fixed one-worker/one-replica deployment model;
-   - deterministic AA fallback on missing key, provider failure, web saturation, or rejected provider evidence, with cancellation cleanup.
-5. **Footer, assets, and final public-presentation corrections — implementation, automated/browser checks, and final visual acceptance complete.**
-   - home-only footer without the superseded `WS` wordmark, with exact GitHub/Bilibili destinations, a WeChat control for `23号切片`, AA attribution, and the snapshot observation date;
-   - locally bundled image-only QR popover shown by pointer hover or keyboard focus, without visible account, scan-instruction, close, backdrop, or modal copy;
-   - nine exact-ID provider/product SVGs—using Claude for Anthropic, Gemini for Google, Grok for xAI, GLM for Z AI, Kimi for Kimi, Qwen for Alibaba, and Meta for Meta—with prototype-safe initial fallback for every unmapped creator, plus locally bundled social SVGs, pinned attribution, and a production-distributed third-party notice;
-   - responsive footer/popover styling with no page-level horizontal overflow in the checked 1053px browser viewport.
-6. **Full verification, documentation, and publication — local gates, Phase 1–4 publication, Phase 5 retargeting, and exact-head pull-request verification are complete; the user authorized the Phase 5 merge and focused Pages acceptance on 2026-09-05.**
-
-Phase 1–4 was squash-merged through pull request #15 and is deployed from `main` revision `4eff849`. Phase 5's final reviewed branch is `codex/phase-5-assets` in pull request #16, directly based on `main`; its final merge and Pages acceptance outcome must be read live.
-
-## Frozen decisions
-
-- Extend this repository; do not replace it with a generic Agent starter.
-- Use AA source-native rows directly for public rankings and recommendation candidates.
-- Keep public rows keyed by `sourceId`; separate reasoning/effort configurations remain separate.
-- Keep curated exact-version evidence and editorial scoring as an independent internal domain.
-- Use a dependency-free hash router and code-native bars; add no router, chart, motion, UI, state, or remote-font dependency.
-- Use the deterministic display-name collision rules in `DESIGN.md`.
-- Use output price high-to-low on the public price leaderboard even though the advisor normally prefers lower price.
-- Use AA for score/order and live search only for current official supplemental evidence.
-- No public accounts, persistence, conversation history, or visible trace console.
-- The user reports that the necessary AA redistribution authorization has been obtained; preserve attribution and store no private agreement material.
-- After one human-reviewed full-data baseline, ordinary generated model additions/removals and metric value/date/order changes may auto-merge. Structural anomalies remain review-gated.
-- Review depth stays proportional: focused correctness for docs/UI/pure selectors; targeted boundary checks for provider keys, untrusted input, web search, rate limits, GitHub automation, and deployment.
-
-## Phase 1–3 checkpoint contents
-
-At the Phase 1 checkpoint, the following files contained pre-existing changes from the superseded default-board frontend direction:
-
-- `index.html`
-- `src/App.test.tsx`
-- `src/App.tsx`
-- `src/components/AaBoard.tsx`
-- `src/components/Board.tsx`
-- `src/styles.css`
-
-Phase 3 reconciled `index.html`, `src/App.tsx`, `src/App.test.tsx`, and `src/styles.css` into the confirmed public shell. It preserved the pre-existing `AaBoard.tsx` and `Board.tsx` implementation changes; those files remain in the repository but are no longer imported by the public App.
-
-Phase 1 updates `AGENTS.md` and `PROJECT_STATE.md`, and adds `DESIGN.md` and `FRONTEND_REFACTOR_PLAN.md`.
-
-Phase 2 adds or modifies:
-
-- `scripts/aa-public-snapshot.mjs`, `scripts/generated-snapshot-module.mjs`, and their contract coverage;
-- `scripts/sync-data.mjs` and `scripts/sync-data.public.test.mjs`;
-- `src/lib/aaPublicSnapshot.ts`, `src/lib/aaRankings.ts`, and their tests;
-- `scripts/data-update-policy.mjs` and its tests;
-- `.github/workflows/sync-data.yml`, `.github/workflows/auto-merge-data.yml`, and the aggregate test command in `package.json`.
-- generated `src/data/generated/aaPublicSnapshot.ts`, `data/aa/generated/snapshot.json`, and `data/aa/generated/sync-report.json` from one credentialed public-only run.
-
-The credential was supplied through a masked local prompt, used only in the sync subprocess, and cleared from that process after completion. It was not printed or written into the repository.
-
-Phase 3 adds or modifies:
-
-- `src/App.tsx`, `src/App.test.tsx`, `index.html`, and scoped public styles in `src/styles.css`;
-- `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, and their tests;
-- `src/hooks/useChartAnimation.ts` and its test;
-- `src/pages/HomePage.tsx`, `AbilityPage.tsx`, `EfficiencyPage.tsx`, `AdvisorPage.tsx`, and page tests;
-- `src/components/LeaderboardLayout.tsx`, `SingleMetricChart.tsx`, `DualMetricChart.tsx`, `ModelIdentity.tsx`, `CreatorIcon.tsx`, and component tests.
-
-Phase 4 adds or modifies:
-
-- `src/features/advisor/` plus `src/pages/AdvisorPage.tsx`, the home advisor entry, route coverage, and scoped advisor styles;
-- `backend/app/domain/advisor.py`, the strict advisor API contracts and endpoint, and independent advisor runtime wiring;
-- `backend/app/repositories/aa_snapshot.py` and `official_sources.py` for strict committed-AA loading and reviewed source binding;
-- `backend/app/services/advisor_selector.py`, `advisor_rate_limit.py`, `advisor_gateway.py`, and `deepseek_advisor_gateway.py`;
-- `data/aa/official-sources.json`, its schema, and the registry review README;
-- focused backend/frontend tests, deterministic advisor evaluations, deployment packaging, and configuration documentation.
-
-Phase 5 adds or modifies:
-
-- `src/components/SiteFooter.tsx` and its focused component test;
-- `src/pages/HomePage.tsx`, route coverage in `src/App.test.tsx`, exact-ID provider icons in `CreatorIcon.tsx`, and scoped public styles;
-- the user-provided local WeChat QR, nine provider/product SVGs, three social SVGs, `src/assets/ATTRIBUTION.md`, and the production-distributed `public/THIRD_PARTY_NOTICES.txt`;
-- final user-approved presentation corrections in `aaRankings`, `SingleMetricChart`, `AbilityPage`, `EfficiencyPage` tests, and the governing product documents.
-
-## Remaining after the Phase 1–4 publication
-
-- Phase 5 has final visual acceptance and completed local Phase 6 gates. Pull request #16 is based directly on `main`, contains exactly the expected 35 Phase 5 files, and reached a successful exact-head verification check before merge authorization.
-- A fresh bounded legacy DeepSeek smoke returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing or replacing its value.
-- Two bounded live advisor requests reached the deployed Phase 4 endpoint and returned deterministic AA-only recommendations. The diagnostic request preserved the model-parsed `coding` purpose and `api_access` hard requirement, proving that key-backed intent parsing succeeded, but returned zero accepted citations after 36.79 seconds. The strongest current explanation is that the five-candidate, 19-query live-verification step exhausted its 30-second hard timeout; this remains a high-confidence inference because the fallback response and current log event intentionally do not distinguish timeout, provider rejection, strict wire/citation rejection, or a successful search with no accepted citations.
-- The local machine has no Docker command, so the repository-root image was not built; only packaging contracts were checked statically and through tests.
-- Before relying on proxy-derived client IPs or scaling the service, verify the Zeabur one-replica/one-worker setting and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
-- Pull request #16 must remain scoped to Phase 5 presentation/assets. Any live advisor observability or timeout/query correction belongs in a separate backend change from `main`, not in pull request #16.
-- A single-process in-memory limiter is adequate only while Zeabur runs one worker/replica; horizontal scaling would require a shared limiter before being enabled.
-
-## Verification record
-
-Phase 4 verification in this task worktree:
-
-- full backend pytest: 196/196 passing across advisor and preserved legacy paths;
-- Ruff passes for `app`, `tests`, and `evals`; mypy passes across 57 source files;
-- deterministic evaluations: 29/29 passing, including five advisor fallback/selection cases;
-- `npm run test:frontend`: 162/162 passing across 24 files, including strict advisor request/response parsing, form behavior, cancellation, fallback, live-rejection evidence, and preserved ranking/legacy regressions;
-- `npm run build`: TypeScript and Vite production build passing; Vite emits a non-failing 503.35 kB main-chunk size advisory against its 500 kB warning threshold;
-- local browser acceptance at desktop and 390px widths exercised the real Vite-to-FastAPI CORS/POST path without a provider key: HTTP 200 returned three deterministic AA-only candidates, explicit live-verification fallback wording, and no page-level horizontal overflow or browser-console error;
-- targeted regressions cover sixth-request 429/`Retry-After`, two-slot non-queueing web capacity, disconnect/outer cancellation, lifespan startup cancellation, bounded responses/time/output tokens, strict aliases, exact Decimal cost at JS-safe and subnormal-float boundaries, candidate/source-kind/URL citation binding, redirect binding, all-five live exclusion evidence closure, and future GitHub registry mislabeling;
-- `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run modelops:data:check`: current, confirming the independent curated ModelOps data remains intact;
-- after pull request #15 merged, GitHub Pages deployment and the `main` verification workflow passed at `4eff849`; the public page returned HTTP 200 with the new product title, and the Zeabur OpenAPI document exposed both `/api/v1/advisor/recommend` and the preserved legacy invoke path;
-- the deployed advisor's deterministic fallback and key-backed intent extraction are live-verified, but accepted live web evidence is not: a focused request returned the correct parsed `coding`/`api_access` contract, three AA-only candidates, and zero citations after 36.79 seconds;
-- the current 30-second provider timeout covers the complete live verification operation, while the diagnostic candidate pool expands to 19 exact site-scoped queries. That timing makes timeout the leading hypothesis, but not a confirmed root cause without stage-specific error/timing telemetry. Exact-head pull-request checks remain external GitHub state and must be read live rather than treated as frozen evidence.
-
-Current consolidated frontend verification after the readable-axis and visible-fill alignment corrections:
-
-- `npm run test:frontend`: 176/176 passing across 24 files, including two-metric bidirectional sorting, exact-ID creator filtering, responsive leading-fill alignment, strict headroom above observed maxima, inverse TTFA alignment, paired real-value ticks, all-zero finite-axis handling, routing, filtering, responsive chart contracts, and preserved legacy frontend regressions;
-- `npm run build`: TypeScript and Vite production build passing;
-- focused browser checks after the latest home correction confirm the leading visible ability and price fills differ by less than `0.001px` on the two-column layout while retaining an 8px value gap and visible headroom; at 1024px and 390px the stacked ability preview returns to 65.7% of its absolute 0–100 scale, with no horizontal overflow;
-- `npm run test:data-update-policy`: 38/38 passing;
-- `npm run modelops:data:check`: current;
-- the live 643-row presentation index produces 643 unique display labels with no collision, including the required `Fable 5.1 (Max)` form without the redundant leading `Claude` token; trailing configuration groups use half-width punctuation so visible name endings align optically;
-- browser verification rendered exactly 630 Intelligence, 255 Coding, 197 Agentic, 332 Speed, and 440 Price rows with no search control, result summary, repeated source/date line, page-level horizontal overflow, or row divider;
-- all eight fixed creator IDs matched their home-preview and full-ability model-name colors to their 2px filter borders, unregistered names retained the fallback pink tone without exposing a fallback filter, every ability bar remained cyan, and speed/price bars retained only the fixed blue/amber metric gradients;
-- focused browser verification confirms that the full ability page still renders `65.7` at exactly 65.7% of the fixed 0-100 scale with its value 8px beyond the endpoint; the nine fixed creator controls render with declared 2px borders on all three detail pages, no `更多` control remains, and GLM/KIMI/Qwen select 22/11/88 Intelligence rows with matching row tones and no page-level horizontal overflow;
-- the full ability chart rendered 15px names and values, 18px bars, 44px desktop rows, `0 / 25 / 50 / 75 / 100` labels with aligned vertical guides, and square-left/rounded-right fills; sampled desktop and narrow rows shared one exact model-name right edge, each value followed its actual fill endpoint with an exact 8px gap, and the narrow route retained zero page-level overflow;
-- home-preview focused checks render 20px square-left/rounded-right fills without dark remainder tracks; values follow their actual endpoints with an 8px gap;
-- the checked home and full leaderboard routes render zero visible public-rank nodes and zero display names beginning with `Claude`; long simplified names remain one line, ellipsize at their boundary, and expose the full simplified value through the name title;
-- browser checks at 320, 390, 430, 768, 1024, 1025, 1440, and 1600 CSS-pixel widths found no page-level horizontal overflow. At 1025px and above the speed/price cards share an exact edge; at 1024px and below all four cards stack in reading order with usable bar widths;
-- on the desktop grid, the ability/left-speed plot-start delta is exactly 0px, the ability/right-price plot-end delta remains below 0.001px, and the new leading visible ability/price fill-end delta is below 0.001px; all three home previews use the same 180px identity column and 112px value column to preserve the structural baselines;
-- speed and price detail checks at 320, 390, 430, 768, 1440, and 1600 widths confirmed one identity and two same-origin, vertically stacked bars per row, one two-item page legend, square-left/right-rounded fills, and no horizontal overflow;
-- focused 1053px browser checks confirmed the ability, speed, and price plot grids all render a dedicated 2px `rgba(245, 247, 250, 0.48)` zero-origin layer over the unchanged 1px guide grid, with zero page-level horizontal overflow;
-- focused browser checks at the current 1053px review width confirmed both speed controls and both price controls update the active metric, accessible direction state, and rendered order without page-level horizontal overflow; each control uses the corrected 16px glyph with complete vertical strokes, only the left half of the upward arrowhead, and only the right half of the downward arrowhead; speed and price render no masthead description;
-- a focused 1053px ability-page check confirms the masthead now contains only `模型能力榜单`: the removed Artificial Analysis metric description is absent, all three metric tabs remain present, and the page has zero horizontal overflow;
-- a focused home browser check at 1053px confirmed the advisor action renders `开始选择` at 20px/750 and its arrow at 42px, both in the advisor purple, without page-level horizontal overflow;
-- a focused 1053px advisor browser check confirmed the four removed helper/status strings are absent, idle fields have no stale `aria-describedby` references, validation can still attach its error description, the disabled submit state remains intact without a configured API origin, and the action row stays right-aligned with no horizontal overflow;
-- rendered detail and home names and values use the system sans stack at 15px/600 with tabular numerals and visually quieter unit spans;
-- hash navigation resets detail pages to the top, and the nine fixed creator controls remain visible and horizontally scrollable when the viewport cannot contain them;
-
-Phase 2 data-layer verification retained by the same working tree:
-
-- `npm run test:data-update-policy`: 38/38 passing, including optional identity whitespace normalization, a positive sandboxed public-only sync, and missing-key fail-before-write coverage;
-- `npm run test:frontend`: 66/66 passing;
-- `npm run test:agent`: 30/30 passing;
-- `npm run test:modelops-data`: 12/12 passing;
-- `npm run modelops:data:check`: current;
-- `npm run build`: TypeScript and Vite production build passing;
-- new Node modules pass syntax checks and both modified workflow YAML files parse successfully;
-- the sandboxed public-only test fetched both fixture pages, generated only the three public artifacts, proved TypeScript/JSON semantic equality, then reported zero changes in check mode while legacy and ModelOps sentinels remained byte-identical;
-- the sandboxed default sync without `AA_API_KEY` preserved all three public artifacts and the legacy AA/ModelOps inputs while retaining the expected AA-skip report and Arena refresh behavior;
-- trusted policy parsing accepts LF/CRLF canonical generator output for all three TypeScript snapshots and rejects executable prefix injection;
-- the credentialed public-only run fetched 643 unique rows in four pages (`200 + 200 + 200 + 43`), generated exactly the three public artifacts, and left legacy AA/Arena, combined-report, and ModelOps generated artifacts unchanged;
-- live coverage counts are Intelligence 630, Coding 255, Agentic 197, input/output price 440 each, and first-answer/output-speed 332 each; all five identity-missing counts are zero;
-- the generated TypeScript and backend JSON are semantically equal; all stored IDs, dates, nullable metrics, and non-negative price/performance values passed the strict validators, and the generated files contain no credential markers;
-- live selector sizes are Intelligence 630, Coding 255, Agentic 197, Speed 332, and Price 440; competition ranks and pre-filter global ranks were independently checked;
-- Node syntax, workflow YAML, tracked/untracked whitespace, `git diff --check`, and production build checks pass.
-
-Not yet verified:
-
-- a deployed advisor response with accepted official citations and `verified` or `partial` status;
-- the exact live-verification failure branch, because production currently collapses timeout, provider/wire rejection, and zero accepted evidence into the same AA-only response and logs only the exception class;
-- the Zeabur one-replica/one-worker setting and exact trusted-proxy CIDRs;
-- a local repository-root Docker build, because Docker is unavailable on this machine;
-- Phase 5 Pages publication must be accepted from the live deployment after the authorized merge. Exact-head pull-request and deployment status must still be read from GitHub rather than treated as frozen project-state facts.
-
-The last recorded pre-refactor production baseline also includes:
-
-- frontend suite: 51/51 passing;
-- data-update policy suite: 23/23 passing;
-- backend pytest: 92 passing;
-- deterministic backend evaluations: 24/24 passing;
-- TypeScript/Vite build, Ruff, and mypy passing;
-- protected PR verification, Pages deployment, Zeabur health, DeepSeek invoke/SSE, App-authored refresh, anomaly retention, and routine auto-merge live acceptance.
-
-Phase 5 and local Phase 6 verification on `codex/phase-5-assets`:
-
-- `npm run test:frontend`: 194/194 passing across 25 files after the footer/assets work, first-answer-latency default, ability-header reduction, and prototype-safe icon lookup;
-- focused footer/routing verification: 6/6 passing across two files for text-free QR markup, keyboard reachability, safe external links, and public routes;
-- `npm run build`: TypeScript and Vite production build passing; the build emits the local QR/brand assets and `THIRD_PARTY_NOTICES.txt`, with a non-failing 529.01 kB main-chunk size advisory;
-- local in-app browser checks confirm the home-only footer without the retired `WS` wordmark, 13 exact-ID provider-logo instances in the current five-row previews, zero remote image dependencies, zero page-level horizontal overflow at the current 1053px viewport, and a decoded 430×430 local QR image.
-- focused 1053×1001 QR-popover verification confirms no dialog, backdrop, native tooltip, or visible explanatory copy; the preview is hidden initially, becomes visible on keyboard focus as an image-only 232×232 popover entirely inside the viewport, returns to hidden on blur, and retains zero horizontal overflow.
-- focused 1053px Intelligence checks confirm all 26 xAI rows use Grok, all 22 GLM rows use the GLM product mark, all 11 Kimi rows use the Kimi mark on its contrast-safe dark circle, and all 88 Alibaba rows use Qwen, with zero initial fallbacks and zero page-level horizontal overflow in each filtered view.
-- focused 1053px Intelligence verification confirms all 22 Meta rows use the local Meta product mark; the selected `Muse Spark 1.3 (Max)` row exposes `Meta 标志`, contains one logo image and no fallback initial, and the page retains zero horizontal overflow.
-- Focused browser verification after the first-answer-latency correction confirms the home speed preview contains exactly five rows ordered from 0.30s to 0.61s, uses inverse blue fills, contains no `tokens/s`, and has zero horizontal overflow. The full speed route defaults to the active ascending first-answer-latency sort, keeps all 332 eligible rows and both metrics, and also has zero horizontal overflow.
-- `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run test:agent`: 30/30 passing; `npm run modelops:data:check` reports current generated data.
-- Full backend pytest, Ruff, and mypy gates pass; deterministic evaluations pass 29/29.
-- Changed-file scans find no secret-like values, no unsafe SVG scripting/event/remote-reference content, and no workflow or generated-data modifications.
-- GitHub pull request #15 passed exact-head verification and was squash-merged into `main` as `4eff8492e4da25898e2623be96c3b454200d577f` on 2026-09-05; the resulting `main` tree exactly matched the reviewed Phase 1–4 head.
-- GitHub pull request #16 was retargeted to `main` after an ancestry-only merge that did not change its Phase 5 tree. At the final pre-authorization head recorded here, GitHub reported it mergeable and clean, with 35 expected files and a successful `Verify pull request` check.
-
-Those older production results describe the deployed architecture and must not be cited as verification of the new target.
+- Mobile/animation release: 198 frontend tests across 25 files and TypeScript/production build passed locally. Protected PR checks and Pages deployment passed.
+- Layout checks covered 360–480 CSS-pixel phone widths and 1440px desktop, including all public ranking views. No stable-state horizontal page overflow, clipped values, or overlapping metric ticks were found.
+- Animation regression tests cover visible-only work, no per-frame React rerender, button-triggered replay, interruption, and reduced motion.
+- README screenshots were visually reviewed; all seven image references resolve. PR #22 verification passed.
+- These are recorded checks of their respective revisions, not fresh backend/live-provider verification.
 
 ## Next
 
-1. Publish the authorized mobile proportional-layout release through a protected PR and verify its Pages deployment. PR #16 is already merged as `db4bfda`.
-2. Track the deployed advisor live-verification issue as a separate backend change from `main`: first add non-sensitive stage/error telemetry and a live contract probe, then change timeout/query/wire handling only after the actual branch is identified.
+- Address advisor live-evidence diagnosis separately: add non-sensitive stage/timing telemetry, reproduce the failure, then adjust only the confirmed failing boundary.
+- Continue reviewing active data-refresh PRs through their existing policy; do not close them as stale development work.
+- Verify GitHub deployment state live when making a new release claim.

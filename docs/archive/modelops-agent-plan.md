@@ -1,3 +1,5 @@
+> 历史归档：以下内容保留实施前的方案和当时状态，不代表当前功能或发布情况。当前设计见 [DESIGN.md](../../DESIGN.md)，当前状态见 [PROJECT_STATE.md](../../PROJECT_STATE.md)。
+
 # ModelOps Agent 架构与实施方案
 
 状态：已确认，按阶段实施中

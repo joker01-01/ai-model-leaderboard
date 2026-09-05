@@ -2,7 +2,7 @@
 
 ## Status
 
-The repository-scoped GitHub App, Actions credentials, protected `main` rules, anomaly-retention path, and legacy routine automatic-merge path are operational and were live-verified on 2026-09-04. The complete source-native AA snapshot and its extended routine gate are implemented in the local Phase 1–3 checkpoint. Its first published three-artifact snapshot must become a human-reviewed baseline; unattended live acceptance of that extended path is still pending.
+The repository-scoped GitHub App, protected `main` rules, anomaly-retention path, and routine automatic-merge workflow are implemented. The reviewed full source-native AA snapshot and its extended policy are committed on `main`; they are no longer an unpublished local checkpoint. Inspect each current data PR and its checks for live refresh status. Earlier live automation verification was recorded on 2026-09-04 and does not prove every later refresh will qualify for automatic merging.
 
 This automation applies only to the scheduled external-data refresh. The Agent `prepare_data_update` operation remains a pure `awaiting_human_review` proposal and cannot write files, operate Git, or publish.
 
