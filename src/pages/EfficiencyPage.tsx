@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import DualMetricChart from "../components/DualMetricChart";
 import LeaderboardLayout, { type CreatorOption } from "../components/LeaderboardLayout";
-import { useChartProgress } from "../hooks/useChartProgress";
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import {
   filterPresentedRanking,
   type AaModelPresentation,
@@ -61,7 +61,9 @@ export default function EfficiencyPage({
     () => filterPresentedRanking(allRows, presentations, "", creatorId),
     [allRows, presentations, creatorId],
   );
-  const progress = useChartProgress(`efficiency:${metric}`);
+  const chartRef = useChartAnimation(
+    `efficiency:${metric}:${creatorId ?? "all"}:${activeSort.side}:${activeSort.direction}`,
+  );
 
   const handleSortChange = (side: AaEfficiencySortSide) => {
     setSortState((current) => {
@@ -82,19 +84,21 @@ export default function EfficiencyPage({
       onCreatorChange={setCreatorId}
       primaryCreators={primaryCreators}
     >
-      {visibleRows.length > 0 ? (
-        <DualMetricChart
-          view={metric}
-          rows={visibleRows}
-          scaleRows={allRows}
-          displayNames={displayNames}
-          progress={progress}
-          sort={activeSort}
-          onSortChange={handleSortChange}
-        />
-      ) : (
-        <p className="public-empty">没有符合当前筛选条件的模型。</p>
-      )}
+      <div ref={chartRef}>
+        {visibleRows.length > 0 ? (
+          <DualMetricChart
+            view={metric}
+            rows={visibleRows}
+            scaleRows={allRows}
+            displayNames={displayNames}
+            progress={1}
+            sort={activeSort}
+            onSortChange={handleSortChange}
+          />
+        ) : (
+          <p className="public-empty">没有符合当前筛选条件的模型。</p>
+        )}
+      </div>
     </LeaderboardLayout>
   );
 }

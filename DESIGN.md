@@ -2,7 +2,9 @@
 
 > Product direction confirmed by the user. This specification defines the target behavior; `PROJECT_STATE.md` records which parts are implemented, verified, and deployed.
 
-Phone layout revision: at viewport widths up to 620 CSS pixels, scale a 620px single-column canvas to the available width excluding scrollbars. Home shows one leaderboard per row in ability, speed, price, advisor order; model identities remain inline beside their bars. Do not scale the desktop two-column grid onto phones. Tablet and desktop behavior and native browser zoom remain available.
+Phone layout revision: at viewport widths up to 620 CSS pixels, scale a 760px single-column canvas to the available width excluding scrollbars. Home shows one leaderboard per row in ability, speed, price, advisor order; model identities remain inline beside their bars. Do not scale the desktop two-column grid onto phones. Tablet and desktop behavior and native browser zoom remain available.
+
+Phone home previews show Top 3; tablet and desktop previews remain Top 5. Complete rankings remain uncapped on all devices. On phone speed/price charts, keep all five scale guides but stack each blue/amber tick pair vertically to avoid collisions.
 
 ## 1. Product definition
 
@@ -181,7 +183,7 @@ blue: 输入价格 [sort]   amber: 输出价格 [sort]
 - Only rows with both required finite prices appear. A genuine zero price remains a valid value.
 - Equal active-sort prices use the name sort key by Unicode code-point order ascending, then `sourceId` ascending; competition rank uses only the active sort metric and is recomputed before creator filtering.
 
-Changing an efficiency sort does not replay the entry animation. The native sort buttons expose their selected metric and current/next direction to assistive technology and retain a visible keyboard focus state. On mobile, each model remains one compact group: model identity first, then the two same-direction labelled bars and exact values. The page itself must not scroll horizontally.
+Changing an efficiency metric or sort direction replays the visible bars' entry animation. The native sort buttons expose their selected metric and current/next direction to assistive technology and retain a visible keyboard focus state. On mobile, each model remains one compact group with its identity beside the two bars. The page itself must not scroll horizontally.
 
 ## 7. Creator filters and ordering
 
@@ -193,7 +195,7 @@ Fixed vendor controls are:
 
 Only these nine fixed controls are exposed; there is no `更多` creator menu. Each outline is 2px. On mobile the controls may scroll horizontally with a visible affordance.
 
-Ranking is computed before creator filtering, so a filtered row keeps its global competition-rank semantics even though rank numerals are not shown visually. Creator-filter changes do not replay chart animation.
+Ranking is computed before creator filtering, so a filtered row keeps its global competition-rank semantics even though rank numerals are not shown visually. Creator-filter changes replay the visible bars' entry animation.
 
 ## 8. Model identity
 
@@ -223,12 +225,12 @@ Nine reviewed AA creator identities use locally stored, appropriately licensed b
 
 ## 9. Motion
 
-One chart-level progress value drives bars and visible numbers; do not start a separate animation loop for every row.
+A shared timeline drives entry-viewport bars with Web Animations transforms and one RAF loop for visible number text. Do not rerender the complete React ranking on each frame or animate layout widths. Offscreen rows retain final values; unsupported-animation browsers fall back to final values.
 
 - First entry into a detail page: bars and numbers grow from zero.
 - Switching to a different metric: replay.
 - Clicking the active metric: no replay.
-- Creator filtering: no replay.
+- Creator filtering and efficiency metric/direction changes: replay.
 - Home card previews: static.
 - Target duration: 600ms with `cubic-bezier(0.22, 1, 0.36, 1)`.
 - `prefers-reduced-motion: reduce`: render final values immediately.

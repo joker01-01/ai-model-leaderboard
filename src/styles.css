@@ -2292,3 +2292,15 @@ textarea { -webkit-tap-highlight-color: transparent; }
     border-left: 0;
   }
 }
+
+@media (max-width: 620px) {
+  .dual-metric-chart__axis { min-height: 48px; }
+  .dual-metric-chart__axis-scale > span {
+    display: grid;
+    gap: 3px;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .dual-metric-chart__axis-separator { display: none; }
+  .dual-metric-chart__axis-scale::before { top: 32px; }
+}
