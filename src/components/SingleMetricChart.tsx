@@ -105,7 +105,7 @@ export default function SingleMetricChart({
                   >
                     <span className="sr-only">{accessibleText}</span>
                     <span aria-hidden="true">
-                      <span className="metric-number">{valuePrefix}{currentValue}</span>
+                      <span className="metric-number" data-final-value={`${valuePrefix}${currentValue}`}>{valuePrefix}{currentValue}</span>
                       {valueSuffix === "" ? null : <span className="metric-unit">{valueSuffix}</span>}
                     </span>
                   </span>

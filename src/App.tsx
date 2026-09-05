@@ -44,7 +44,7 @@ export default function App() {
       window.removeEventListener("resize", updateWidth);
     };
   }, []);
-  const mobileScale = viewportWidth <= 620 ? availableWidth / 620 : null;
+  const mobileScale = viewportWidth <= 620 ? availableWidth / 760 : null;
   const sharedProps = useMemo(() => ({
     snapshot: PUBLIC_SNAPSHOT,
     presentations: PRESENTATIONS,
@@ -54,10 +54,14 @@ export default function App() {
   return (
     <div
       className="public-app"
-      style={mobileScale === null ? undefined : { width: 620, zoom: mobileScale }}
+      style={mobileScale === null ? undefined : { width: 760, zoom: mobileScale }}
     >
       {route.page === "home" && (
-        <HomePage snapshot={PUBLIC_SNAPSHOT} displayNames={DISPLAY_NAMES} />
+        <HomePage
+          snapshot={PUBLIC_SNAPSHOT}
+          displayNames={DISPLAY_NAMES}
+          previewLimit={viewportWidth <= 620 ? 3 : 5}
+        />
       )}
       {route.page === "ability" && (
         <AbilityPage

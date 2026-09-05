@@ -217,7 +217,7 @@ function MetricSide({
         </span>
         <span className="dual-metric-chart__value" style={{ left: `${currentWidth}%` }}>
           <span className="sr-only">{label}：{exactText}</span>
-          <span className="metric-number" aria-hidden="true">{prefix}{animatedValue}</span>
+          <span className="metric-number" data-final-value={`${prefix}${animatedValue}`} aria-hidden="true">{prefix}{animatedValue}</span>
           <span className="metric-unit" aria-hidden="true">{unit}</span>
         </span>
       </span>

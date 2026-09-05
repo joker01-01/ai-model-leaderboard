@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
+import * as chartAnimation from "./hooks/useChartAnimation";
 
 beforeEach(() => {
   window.location.hash = "#/";
@@ -28,31 +29,55 @@ afterEach(() => {
 });
 
 describe("public product routes", () => {
+  it("restarts chart entrance when same-page creator and sort buttons change the view", async () => {
+    const animation = vi.spyOn(chartAnimation, "useChartAnimation");
+    try {
+      window.location.hash = "#/efficiency/speed";
+      const user = userEvent.setup();
+      render(<App />);
+      const key = () => animation.mock.calls.at(-1)?.[0];
+      expect(key()).toBe("efficiency:speed:all:left:ascending");
+      await user.click(screen.getByRole("button", { name: /输出速度，点击/ }));
+      expect(key()).toBe("efficiency:speed:all:right:descending");
+      await user.click(screen.getByRole("button", { name: /输出速度，当前/ }));
+      expect(key()).toBe("efficiency:speed:all:right:ascending");
+      await user.click(screen.getByRole("button", { name: "OpenAI" }));
+      expect(key()).not.toContain(":all:");
+      expect(key()).toMatch(/:right:ascending$/);
+      await user.click(screen.getByRole("button", { name: "全部" }));
+      expect(key()).toBe("efficiency:speed:all:right:ascending");
+    } finally {
+      animation.mockRestore();
+    }
+  });
+
   it("scales a single-column canvas on phones and restores normal layout after resizing", () => {
     const originalWidth = window.innerWidth;
     try {
       Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 });
       const { container } = render(<App />);
       const canvas = container.querySelector<HTMLElement>(".public-app")!;
-      expect(canvas.style.width).toBe("620px");
-      expect(Number(canvas.style.zoom)).toBeCloseTo(390 / 620);
+      expect(canvas.style.width).toBe("760px");
+      expect(Number(canvas.style.zoom)).toBeCloseTo(390 / 760);
+      expect(container.querySelectorAll(".single-metric-chart__row")).toHaveLength(9);
 
       const clientWidth = vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(375);
       try {
         fireEvent(window, new Event("resize"));
-        expect(Number(canvas.style.zoom)).toBeCloseTo(375 / 620);
+        expect(Number(canvas.style.zoom)).toBeCloseTo(375 / 760);
       } finally {
         clientWidth.mockRestore();
       }
 
       Object.defineProperty(window, "innerWidth", { configurable: true, value: 430 });
       fireEvent(window, new Event("resize"));
-      expect(Number(canvas.style.zoom)).toBeCloseTo(430 / 620);
+      expect(Number(canvas.style.zoom)).toBeCloseTo(430 / 760);
 
       Object.defineProperty(window, "innerWidth", { configurable: true, value: 1024 });
       fireEvent(window, new Event("resize"));
       expect(canvas.style.width).toBe("");
       expect(canvas.style.zoom).toBe("");
+      expect(container.querySelectorAll(".single-metric-chart__row")).toHaveLength(15);
     } finally {
       Object.defineProperty(window, "innerWidth", { configurable: true, value: originalWidth });
     }

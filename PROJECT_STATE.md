@@ -4,12 +4,15 @@
 
 Refactor the existing AI model leaderboard into the simple four-card product defined in `DESIGN.md`, backed by complete source-native Artificial Analysis metrics and a one-shot DeepSeek-assisted model advisor, while preserving the curated exact-version ModelOps domain and protected data-publication workflow.
 
-## Mobile single-column correction
+## Mobile layout and animation correction
 
-- The published 1100px desktop-canvas trial (PR #17, `d71ffd1`) was too small. The corrected phone layout retains one home leaderboard per row and fits a 620px single-column canvas to the available viewport width, excluding scrollbars. Names remain beside bars; home ability uses the absolute 0-100 scale again on phones.
+- Verification: all 198 frontend tests pass across 25 files; TypeScript and production build pass (the existing bundle-size advisory remains). Diff whitespace and changed-file credential-pattern scans pass.
+- Latest user clarification: the 620px single-column version looked too large. Phones now fit a 760px single-column canvas (about 82% of the previous rendered size), excluding scrollbars. Home previews show Top 3 on phones and Top 5 on tablet/desktop; complete rankings remain uncapped. Phone blue/amber tick pairs stack vertically.
 - Resize and document-width observation maintain the fit when the vertical scrollbar appears; normal tablet/desktop layout returns above 620px. Existing assets, sorting, footer, advisor, generated data, and backend behavior are preserved.
 - The user clarified that single-column home layout is required before scaling; this is recorded in AGENTS.md and DESIGN.md. Physical-device readability remains subject to user review.
-- Verification: 195/195 frontend tests and TypeScript/Vite build pass (existing chunk-size advisory). At 390px, browser checks confirm all four home cards share one column, all five complete rankings retain their values without clipping, and the idle advisor renders. Scroll width equals the available 376px after accounting for the browser scrollbar. The 1440px desktop check retains normal layout. Publication follows the already-authorized protected PR/Pages path.
+- The old RAF set React state every frame, rerendering up to 630 rows and changing layout widths. `useChartAnimation` now animates entry-viewport bars with transforms and updates only visible number text. Offscreen rows stay final; reduced motion and missing Web Animations use static final values. Metric, creator and sort-direction changes replay; interrupted transitions retain the new exact metric values on reused rows.
+- Browser layout checks cover 360x780, 390x664, 393x660, 407x885, 412x839, 430x739, 440x763, 480x1040 and desktop 1440x900: zero page overflow, clipped ranking values or overlapping ticks. Device viewport references come from the Playwright device registry; 407px and 480px are generic 1220px/1440px physical-width mappings at DPR 3, not claimed hardware profiles.
+- These layout checks ran at host browser DPR approximately 1 with reduced motion enabled. Animated-mode verification uses deterministic tests: a 630-row fixture animates only the visible row, never rerenders React per frame, and restores exact values. Actual high-DPR WeChat GPU performance and frame rate remain unverified.
 
 ## Current repository baseline
 
@@ -79,7 +82,7 @@ The product direction and Phase 1 design baseline are confirmed.
 - Home uses a centered up-to-approximately-1480px data canvas with one shared square-edged grid: ability spans the first row, speed and price share the second row, and the advisor spans the final row. Mobile stacks all four cards in that order.
 - Home uses cyan Intelligence bars, inverse blue first-answer-latency bars, amber output-price bars, and a purple advisor accent. Full efficiency rows use blue/amber metric-sort controls and two same-direction vertically stacked bars to the right of one model identity.
 - Home previews show exactly five real rows and remain static. On desktop, ability uses a responsive linear preview ceiling that aligns its leading visible fill with the leading price fill while retaining headroom; at stacked widths and on every full ability page, ability uses the absolute 0–100 scale. Speed uses a readable ceiling above the slowest displayed top-five latency so faster rows remain visibly longer; price uses a readable ceiling above the observed output-price maximum.
-- Detail entry and ability-metric switches replay one chart-level 600ms count/bar animation; creator filtering and active-tab clicks do not. Ability, speed, and price detail titles reuse their matching home-card accent colors.
+- Detail entry, ability-metric changes, creator changes, and efficiency sort changes replay the visible bars on a shared 600ms timeline; unchanged active-tab clicks do not. Ability, speed, and price detail titles reuse their matching home-card accent colors.
 - Detail headers center their titles while keeping the back control left. Ability, speed, and price omit header descriptions. Detail pages omit search, result summaries, and repeated source/date lines.
 - Only the ability page has internal metric tabs. Speed and price are independent detail pages with separate titles and no cross-leaderboard switch. Ability tabs and the nine fixed creator controls are centered. The creator controls use 2px distinct exact-ID borders and expose no `更多` menu; home-preview and every full-chart model name use the corresponding creator color, unregistered names use the fallback pink tone, ability bars remain cyan, and speed/price bars keep blue/amber metric colors. Full leaderboard rows have no horizontal dividers.
 - Full ability names and values use 15px type. Names are bounded and right-aligned before their icons; ability scores use a fixed 0-100 scale, so each bar endpoint matches its displayed score and the exact value follows with an 8px gap. Full ability bars use 18px height in 44px desktop rows and home previews use 20px; both are square-left/rounded-right, omit the dark remainder track, and place values 8px after the fill endpoint.
@@ -180,7 +183,7 @@ Phase 3 adds or modifies:
 
 - `src/App.tsx`, `src/App.test.tsx`, `index.html`, and scoped public styles in `src/styles.css`;
 - `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, and their tests;
-- `src/hooks/useChartProgress.ts` and its test;
+- `src/hooks/useChartAnimation.ts` and its test;
 - `src/pages/HomePage.tsx`, `AbilityPage.tsx`, `EfficiencyPage.tsx`, `AdvisorPage.tsx`, and page tests;
 - `src/components/LeaderboardLayout.tsx`, `SingleMetricChart.tsx`, `DualMetricChart.tsx`, `ModelIdentity.tsx`, `CreatorIcon.tsx`, and component tests.
 

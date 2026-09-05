@@ -246,8 +246,8 @@ Add:
 - `src/lib/hashRoute.test.ts`
 - `src/lib/modelPresentation.ts`
 - `src/lib/modelPresentation.test.ts`
-- `src/hooks/useChartProgress.ts`
-- `src/hooks/useChartProgress.test.tsx`
+- `src/hooks/useChartAnimation.ts`
+- `src/hooks/useChartAnimation.test.tsx`
 - `src/pages/HomePage.tsx`
 - `src/pages/HomePage.test.tsx`
 - `src/pages/AbilityPage.tsx`

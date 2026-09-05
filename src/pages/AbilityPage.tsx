@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import LeaderboardLayout, { type CreatorOption } from "../components/LeaderboardLayout";
 import SingleMetricChart from "../components/SingleMetricChart";
-import { useChartProgress } from "../hooks/useChartProgress";
+import { useChartAnimation } from "../hooks/useChartAnimation";
 import {
   filterPresentedRanking,
   type AaModelPresentation,
@@ -37,7 +37,7 @@ export default function AbilityPage({
     () => filterPresentedRanking(allRows, presentations, "", creatorId),
     [allRows, presentations, creatorId],
   );
-  const progress = useChartProgress(`ability:${metric}`);
+  const chartRef = useChartAnimation(`ability:${metric}:${creatorId ?? "all"}`);
 
   return (
     <LeaderboardLayout
@@ -49,16 +49,18 @@ export default function AbilityPage({
       onCreatorChange={setCreatorId}
       primaryCreators={primaryCreators}
     >
-      {visibleRows.length > 0 ? (
-        <SingleMetricChart
-          rows={visibleRows}
-          displayNames={displayNames}
-          scaleMax={100}
-          progress={progress}
-        />
-      ) : (
-        <p className="public-empty">没有符合当前筛选条件的模型。</p>
-      )}
+      <div ref={chartRef}>
+        {visibleRows.length > 0 ? (
+          <SingleMetricChart
+            rows={visibleRows}
+            displayNames={displayNames}
+            scaleMax={100}
+            progress={1}
+          />
+        ) : (
+          <p className="public-empty">没有符合当前筛选条件的模型。</p>
+        )}
+      </div>
     </LeaderboardLayout>
   );
 }

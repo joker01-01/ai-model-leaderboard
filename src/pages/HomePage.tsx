@@ -9,17 +9,18 @@ import { alignedPreviewScaleMaximum, niceAxisMaximum } from "../lib/chartScale";
 interface HomePageProps {
   readonly snapshot: AaPublicSnapshot;
   readonly displayNames: ReadonlyMap<string, string>;
+  readonly previewLimit?: 3 | 5;
 }
 
-export default function HomePage({ snapshot, displayNames }: HomePageProps) {
+export default function HomePage({ snapshot, displayNames, previewLimit = 5 }: HomePageProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const gridRef = useRef<HTMLElement>(null);
   const abilityRows = selectAbilityRanking(snapshot.models, "intelligence");
   const speedRows = selectSpeedRanking(snapshot.models);
   const priceRows = selectPriceRanking(snapshot.models);
-  const abilityPreview = abilityRows.slice(0, 5);
-  const speedPreview = speedRows.slice(0, 5);
-  const pricePreview = priceRows.slice(0, 5);
+  const abilityPreview = abilityRows.slice(0, previewLimit);
+  const speedPreview = speedRows.slice(0, previewLimit);
+  const pricePreview = priceRows.slice(0, previewLimit);
   const speedMax = niceAxisMaximum(Math.max(
     0,
     ...speedPreview.map((row) => row.primaryValue),
