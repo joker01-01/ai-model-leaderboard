@@ -106,6 +106,7 @@ class _ValidatedWebActions:
     primary_candidate_slots: frozenset[int]
     replay_items: tuple[JsonObject, ...]
     has_message: bool
+    has_ignored_search: bool
 
 
 class _SearchCheck(StrictModel):
@@ -580,6 +581,7 @@ def _validate_web_actions(
     completed_search = False
     primary_candidate_slots: set[int] = set()
     replay_items: list[JsonObject] = []
+    clean_search_replay_items: list[JsonObject] = []
     action_ids: set[str] = set()
     has_message = False
     action_count = 0
@@ -588,6 +590,7 @@ def _validate_web_actions(
     reformulated_query_count = 0
     auxiliary_query_count = 0
     continuation_marker_count = 0
+    ignored_search_count = 0
     failed_search_count = 0
     failed_open_page_count = 0
     failed_find_in_page_count = 0
@@ -652,6 +655,8 @@ def _validate_web_actions(
             query_count += len(queries)
             if query_count > _MAX_WEB_ACTION_QUERIES:
                 raise AdvisorGatewayError("advisor web search returned too many search queries")
+            query_matches: list[_QueryMatch] = []
+            has_unknown_query = False
             for search_query in queries:
                 if (
                     not search_query
@@ -666,21 +671,9 @@ def _validate_web_actions(
                     auxiliary_queries_by_slot=auxiliary_by_slot,
                 )
                 if query_kind is None:
-                    raise AdvisorGatewayError("advisor web search used an unapproved query")
-                if query_kind.kind == "exact":
-                    exact_query_count += 1
-                    if action_status == "completed":
-                        completed_search = True
-                        primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
-                elif query_kind.kind == "reformulated":
-                    reformulated_query_count += 1
-                    if action_status == "completed":
-                        completed_search = True
-                        primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
-                elif query_kind.kind == "auxiliary":
-                    auxiliary_query_count += 1
-                else:
-                    continuation_marker_count += 1
+                    has_unknown_query = True
+                    continue
+                query_matches.append(query_kind)
             raw_sources = action.get("sources")
             if raw_sources is not None:
                 if not isinstance(raw_sources, list) or len(raw_sources) > 20:
@@ -698,10 +691,36 @@ def _validate_web_actions(
                         )
                     ):
                         raise AdvisorGatewayError("advisor web search used an unapproved source URL")
+            if has_unknown_query:
+                ignored_search_count += 1
+                if is_failed_action:
+                    failed_search_count += 1
+                continue
+            has_continuation_query = any(
+                query_kind.kind == "continuation" for query_kind in query_matches
+            )
+            for query_kind in query_matches:
+                if query_kind.kind == "exact":
+                    exact_query_count += 1
+                    if action_status == "completed" and not has_continuation_query:
+                        completed_search = True
+                        primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
+                elif query_kind.kind == "reformulated":
+                    reformulated_query_count += 1
+                    if action_status == "completed" and not has_continuation_query:
+                        completed_search = True
+                        primary_candidate_slots.add(cast(int, query_kind.candidate_slot))
+                elif query_kind.kind == "auxiliary":
+                    auxiliary_query_count += 1
+                else:
+                    continuation_marker_count += 1
             if is_failed_action:
                 failed_search_count += 1
             else:
-                replay_items.append(cast(JsonObject, item))
+                replay_item = cast(JsonObject, item)
+                replay_items.append(replay_item)
+                if not has_continuation_query:
+                    clean_search_replay_items.append(replay_item)
             continue
         if action_type == "open_page":
             if set(action) != {"type", "url"} or not isinstance(action.get("url"), str):
@@ -742,21 +761,26 @@ def _validate_web_actions(
     logger.info(
         "advisor_web_action_diagnostics actions=%d queries=%d exact_queries=%d "
         "reformulated_queries=%d auxiliary_queries=%d continuation_markers=%d "
-        "failed_searches=%d failed_open_pages=%d failed_find_in_pages=%d",
+        "ignored_searches=%d failed_searches=%d failed_open_pages=%d "
+        "failed_find_in_pages=%d",
         action_count,
         query_count,
         exact_query_count,
         reformulated_query_count,
         auxiliary_query_count,
         continuation_marker_count,
+        ignored_search_count,
         failed_search_count,
         failed_open_page_count,
         failed_find_in_page_count,
     )
     return _ValidatedWebActions(
         primary_candidate_slots=frozenset(primary_candidate_slots),
-        replay_items=tuple(replay_items),
+        replay_items=tuple(
+            clean_search_replay_items if ignored_search_count else replay_items
+        ),
         has_message=has_message,
+        has_ignored_search=ignored_search_count > 0,
     )
 
 
@@ -1109,7 +1133,7 @@ class DeepSeekAdvisorGateway:
                 str(exc),
                 failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
             ) from None
-        if validated_actions.has_message:
+        if validated_actions.has_message and not validated_actions.has_ignored_search:
             parts = _output_parts(payload)
         else:
             if not validated_actions.replay_items:

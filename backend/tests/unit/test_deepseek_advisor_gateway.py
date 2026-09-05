@@ -547,14 +547,213 @@ def test_duplicate_search_action_ids_are_rejected_before_continuation() -> None:
     assert call_count == 1
 
 
-def test_search_rejects_unapproved_queries() -> None:
+@pytest.mark.parametrize("include_first_message", [False, True])
+@pytest.mark.parametrize("unknown_status", ["completed", "failed"])
+def test_unknown_search_forces_a_clean_stateless_continuation(
+    include_first_message: bool,
+    unknown_status: str,
+) -> None:
+    post_bodies: list[dict[str, object]] = []
+    get_urls: list[str] = []
+    first_output = _verification_output(summary="The first response must be discarded.")
+    second_output = _verification_output(summary="The clean continuation identifies the model.")
+    first_url = "https://openai.com/research/first-response"
+    second_url = "https://openai.com/research/clean-continuation"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        body = json.loads(request.content)
+        post_bodies.append(body)
+        if body["tool_choice"] != "none":
+            actions: list[dict[str, object]] = [
+                {"type": "search", "query": _search_query(request)},
+                {
+                    "type": "open_page",
+                    "url": "https://openai.com/research/test-model#before-unknown",
+                },
+                {
+                    "type": "search",
+                    "query": 'site:openai.com "Provider-generated follow-up"',
+                },
+                {
+                    "type": "find_in_page",
+                    "url": "https://openai.com/research/test-model#after-unknown",
+                    "pattern": "API access",
+                },
+                {
+                    "type": "search",
+                    "queries": [
+                        _search_query(request),
+                        "ws_call_id=call_00_A1b2C3",
+                    ],
+                },
+            ]
+            if include_first_message:
+                response = _output_response(
+                    first_output,
+                    actions=actions,
+                    annotations=[
+                        _annotation_for_summary(
+                            first_output,
+                            url=first_url,
+                            title="Discarded first response",
+                        )
+                    ],
+                )
+            else:
+                response = _action_only_response(actions)
+            if unknown_status == "failed":
+                payload = response.json()
+                payload["output"][2]["status"] = "failed"
+                return httpx.Response(200, json=payload)
+            return response
+        return _output_response(
+            second_output,
+            annotations=[
+                _annotation_for_summary(
+                    second_output,
+                    url=second_url,
+                    title="Clean continuation",
+                )
+            ],
+        )
+
+    (verification,) = _run_verify(handler)
+
+    assert len(post_bodies) == 2
+    first, second = post_bodies
+    assert second["tool_choice"] == "none"
+    assert "tools" not in second
+    assert "previous_response_id" not in second
+    continuation_input = cast(list[dict[str, object]], second["input"])
+    assert continuation_input[0] == {"role": "user", "content": first["input"]}
+    assert [item["id"] for item in continuation_input[1:]] == ["ws-test-0"]
+    assert get_urls == [second_url]
+    assert verification.checks[0].verdict == EvidenceVerdict.SATISFIED
+    assert verification.citations[0].url == second_url
+
+
+def test_mixed_known_and_unknown_search_action_cannot_partially_authorize() -> None:
+    candidates = (_candidate(), _anthropic_candidate())
+    output = _verification_output(candidate_slot=1)
+    official_url = "https://anthropic.com/claude/unknown-action-result"
+    post_bodies: list[dict[str, object]] = []
+    get_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        body = json.loads(request.content)
+        post_bodies.append(body)
+        if body["tool_choice"] != "none":
+            search_input = json.loads(body["input"])
+            anthropic_query = search_input["candidates"][1]["allowedQueries"][0]
+            return _output_response(
+                _verification_output(),
+                actions=[
+                    {"type": "search", "query": _search_query(request)},
+                    {
+                        "type": "search",
+                        "queries": [
+                            anthropic_query,
+                            'site:anthropic.com "Provider-generated follow-up"',
+                        ],
+                    },
+                ],
+            )
+        return _output_response(
+            output,
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=official_url,
+                    title="Anthropic model page",
+                )
+            ],
+        )
+
+    verifications = _run_verify(handler, candidates=candidates)
+
+    assert len(post_bodies) == 2
+    continuation_input = cast(list[dict[str, object]], post_bodies[1]["input"])
+    assert [item["id"] for item in continuation_input[1:]] == ["ws-test-0"]
+    anthropic = next(item for item in verifications if item.candidate_slot == 1)
+    assert get_urls == []
+    assert anthropic.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert anthropic.checks[0].summary is None
+    assert anthropic.citations == ()
+
+
+def test_unknown_search_alone_cannot_replace_an_approved_primary() -> None:
+    call_count = 0
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return _output_response(
+            _verification_output(),
+            query='site:openai.com "Provider-generated follow-up"',
+        )
+
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
+        _run_verify(handler)
+    assert call_count == 1
+
+
+@pytest.mark.parametrize(
+    ("unknown_action", "error"),
+    [
+        (
+            {
+                "type": "search",
+                "query": 'site:openai.com "Provider-generated follow-up"',
+                "providerExtension": True,
+            },
+            "invalid search action",
+        ),
+        (
+            {
+                "type": "search",
+                "query": 'site:openai.com "Provider-generated follow-up"',
+                "sources": [{"type": "url", "url": "https://evil.example/model"}],
+            },
+            "unapproved source URL",
+        ),
+    ],
+)
+def test_unknown_search_still_validates_action_fields_and_sources(
+    unknown_action: dict[str, object],
+    error: str,
+) -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                unknown_action,
+            ],
+        )
+
+    with pytest.raises(AdvisorGatewayError, match=error):
+        _run_verify(handler)
+    assert call_count == 1
+
+
+def test_unknown_search_without_a_primary_is_rejected_after_validation() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return _output_response(
             _verification_output(),
             query="site:evil.example OpenAI Test Model",
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(handler)
 
 
@@ -745,7 +944,7 @@ def test_shared_base_query_is_auxiliary_and_cannot_authorize_a_candidate(
             ),
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(mixed_candidate_handler, candidates=candidates)
 
 
@@ -823,7 +1022,7 @@ def test_configuration_subset_expansion_is_capped() -> None:
             query='site:openai.com "OpenAI Model" "High"',
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(handler, candidates=(bounded_candidate,))
 
 
@@ -876,7 +1075,7 @@ def test_search_rejects_unsafe_provider_reformulations(query: str) -> None:
     def handler(_request: httpx.Request) -> httpx.Response:
         return _output_response(_verification_output(), query=query)
 
-    with pytest.raises(AdvisorGatewayError, match="search query|unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="search query|no approved search action"):
         _run_verify(handler, candidates=(_candidate(), _anthropic_candidate()))
 
 
@@ -908,7 +1107,7 @@ def test_unregistered_creator_reformulation_is_limited_to_aa_scope() -> None:
             query="site:openai.com Unregistered Test Model",
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(creator_handler, candidates=candidates)
 
 
@@ -941,7 +1140,7 @@ def test_unquoted_reformulation_is_not_derived_from_search_control_tokens_in_nam
             query=unquoted_query,
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(handler, candidates=(unsafe_candidate,))
 
 
@@ -986,7 +1185,7 @@ def test_reformulation_does_not_strip_model_semantics_or_malformed_qualifiers(
             query=f'site:openai.com "{unsafe_base}"',
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(handler, candidates=(named_candidate,))
 
 
@@ -1003,7 +1202,7 @@ def test_model_suffix_does_not_enable_a_stripped_semantic_qualifier() -> None:
             query='site:openai.com "OpenAI Model" model',
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved query"):
+    with pytest.raises(AdvisorGatewayError, match="no approved search action"):
         _run_verify(handler, candidates=(named_candidate,))
 
 
@@ -1354,10 +1553,6 @@ def test_failed_search_cannot_authorize_candidate_evidence() -> None:
     ("action", "error"),
     [
         (
-            {"type": "search", "query": "site:evil.example OpenAI Test Model"},
-            "unapproved query",
-        ),
-        (
             {
                 "type": "search",
                 "query": 'site:openai.com "OpenAI Test Model"',
@@ -1375,7 +1570,7 @@ def test_failed_search_cannot_authorize_candidate_evidence() -> None:
         ),
     ],
 )
-def test_failed_search_still_requires_approved_query_and_sources(
+def test_failed_search_still_validates_action_fields_and_sources(
     action: dict[str, object],
     error: str,
 ) -> None:

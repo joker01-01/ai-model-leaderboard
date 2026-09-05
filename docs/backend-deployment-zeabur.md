@@ -168,6 +168,8 @@ HTTP 200 with a schema-valid result proves deterministic advisor availability. A
 
 For an `aa_only` result, inspect the server-side `advisor_verification_*`, `advisor_web_action_diagnostics`, and `advisor_citation_diagnostics` events. They expose only bounded stage, duration, failure category, action/query counts, and aggregate citation counts; they intentionally omit keys, requirements, query text, URLs, titles, and provider response bodies.
 
+An `ignored_searches` count above zero means the provider generated at least one search outside the finite approved query set. That action and the first response message were discarded; the adapter attempted its single stateless continuation using only independent approved search actions. Query text remains intentionally absent from logs.
+
 ### 6. Browser boundary
 
 Check the browser preflight explicitly:
