@@ -222,6 +222,12 @@ class OfficialSourcesRepository:
         return tuple(sorted(set(self._creators).difference(known_creator_ids)))
 
     @staticmethod
+    def is_well_formed_citation_url(url: str) -> bool:
+        """Return whether a URL passes the registry's canonical HTTPS boundary."""
+
+        return _parse_citation_url(url) is not None
+
+    @staticmethod
     def _match_creator_rule(
         citation: _CitationUrl,
         creator_id: str,

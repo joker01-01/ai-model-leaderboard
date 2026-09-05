@@ -30,6 +30,7 @@ Handler = Callable[[httpx.Request], httpx.Response]
 _OPENAI_CREATOR_ID = "e67e56e3-15cd-43db-b679-da4660a69f41"
 _ANTHROPIC_CREATOR_ID = "f0aa413f-e8ae-4fcd-9c48-0e049f4f3128"
 _PRIVATE_REQUIREMENT = "Recommend a model. PRIVATE_REQUIREMENT_MARKER"
+_UNREGISTERED_NAVIGATION_URL = "https://airwiki.ai/models/openai-test-model"
 _INTENT_OUTPUT = {
     "abilityPurposes": ["coding"],
     "promotedObjective": None,
@@ -589,6 +590,8 @@ def test_unknown_search_forces_a_clean_stateless_continuation(
                         "ws_call_id=call_00_A1b2C3",
                     ],
                 },
+                {"type": "search", "query": "ws_call_id=call_00_markerOnly"},
+                {"type": "search", "query": '"OpenAI Test Model"'},
             ]
             if include_first_message:
                 response = _output_response(
@@ -629,7 +632,17 @@ def test_unknown_search_forces_a_clean_stateless_continuation(
     assert "previous_response_id" not in second
     continuation_input = cast(list[dict[str, object]], second["input"])
     assert continuation_input[0] == {"role": "user", "content": first["input"]}
-    assert [item["id"] for item in continuation_input[1:]] == ["ws-test-0"]
+    assert [item["id"] for item in continuation_input[1:]] == [
+        "ws-test-0",
+        "ws-test-4",
+    ]
+    assert continuation_input[2]["action"] == {
+        "type": "search",
+        "queries": [
+            json.loads(cast(str, first["input"]))["candidates"][0]["allowedQueries"][0],
+            "ws_call_id=call_00_A1b2C3",
+        ],
+    }
     assert get_urls == [second_url]
     assert verification.checks[0].verdict == EvidenceVerdict.SATISFIED
     assert verification.citations[0].url == second_url
@@ -1271,7 +1284,7 @@ def test_search_output_accepts_only_the_advertised_wire_aliases() -> None:
         _run_verify(handler)
 
 
-def test_completed_open_and_find_actions_are_limited_to_reviewed_urls() -> None:
+def test_reviewed_navigation_is_accepted_but_search_sources_remain_strict() -> None:
     def approved_handler(request: httpx.Request) -> httpx.Response:
         query = _search_query(request)
         return _output_response(
@@ -1294,22 +1307,11 @@ def test_completed_open_and_find_actions_are_limited_to_reviewed_urls() -> None:
     (verification,) = _run_verify(approved_handler)
     assert verification.citations == ()
 
-    def unapproved_handler(request: httpx.Request) -> httpx.Response:
-        return _output_response(
-            _verification_output(),
-            actions=[
-                {"type": "search", "query": _search_query(request)},
-                {"type": "open_page", "url": "https://evil.example/model"},
-            ],
-        )
-
-    with pytest.raises(AdvisorGatewayError, match="unapproved URL"):
-        _run_verify(unapproved_handler)
-
     def unapproved_source_handler(request: httpx.Request) -> httpx.Response:
         return _output_response(
             _verification_output(),
             actions=[
+                {"type": "open_page", "url": _UNREGISTERED_NAVIGATION_URL},
                 {
                     "type": "search",
                     "query": _search_query(request),
@@ -1320,6 +1322,114 @@ def test_completed_open_and_find_actions_are_limited_to_reviewed_urls() -> None:
 
     with pytest.raises(AdvisorGatewayError, match="unapproved source URL"):
         _run_verify(unapproved_source_handler)
+
+
+@pytest.mark.parametrize("navigation_status", ["completed", "failed"])
+def test_unregistered_navigation_taints_message_and_replays_only_primary_searches(
+    navigation_status: str,
+) -> None:
+    post_bodies: list[dict[str, object]] = []
+    get_urls: list[str] = []
+    first_output = _verification_output(summary="Unregistered navigation must not be evidence.")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        body = json.loads(request.content)
+        post_bodies.append(body)
+        if body["tool_choice"] != "none":
+            response = _output_response(
+                first_output,
+                actions=[
+                    {"type": "open_page", "url": _UNREGISTERED_NAVIGATION_URL},
+                    {"type": "search", "query": _search_query(request)},
+                    {
+                        "type": "find_in_page",
+                        "url": f"{_UNREGISTERED_NAVIGATION_URL}#api",
+                        "pattern": "API access",
+                    },
+                    {"type": "search", "query": "ws_call_id=call_00_markerOnly"},
+                    {"type": "search", "query": '"OpenAI Test Model"'},
+                ],
+                annotations=[
+                    _annotation_for_summary(
+                        first_output,
+                        url=_UNREGISTERED_NAVIGATION_URL,
+                        title="Unregistered navigation result",
+                    )
+                ],
+            )
+            if navigation_status == "failed":
+                payload = response.json()
+                payload["output"][0]["status"] = "failed"
+                payload["output"][2]["status"] = "failed"
+                return httpx.Response(200, json=payload)
+            return response
+        return _output_response({"candidates": []})
+
+    (verification,) = _run_verify(handler)
+
+    assert len(post_bodies) == 2
+    first, second = post_bodies
+    assert second["tool_choice"] == "none"
+    assert "tools" not in second
+    assert "previous_response_id" not in second
+    continuation_input = cast(list[dict[str, object]], second["input"])
+    assert continuation_input[0] == {"role": "user", "content": first["input"]}
+    assert [item["id"] for item in continuation_input[1:]] == ["ws-test-1"]
+    assert _UNREGISTERED_NAVIGATION_URL not in json.dumps(continuation_input)
+    assert get_urls == []
+    assert verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
+    assert verification.checks[0].summary is None
+    assert verification.citations == ()
+
+
+@pytest.mark.parametrize(
+    ("action", "error"),
+    [
+        (
+            {
+                "type": "open_page",
+                "url": _UNREGISTERED_NAVIGATION_URL,
+                "providerExtension": True,
+            },
+            "invalid open_page action",
+        ),
+        (
+            {"type": "find_in_page", "url": _UNREGISTERED_NAVIGATION_URL},
+            "invalid find_in_page action",
+        ),
+        (
+            {
+                "type": "find_in_page",
+                "url": _UNREGISTERED_NAVIGATION_URL,
+                "pattern": "",
+            },
+            "invalid find pattern",
+        ),
+    ],
+)
+def test_unregistered_navigation_still_validates_shape_and_pattern(
+    action: dict[str, object],
+    error: str,
+) -> None:
+    call_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
+        return _output_response(
+            _verification_output(),
+            actions=[
+                {"type": "search", "query": _search_query(request)},
+                action,
+            ],
+        )
+
+    with pytest.raises(AdvisorGatewayError, match=error):
+        _run_verify(handler)
+    assert call_count == 1
 
 
 def test_action_metadata_may_use_fragments_but_search_sources_may_not() -> None:
@@ -1373,7 +1483,7 @@ def test_action_metadata_rejects_a_malformed_fragment_url() -> None:
             ],
         )
 
-    with pytest.raises(AdvisorGatewayError, match="unapproved URL"):
+    with pytest.raises(AdvisorGatewayError, match="invalid URL"):
         _run_verify(handler)
 
 
@@ -1420,7 +1530,7 @@ def test_action_metadata_rejects_lone_surrogates_before_continuation(
             headers={"content-type": "application/json"},
         )
 
-    with pytest.raises(AdvisorGatewayError, match="action ID|find pattern|unapproved URL"):
+    with pytest.raises(AdvisorGatewayError, match="action ID|find pattern|invalid URL"):
         _run_verify(handler)
     assert call_count == 1
 
@@ -1452,23 +1562,6 @@ def test_failed_reviewed_open_page_does_not_discard_completed_search(
     assert verification.checks[0].verdict == EvidenceVerdict.UNVERIFIED
     assert "failed_open_pages=1" in caplog.text
     assert "openai.com" not in caplog.text
-
-
-def test_failed_open_page_still_requires_a_reviewed_url() -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        response = _output_response(
-            _verification_output(),
-            actions=[
-                {"type": "search", "query": _search_query(request)},
-                {"type": "open_page", "url": "https://evil.example/model"},
-            ],
-        )
-        payload = response.json()
-        payload["output"][1]["status"] = "failed"
-        return httpx.Response(200, json=payload)
-
-    with pytest.raises(AdvisorGatewayError, match="unapproved URL"):
-        _run_verify(handler)
 
 
 def test_failed_reviewed_search_is_validated_but_not_replayed(
@@ -1618,16 +1711,30 @@ def test_failed_reviewed_find_action_is_validated_but_not_evidence(
     assert "test-model" not in caplog.text
 
 
-def test_failed_open_page_cannot_replace_a_completed_search() -> None:
+@pytest.mark.parametrize(
+    ("action", "status"),
+    [
+        (
+            {"type": "open_page", "url": "https://openai.com/research/test-model"},
+            "failed",
+        ),
+        (
+            {"type": "open_page", "url": _UNREGISTERED_NAVIGATION_URL},
+            "completed",
+        ),
+    ],
+)
+def test_navigation_cannot_replace_a_completed_search(
+    action: dict[str, object],
+    status: str,
+) -> None:
     def handler(_request: httpx.Request) -> httpx.Response:
         response = _output_response(
             _verification_output(),
-            actions=[
-                {"type": "open_page", "url": "https://openai.com/research/test-model"},
-            ],
+            actions=[action],
         )
         payload = response.json()
-        payload["output"][0]["status"] = "failed"
+        payload["output"][0]["status"] = status
         return httpx.Response(200, json=payload)
 
     with pytest.raises(AdvisorGatewayError, match="no approved search action"):
@@ -1641,12 +1748,16 @@ def test_failed_open_page_cannot_replace_a_completed_search() -> None:
 def test_open_page_statuses_other_than_completed_or_failed_are_rejected(
     status: object,
 ) -> None:
+    call_count = 0
+
     def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal call_count
+        call_count += 1
         response = _output_response(
             _verification_output(),
             actions=[
                 {"type": "search", "query": _search_query(request)},
-                {"type": "open_page", "url": "https://openai.com/research/test-model"},
+                {"type": "open_page", "url": _UNREGISTERED_NAVIGATION_URL},
             ],
         )
         payload = response.json()
@@ -1655,6 +1766,7 @@ def test_open_page_statuses_other_than_completed_or_failed_are_rejected(
 
     with pytest.raises(AdvisorGatewayError, match="incomplete action"):
         _run_verify(handler)
+    assert call_count == 1
 
 
 def test_incomplete_web_action_and_message_items_are_rejected() -> None:
