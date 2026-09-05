@@ -2,7 +2,7 @@
 
 > Product direction confirmed by the user. This specification defines the target behavior; `PROJECT_STATE.md` records which parts are implemented, verified, and deployed.
 
-Phone layout revision: at viewport widths up to 620 CSS pixels, scale a 1100px desktop canvas uniformly to fit. Preserve desktop card columns and model/bar alignment rather than reflowing mobile rows. The earlier stacked mobile descriptions apply only to the remaining tablet breakpoints (621-1024px). Native browser zoom remains available. This deliberately reduces text and control sizes for the user-requested proportional-layout trial.
+Phone layout revision: at viewport widths up to 620 CSS pixels, scale a 620px single-column canvas to the available width excluding scrollbars. Home shows one leaderboard per row in ability, speed, price, advisor order; model identities remain inline beside their bars. Do not scale the desktop two-column grid onto phones. Tablet and desktop behavior and native browser zoom remain available.
 
 ## 1. Product definition
 

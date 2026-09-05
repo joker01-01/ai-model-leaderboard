@@ -28,18 +28,26 @@ afterEach(() => {
 });
 
 describe("public product routes", () => {
-  it("scales a desktop canvas on phones and restores normal layout after resizing", () => {
+  it("scales a single-column canvas on phones and restores normal layout after resizing", () => {
     const originalWidth = window.innerWidth;
     try {
       Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 });
       const { container } = render(<App />);
       const canvas = container.querySelector<HTMLElement>(".public-app")!;
-      expect(canvas.style.width).toBe("1100px");
-      expect(Number(canvas.style.zoom)).toBeCloseTo(390 / 1100);
+      expect(canvas.style.width).toBe("620px");
+      expect(Number(canvas.style.zoom)).toBeCloseTo(390 / 620);
+
+      const clientWidth = vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(375);
+      try {
+        fireEvent(window, new Event("resize"));
+        expect(Number(canvas.style.zoom)).toBeCloseTo(375 / 620);
+      } finally {
+        clientWidth.mockRestore();
+      }
 
       Object.defineProperty(window, "innerWidth", { configurable: true, value: 430 });
       fireEvent(window, new Event("resize"));
-      expect(Number(canvas.style.zoom)).toBeCloseTo(430 / 1100);
+      expect(Number(canvas.style.zoom)).toBeCloseTo(430 / 620);
 
       Object.defineProperty(window, "innerWidth", { configurable: true, value: 1024 });
       fireEvent(window, new Event("resize"));

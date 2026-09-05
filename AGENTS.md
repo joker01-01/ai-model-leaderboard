@@ -69,7 +69,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ## Confirmed public-product invariants
 
-- Phone layout (up to 620 CSS pixels) uses a 1100px desktop canvas scaled uniformly to the viewport, including side-by-side home speed/price cards and inline chart identities. This supersedes the older mobile stacking rules below. Keep tablet reflow at 621-1024px, desktop behavior above that range, and native pinch zoom available.
+- Phone layout (up to 620 CSS pixels) must keep one home leaderboard per row in ability, speed, price, advisor order. Fit a 620px single-column canvas proportionally to the available viewport width, excluding any scrollbar. Model identities stay beside their bars. Never scale the desktop two-column home onto phones. Keep tablet reflow and normal desktop layout; native pinch zoom remains available.
 
 - Home is a four-card directory headed `AI 模型排行榜`; it does not open a leaderboard by default.
 - The cards are `模型能力榜单`, `模型速度榜单`, `模型价格榜单`, and `按需求选模型`. Use the exact hash routes defined in `DESIGN.md`.

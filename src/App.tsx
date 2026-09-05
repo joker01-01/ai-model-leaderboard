@@ -27,12 +27,24 @@ const PRIMARY_CREATORS: readonly CreatorOption[] = Object.freeze(
 export default function App() {
   const route = useHashRoute();
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const [availableWidth, setAvailableWidth] = useState(() => (
+    document.documentElement.clientWidth || window.innerWidth
+  ));
   useEffect(() => {
-    const updateWidth = () => setViewportWidth(window.innerWidth);
+    const updateWidth = () => {
+      setViewportWidth(window.innerWidth);
+      setAvailableWidth(document.documentElement.clientWidth || window.innerWidth);
+    };
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateWidth);
+    observer?.observe(document.documentElement);
+    updateWidth();
     window.addEventListener("resize", updateWidth);
-    return () => window.removeEventListener("resize", updateWidth);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateWidth);
+    };
   }, []);
-  const mobileScale = viewportWidth <= 620 ? viewportWidth / 1100 : null;
+  const mobileScale = viewportWidth <= 620 ? availableWidth / 620 : null;
   const sharedProps = useMemo(() => ({
     snapshot: PUBLIC_SNAPSHOT,
     presentations: PRESENTATIONS,
@@ -42,7 +54,7 @@ export default function App() {
   return (
     <div
       className="public-app"
-      style={mobileScale === null ? undefined : { width: 1100, zoom: mobileScale }}
+      style={mobileScale === null ? undefined : { width: 620, zoom: mobileScale }}
     >
       {route.page === "home" && (
         <HomePage snapshot={PUBLIC_SNAPSHOT} displayNames={DISPLAY_NAMES} />

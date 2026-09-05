@@ -2283,7 +2283,7 @@ textarea { -webkit-tap-highlight-color: transparent; }
   }
 }
 
-@media (min-width: 621px) and (max-width: 1024px) {
+@media (max-width: 1024px) {
   .home-grid { grid-template-columns: minmax(0, 1fr); }
   .ability-card,
   .advisor-card { grid-column: 1; }
