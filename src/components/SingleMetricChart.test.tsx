@@ -112,6 +112,27 @@ describe("SingleMetricChart", () => {
     expect(container.querySelector(".single-metric-chart--price")).toBeTruthy();
   });
 
+  it("uses inverse width for lower-is-better previews without changing the exact value", () => {
+    const { container } = render(
+      <SingleMetricChart
+        rows={[row("latency", 0.2, 1)]}
+        displayNames={new Map()}
+        scaleMax={1}
+        progress={1}
+        preview
+        tone="speed"
+        lowerIsBetter
+        ariaLabel="模型首字延迟榜单预览"
+        metricLabel="首字延迟"
+        valueSuffix="秒"
+      />,
+    );
+
+    expect(screen.getByText("首字延迟：0.2 秒")).toBeTruthy();
+    expect(container.querySelector<HTMLElement>(".single-metric-chart__bar-fill")?.style.width).toBe("80%");
+    expect((container.querySelector(".single-metric-chart__value") as HTMLElement).style.left).toBe("80%");
+  });
+
   it("marks rows with an exact creator tone and falls unknown creators back to other", () => {
     const openAiId = "e67e56e3-15cd-43db-b679-da4660a69f41";
     const { container } = render(

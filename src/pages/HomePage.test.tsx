@@ -218,7 +218,7 @@ describe("HomePage", () => {
     expect(rectSpy).toHaveBeenCalled();
   });
 
-  it("shows one output-speed bar for each of five static preview rows", () => {
+  it("shows first-answer latency from fast to slow with inverse blue bars", () => {
     const data = snapshot();
     const presentations = buildAaModelPresentationIndex(data.models);
     const displayNames = new Map(
@@ -229,17 +229,19 @@ describe("HomePage", () => {
     );
 
     const speedCard = screen.getByRole("link", { name: /模型速度榜单/ });
-    const preview = within(speedCard).getByRole("list", { name: "模型输出速度榜单预览" });
+    const preview = within(speedCard).getByRole("list", { name: "模型首字延迟榜单预览" });
     const rows = within(preview).getAllByRole("listitem");
 
     expect(rows).toHaveLength(5);
     expect(sourceIds(preview)).toEqual(["alpha", "beta", "gamma", "delta", "epsilon"]);
-    expect(within(rows[0]).getByText("输出速度：600 tokens/s")).toBeTruthy();
-    expect(rows[0].querySelector(".metric-number")?.textContent).toBe("600");
-    expect(rows[0].querySelector(".metric-unit")?.textContent).toBe("tokens/s");
+    expect(within(rows[0]).getByText("首字延迟：0.2 秒")).toBeTruthy();
+    expect(rows[0].querySelector(".metric-number")?.textContent).toBe("0.2");
+    expect(rows[0].querySelector(".metric-unit")?.textContent).toBe("秒");
     expect(rows[0].querySelectorAll(".single-metric-chart__bar")).toHaveLength(1);
-    expect(rows[0].querySelector<HTMLElement>(".single-metric-chart__bar-fill")?.style.width).toBe("75%");
-    expect(speedCard.textContent).not.toContain("首字");
+    expect(Number.parseFloat(
+      rows[0].querySelector<HTMLElement>(".single-metric-chart__bar-fill")?.style.width ?? "",
+    )).toBeCloseTo(84);
+    expect(speedCard.textContent).not.toContain("tokens/s");
     expect(container.querySelector(".single-metric-chart--speed.single-metric-chart--preview")).toBeTruthy();
     expect(container.querySelector(".dual-metric-chart--preview")).toBeNull();
   });

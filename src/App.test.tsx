@@ -42,6 +42,13 @@ describe("public product routes", () => {
     expect(links.find((link) => link.textContent?.includes("按需求选模型"))?.getAttribute("href"))
       .toBe("#/advisor");
     expect(container.querySelectorAll(".directory-card")).toHaveLength(4);
+    expect(screen.queryByText("WS")).toBeNull();
+    expect(screen.getByRole("link", { name: "GitHub" }).getAttribute("href"))
+      .toBe("https://github.com/joker01-01");
+    expect(screen.getByRole("link", { name: "Bilibili" }).getAttribute("href"))
+      .toBe("https://space.bilibili.com/691663896");
+    expect(screen.getByRole("button", { name: "23号切片二维码" })).toBeTruthy();
+    expect(screen.getByText("更新日期：2026-09-04")).toBeTruthy();
     expect(container.textContent).not.toContain("编辑推荐榜");
     expect(container.textContent).not.toContain("把模型选择变成可核验结论");
   });
@@ -56,6 +63,7 @@ describe("public product routes", () => {
     expect(screen.queryByRole("searchbox")).toBeNull();
     expect(screen.queryByText(/条结果/)).toBeNull();
     expect(screen.queryByText(/更新日期/)).toBeNull();
+    expect(document.querySelector(".site-footer")).toBeNull();
 
     await user.click(screen.getByRole("link", { name: "返回首页" }));
     await waitFor(() => expect(screen.getByRole("heading", { level: 1, name: "AI 模型排行榜" })).toBeTruthy());
@@ -76,6 +84,7 @@ describe("public product routes", () => {
     expect(container.textContent).not.toContain("推荐服务未配置");
     expect(container.textContent).not.toContain("下一阶段接入");
     expect(container.querySelector(".agent-panel")).toBeNull();
+    expect(container.querySelector(".site-footer")).toBeNull();
   });
 
   it("renders the home directory for an unknown hash", () => {

@@ -11,6 +11,7 @@ interface SingleMetricChartProps {
   readonly ariaLabel?: string;
   readonly metricLabel?: string;
   readonly tone?: "ability" | "speed" | "price";
+  readonly lowerIsBetter?: boolean;
   readonly valuePrefix?: string;
   readonly valueSuffix?: string;
 }
@@ -28,9 +29,10 @@ function animatedNumber(value: number, progress: number): string {
   return exactNumber(Number((value * progress).toFixed(6)));
 }
 
-function targetWidth(value: number, scaleMax: number): number {
+function targetWidth(value: number, scaleMax: number, lowerIsBetter: boolean): number {
   if (!Number.isFinite(scaleMax) || scaleMax <= 0) return 2;
-  return Math.max(0, Math.min(100, (value / scaleMax) * 100));
+  const ratio = lowerIsBetter ? (scaleMax - value) / scaleMax : value / scaleMax;
+  return Math.max(lowerIsBetter ? 2 : 0, Math.min(100, ratio * 100));
 }
 
 function displayNameFor(row: AaRankedModel, displayNames: ReadonlyMap<string, string>): string {
@@ -62,6 +64,7 @@ export default function SingleMetricChart({
   ariaLabel,
   metricLabel = "得分",
   tone = "ability",
+  lowerIsBetter = false,
   valuePrefix = "",
   valueSuffix = "",
 }: SingleMetricChartProps) {
@@ -77,7 +80,7 @@ export default function SingleMetricChart({
         {rows.map((row) => {
           const finalValue = exactNumber(row.primaryValue);
           const currentValue = animatedNumber(row.primaryValue, currentProgress);
-          const width = targetWidth(row.primaryValue, scaleMax) * currentProgress;
+          const width = targetWidth(row.primaryValue, scaleMax, lowerIsBetter) * currentProgress;
           const exactText = `${valuePrefix}${finalValue}${valueSuffix === "" ? "" : ` ${valueSuffix}`}`;
           const accessibleText = metricLabel === "得分"
             ? `得分 ${exactText}`

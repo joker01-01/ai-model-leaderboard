@@ -30,7 +30,7 @@ export const AA_RANKING_VIEWS: readonly AaRankingView[] = Object.freeze([
 ]);
 
 export const DEFAULT_EFFICIENCY_SORTS: Readonly<Record<AaEfficiencyView, AaEfficiencySort>> = Object.freeze({
-  speed: Object.freeze({ side: "right", direction: "descending" }),
+  speed: Object.freeze({ side: "left", direction: "ascending" }),
   price: Object.freeze({ side: "right", direction: "descending" }),
 });
 

@@ -6,18 +6,17 @@ Refactor the existing AI model leaderboard into the simple four-card product def
 
 ## Current repository baseline
 
-- Working directory for the Phase 4 task: `C:\Users\ADMIN\.codex\worktrees\d8e0\ai-model-leaderboard` (physical alias `D:\CodexData\.codex\worktrees\d8e0\ai-model-leaderboard`).
-- The task worktree is on `codex/phase-4-advisor`. Pull request [#15](https://github.com/joker01-01/ai-model-leaderboard/pull/15) contains the Phase 1–4 work and incorporates `origin/main` revision `cdb94b63d2dedbd2d8328bbc7290a47fa118bc8c` through merge commit `9cb152b`.
+- Working directory for the Phase 5 task: `C:\Users\ADMIN\.codex\worktrees\d8e0\ai-model-leaderboard` (physical alias `D:\CodexData\.codex\worktrees\d8e0\ai-model-leaderboard`).
+- The task worktree is on `codex/phase-5-assets`, published as pull request [#16](https://github.com/joker01-01/ai-model-leaderboard/pull/16) against `main`. Pull request [#15](https://github.com/joker01-01/ai-model-leaderboard/pull/15) was squash-merged into `main` as `4eff8492e4da25898e2623be96c3b454200d577f`; ancestry-only merge commit `4521fed` keeps the Phase 5 tree unchanged while making that merged `main` revision an ancestor of pull request #16.
 - React 19, TypeScript, and Vite build the GitHub Pages frontend.
-- The published public board currently opens directly and renders the first 20 finite AA Intelligence entries from a complete paginated fetch.
-- The deployed frontend still contains the curated editorial board and technical Agent evidence console. The local Phase 1–4 working tree replaces their public entry points with the confirmed four-card directory and one-shot advisor while preserving the legacy implementations.
+- The published GitHub Pages frontend at `4eff849` serves the confirmed four-card directory, complete public AA leaderboard routes, and one-shot advisor while preserving the curated editorial board and technical Agent evidence console only as unlinked repository implementations.
 - The local full public snapshot contains 643 source-native rows; the separate legacy generated AA module still keeps its 20-row Intelligence compatibility board and curated exact-match `models` map.
 - The curated editorial and ModelOps paths use exact internal IDs, controlled AA/Arena/provider identifiers, reviewed evidence, deterministic export, and visible missing evidence.
-- The pre-refactor Python 3.12 FastAPI/LangGraph backend is deployed from `origin/main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
-- The local backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
+- The Phase 1–4 Python 3.12 FastAPI/LangGraph backend is deployed from `main` to Zeabur at `https://modelops-agent-api.zeabur.app`.
+- The deployed backend preserves the strict legacy invoke/SSE path and adds the independent one-shot advisor JSON path, deterministic full-AA selection, reviewed official-source validation, bounded DeepSeek Responses web verification, and in-process rate/concurrency gates.
 - GitHub Actions verifies pull requests, deploys Pages, prepares App-signed data PRs, and conditionally auto-merges the current narrow class of routine generated refreshes.
 
-The deployment statements above describe `origin/main`. Phases 1–4 are committed on the pull-request branch but are not merged or published; the footer/social assets remain Phase 5.
+The deployment statements above describe `origin/main` after pull request #15. Phase 5 has completed final visual acceptance in pull request #16. Its merge and Pages-publication state is external GitHub state and must be checked live rather than frozen here.
 
 ## Confirmed product target
 
@@ -48,7 +47,7 @@ The product direction and Phase 1 design baseline are confirmed.
 - The new public module exports `AA_PUBLIC_SNAPSHOT`; the Phase 3 working-tree UI consumes it directly. Existing `src/data/generated/aaSnapshot.ts` continues to export the legacy `AA_SNAPSHOT.models` curated exact matches and old 20-row compatibility field for preserved legacy consumers and the currently deployed pre-refactor revision.
 - Metrics: Intelligence, Coding, Agentic, input price, output price, first-answer time, and output tokens per second.
 - Each leaderboard includes all rows with its required finite values; no Top-20 cap, family merge, or public-page pagination. Sync still validates every upstream API page.
-- Ability sorts high to low. Speed defaults to output speed high to low and price defaults to output price high to low; full efficiency pages let either displayed metric become the active sort and toggle its direction while recomputing global competition rank before creator filtering.
+- Ability sorts high to low. Speed defaults to first-answer latency low to high and price defaults to output price high to low; full efficiency pages let either displayed metric become the active sort and toggle its direction while recomputing global competition rank before creator filtering.
 - Equal primary values sort by the deterministic name sort key, then `sourceId`; competition rank uses the primary value only.
 - Creator filtering preserves pre-filter global competition rank, while public charts communicate rank by order and omit visible rank numerals.
 - Simplified names are display-only and remove a leading `Claude` brand token. Collision-only reasoning qualifiers use `R` / `NR` and merge with effort as forms such as `High·R`; chart names use a single-line ellipsis with the full simplified label on hover. Nullable raw names/slugs and exact `sourceId` identity remain stored. Missing name/slug never drops a finite-metric row and uses the transparent fallback defined in `DESIGN.md`.
@@ -71,17 +70,17 @@ The product direction and Phase 1 design baseline are confirmed.
 
 - Black canvas, thin rules, system fonts, no decorative marketing hero or glass-card wall.
 - Home uses a centered up-to-approximately-1480px data canvas with one shared square-edged grid: ability spans the first row, speed and price share the second row, and the advisor spans the final row. Mobile stacks all four cards in that order.
-- Home uses cyan Intelligence bars, blue output-speed bars, amber output-price bars, and a purple advisor accent. Full efficiency rows use blue/amber metric-sort controls and two same-direction vertically stacked bars to the right of one model identity.
-- Home previews show exactly five real rows and remain static. On desktop, ability uses a responsive linear preview ceiling that aligns its leading visible fill with the leading price fill while retaining headroom; at stacked widths and on every full ability page, ability uses the absolute 0–100 scale. Speed and price use deterministic readable ceilings above their observed maxima.
+- Home uses cyan Intelligence bars, inverse blue first-answer-latency bars, amber output-price bars, and a purple advisor accent. Full efficiency rows use blue/amber metric-sort controls and two same-direction vertically stacked bars to the right of one model identity.
+- Home previews show exactly five real rows and remain static. On desktop, ability uses a responsive linear preview ceiling that aligns its leading visible fill with the leading price fill while retaining headroom; at stacked widths and on every full ability page, ability uses the absolute 0–100 scale. Speed uses a readable ceiling above the slowest displayed top-five latency so faster rows remain visibly longer; price uses a readable ceiling above the observed output-price maximum.
 - Detail entry and ability-metric switches replay one chart-level 600ms count/bar animation; creator filtering and active-tab clicks do not. Ability, speed, and price detail titles reuse their matching home-card accent colors.
-- Detail headers center their titles while keeping the back control left. Ability retains its metric description; speed and price omit header descriptions. Detail pages omit search, result summaries, and repeated source/date lines.
+- Detail headers center their titles while keeping the back control left. Ability, speed, and price omit header descriptions. Detail pages omit search, result summaries, and repeated source/date lines.
 - Only the ability page has internal metric tabs. Speed and price are independent detail pages with separate titles and no cross-leaderboard switch. Ability tabs and the nine fixed creator controls are centered. The creator controls use 2px distinct exact-ID borders and expose no `更多` menu; home-preview and every full-chart model name use the corresponding creator color, unregistered names use the fallback pink tone, ability bars remain cyan, and speed/price bars keep blue/amber metric colors. Full leaderboard rows have no horizontal dividers.
 - Full ability names and values use 15px type. Names are bounded and right-aligned before their icons; ability scores use a fixed 0-100 scale, so each bar endpoint matches its displayed score and the exact value follows with an 8px gap. Full ability bars use 18px height in 44px desktop rows and home previews use 20px; both are square-left/rounded-right, omit the dark remainder track, and place values 8px after the fill endpoint.
 - Full speed and price names and values also use 15px type. Names use the same fixed right-aligned identity column; both 18px metric bars omit the dark remainder track, end in a right semicircle, and place each value 8px after its own endpoint. Their two-bar rows use a compact non-overlapping rhythm, deterministic readable ceilings strictly above the observed maxima, and five solid guides labelled with compact blue/amber real-scale value pairs.
 - Every full public chart renders its leftmost zero-origin guide at 2px with higher contrast than the remaining 1px guides; home previews continue to omit vertical guides.
 - The advisor home card contains only `按需求选模型` and the `开始选择 →` action; its former explanatory kicker is intentionally omitted, while the action uses a prominent purple 20–24px label and 42px arrow.
-- Footer appears on home only: `WS`, GitHub, Bilibili, WeChat account `23号切片`, AA attribution, and AA observation date.
-- The supplied WeChat QR will be copied from `D:\qrcode1788526628636.jpg` into a local frontend asset during the asset phase.
+- Footer appears on home only: GitHub, Bilibili, WeChat account `23号切片`, AA attribution, and AA observation date; the superseded `WS` wordmark is absent.
+- The supplied WeChat QR was copied from `D:\qrcode1788526628636.jpg` into the local frontend asset `src/assets/wechat-qrcode.jpg` during Phase 5.
 
 ## Phase status
 
@@ -120,10 +119,14 @@ The product direction and Phase 1 design baseline are confirmed.
    - official citation, redirect, candidate-identity, source-kind, and evidence-closure validation before any live claim or hard-constraint elimination;
    - per-IP five-per-ten-minute limiting and a non-queueing two-slot live-web gate for the fixed one-worker/one-replica deployment model;
    - deterministic AA fallback on missing key, provider failure, web saturation, or rejected provider evidence, with cancellation cleanup.
-5. **Footer and social assets — not started; ranking-page responsive layout is complete.**
-6. **Full verification, documentation, and publication — Phase 1–4 are documented, committed, pushed, and open in pull request #15; merge and publication are not performed.**
+5. **Footer, assets, and final public-presentation corrections — implementation, automated/browser checks, and final visual acceptance complete.**
+   - home-only footer without the superseded `WS` wordmark, with exact GitHub/Bilibili destinations, a WeChat control for `23号切片`, AA attribution, and the snapshot observation date;
+   - locally bundled image-only QR popover shown by pointer hover or keyboard focus, without visible account, scan-instruction, close, backdrop, or modal copy;
+   - nine exact-ID provider/product SVGs—using Claude for Anthropic, Gemini for Google, Grok for xAI, GLM for Z AI, Kimi for Kimi, Qwen for Alibaba, and Meta for Meta—with prototype-safe initial fallback for every unmapped creator, plus locally bundled social SVGs, pinned attribution, and a production-distributed third-party notice;
+   - responsive footer/popover styling with no page-level horizontal overflow in the checked 1053px browser viewport.
+6. **Full verification, documentation, and publication — local gates, Phase 1–4 publication, Phase 5 retargeting, and exact-head pull-request verification are complete; the user authorized the Phase 5 merge and focused Pages acceptance on 2026-09-05.**
 
-Phase 4 is committed on `codex/phase-4-advisor`. Pull request #15 is the review boundary; it has not been merged or deployed.
+Phase 1–4 was squash-merged through pull request #15 and is deployed from `main` revision `4eff849`. Phase 5's final reviewed branch is `codex/phase-5-assets` in pull request #16, directly based on `main`; its final merge and Pages acceptance outcome must be read live.
 
 ## Frozen decisions
 
@@ -183,14 +186,21 @@ Phase 4 adds or modifies:
 - `data/aa/official-sources.json`, its schema, and the registry review README;
 - focused backend/frontend tests, deterministic advisor evaluations, deployment packaging, and configuration documentation.
 
-## Remaining after the Phase 1–4 working tree
+Phase 5 adds or modifies:
 
-- Creator identities currently use stable circular initials. Licensed local brand SVGs, the home-only social footer, and the WeChat QR dialog remain Phase 5 work.
-- Phase 5 remains a separate scope; the current pull request intentionally stops after Phase 4.
-- A bounded legacy DeepSeek smoke against the current pre-refactor Zeabur deployment returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing its value. The Phase 4 advisor's live web-verification path remains unverified until this pull request is merged and Zeabur redeploys it.
+- `src/components/SiteFooter.tsx` and its focused component test;
+- `src/pages/HomePage.tsx`, route coverage in `src/App.test.tsx`, exact-ID provider icons in `CreatorIcon.tsx`, and scoped public styles;
+- the user-provided local WeChat QR, nine provider/product SVGs, three social SVGs, `src/assets/ATTRIBUTION.md`, and the production-distributed `public/THIRD_PARTY_NOTICES.txt`;
+- final user-approved presentation corrections in `aaRankings`, `SingleMetricChart`, `AbilityPage`, `EfficiencyPage` tests, and the governing product documents.
+
+## Remaining after the Phase 1–4 publication
+
+- Phase 5 has final visual acceptance and completed local Phase 6 gates. Pull request #16 is based directly on `main`, contains exactly the expected 35 Phase 5 files, and reached a successful exact-head verification check before merge authorization.
+- A fresh bounded legacy DeepSeek smoke returned a schema-valid `completed` answer on 2026-09-05, proving that the existing service-level `MODELOPS_MODEL_API_KEY` remained usable without exposing or replacing its value.
+- Two bounded live advisor requests reached the deployed Phase 4 endpoint and returned deterministic AA-only recommendations. The diagnostic request preserved the model-parsed `coding` purpose and `api_access` hard requirement, proving that key-backed intent parsing succeeded, but returned zero accepted citations after 36.79 seconds. The strongest current explanation is that the five-candidate, 19-query live-verification step exhausted its 30-second hard timeout; this remains a high-confidence inference because the fallback response and current log event intentionally do not distinguish timeout, provider rejection, strict wire/citation rejection, or a successful search with no accepted citations.
 - The local machine has no Docker command, so the repository-root image was not built; only packaging contracts were checked statically and through tests.
-- Before Zeabur publication, verify one replica/one worker and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
-- README and remaining operational docs should be refreshed in Phase 6 while explicitly distinguishing pull-request code from the deployed `origin/main` revision.
+- Before relying on proxy-derived client IPs or scaling the service, verify the Zeabur one-replica/one-worker setting and configure the exact `MODELOPS_TRUSTED_PROXY_CIDRS`; forwarded client IPs remain intentionally untrusted by default.
+- Pull request #16 must remain scoped to Phase 5 presentation/assets. Any live advisor observability or timeout/query correction belongs in a separate backend change from `main`, not in pull request #16.
 - A single-process in-memory limiter is adequate only while Zeabur runs one worker/replica; horizontal scaling would require a shared limiter before being enabled.
 
 ## Verification record
@@ -205,7 +215,9 @@ Phase 4 verification in this task worktree:
 - local browser acceptance at desktop and 390px widths exercised the real Vite-to-FastAPI CORS/POST path without a provider key: HTTP 200 returned three deterministic AA-only candidates, explicit live-verification fallback wording, and no page-level horizontal overflow or browser-console error;
 - targeted regressions cover sixth-request 429/`Retry-After`, two-slot non-queueing web capacity, disconnect/outer cancellation, lifespan startup cancellation, bounded responses/time/output tokens, strict aliases, exact Decimal cost at JS-safe and subnormal-float boundaries, candidate/source-kind/URL citation binding, redirect binding, all-five live exclusion evidence closure, and future GitHub registry mislabeling;
 - `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run modelops:data:check`: current, confirming the independent curated ModelOps data remains intact;
-- the current pre-refactor Zeabur service passed a bounded live DeepSeek invoke after pull-request creation; the Phase 4 advisor live wire shape, Docker image build, Zeabur proxy/replica configuration, Pages, and Zeabur publication still require their own evidence. Exact-head pull-request checks are external GitHub state and are not frozen in this file.
+- after pull request #15 merged, GitHub Pages deployment and the `main` verification workflow passed at `4eff849`; the public page returned HTTP 200 with the new product title, and the Zeabur OpenAPI document exposed both `/api/v1/advisor/recommend` and the preserved legacy invoke path;
+- the deployed advisor's deterministic fallback and key-backed intent extraction are live-verified, but accepted live web evidence is not: a focused request returned the correct parsed `coding`/`api_access` contract, three AA-only candidates, and zero citations after 36.79 seconds;
+- the current 30-second provider timeout covers the complete live verification operation, while the diagnostic candidate pool expands to 19 exact site-scoped queries. That timing makes timeout the leading hypothesis, but not a confirmed root cause without stage-specific error/timing telemetry. Exact-head pull-request checks remain external GitHub state and must be read live rather than treated as frozen evidence.
 
 Current consolidated frontend verification after the readable-axis and visible-fill alignment corrections:
 
@@ -225,7 +237,8 @@ Current consolidated frontend verification after the readable-axis and visible-f
 - on the desktop grid, the ability/left-speed plot-start delta is exactly 0px, the ability/right-price plot-end delta remains below 0.001px, and the new leading visible ability/price fill-end delta is below 0.001px; all three home previews use the same 180px identity column and 112px value column to preserve the structural baselines;
 - speed and price detail checks at 320, 390, 430, 768, 1440, and 1600 widths confirmed one identity and two same-origin, vertically stacked bars per row, one two-item page legend, square-left/right-rounded fills, and no horizontal overflow;
 - focused 1053px browser checks confirmed the ability, speed, and price plot grids all render a dedicated 2px `rgba(245, 247, 250, 0.48)` zero-origin layer over the unchanged 1px guide grid, with zero page-level horizontal overflow;
-- focused browser checks at the current 1053px review width confirmed both speed controls and both price controls update the active metric, accessible direction state, and rendered order without page-level horizontal overflow; each control uses the corrected 16px glyph with complete vertical strokes, only the left half of the upward arrowhead, and only the right half of the downward arrowhead; speed and price render no masthead description while ability retains its metric description;
+- focused browser checks at the current 1053px review width confirmed both speed controls and both price controls update the active metric, accessible direction state, and rendered order without page-level horizontal overflow; each control uses the corrected 16px glyph with complete vertical strokes, only the left half of the upward arrowhead, and only the right half of the downward arrowhead; speed and price render no masthead description;
+- a focused 1053px ability-page check confirms the masthead now contains only `模型能力榜单`: the removed Artificial Analysis metric description is absent, all three metric tabs remain present, and the page has zero horizontal overflow;
 - a focused home browser check at 1053px confirmed the advisor action renders `开始选择` at 20px/750 and its arrow at 42px, both in the advisor purple, without page-level horizontal overflow;
 - a focused 1053px advisor browser check confirmed the four removed helper/status strings are absent, idle fields have no stale `aria-describedby` references, validation can still attach its error description, the disabled submit state remains intact without a configured API origin, and the action row stays right-aligned with no horizontal overflow;
 - rendered detail and home names and values use the system sans stack at 15px/600 with tabular numerals and visually quieter unit spans;
@@ -251,7 +264,11 @@ Phase 2 data-layer verification retained by the same working tree:
 
 Not yet verified:
 
-- auto-merge baseline rejection, Pages publication, or Zeabur behavior for this refactor. Exact-head pull-request status must be read from GitHub rather than treated as a frozen project-state fact.
+- a deployed advisor response with accepted official citations and `verified` or `partial` status;
+- the exact live-verification failure branch, because production currently collapses timeout, provider/wire rejection, and zero accepted evidence into the same AA-only response and logs only the exception class;
+- the Zeabur one-replica/one-worker setting and exact trusted-proxy CIDRs;
+- a local repository-root Docker build, because Docker is unavailable on this machine;
+- Phase 5 Pages publication must be accepted from the live deployment after the authorized merge. Exact-head pull-request and deployment status must still be read from GitHub rather than treated as frozen project-state facts.
 
 The last recorded pre-refactor production baseline also includes:
 
@@ -262,10 +279,25 @@ The last recorded pre-refactor production baseline also includes:
 - TypeScript/Vite build, Ruff, and mypy passing;
 - protected PR verification, Pages deployment, Zeabur health, DeepSeek invoke/SSE, App-authored refresh, anomaly retention, and routine auto-merge live acceptance.
 
+Phase 5 and local Phase 6 verification on `codex/phase-5-assets`:
+
+- `npm run test:frontend`: 194/194 passing across 25 files after the footer/assets work, first-answer-latency default, ability-header reduction, and prototype-safe icon lookup;
+- focused footer/routing verification: 6/6 passing across two files for text-free QR markup, keyboard reachability, safe external links, and public routes;
+- `npm run build`: TypeScript and Vite production build passing; the build emits the local QR/brand assets and `THIRD_PARTY_NOTICES.txt`, with a non-failing 529.01 kB main-chunk size advisory;
+- local in-app browser checks confirm the home-only footer without the retired `WS` wordmark, 13 exact-ID provider-logo instances in the current five-row previews, zero remote image dependencies, zero page-level horizontal overflow at the current 1053px viewport, and a decoded 430×430 local QR image.
+- focused 1053×1001 QR-popover verification confirms no dialog, backdrop, native tooltip, or visible explanatory copy; the preview is hidden initially, becomes visible on keyboard focus as an image-only 232×232 popover entirely inside the viewport, returns to hidden on blur, and retains zero horizontal overflow.
+- focused 1053px Intelligence checks confirm all 26 xAI rows use Grok, all 22 GLM rows use the GLM product mark, all 11 Kimi rows use the Kimi mark on its contrast-safe dark circle, and all 88 Alibaba rows use Qwen, with zero initial fallbacks and zero page-level horizontal overflow in each filtered view.
+- focused 1053px Intelligence verification confirms all 22 Meta rows use the local Meta product mark; the selected `Muse Spark 1.3 (Max)` row exposes `Meta 标志`, contains one logo image and no fallback initial, and the page retains zero horizontal overflow.
+- Focused browser verification after the first-answer-latency correction confirms the home speed preview contains exactly five rows ordered from 0.30s to 0.61s, uses inverse blue fills, contains no `tokens/s`, and has zero horizontal overflow. The full speed route defaults to the active ascending first-answer-latency sort, keeps all 332 eligible rows and both metrics, and also has zero horizontal overflow.
+- `npm run test:data-update-policy`: 38/38 passing; `npm run test:modelops-data`: 12/12 passing; `npm run test:agent`: 30/30 passing; `npm run modelops:data:check` reports current generated data.
+- Full backend pytest, Ruff, and mypy gates pass; deterministic evaluations pass 29/29.
+- Changed-file scans find no secret-like values, no unsafe SVG scripting/event/remote-reference content, and no workflow or generated-data modifications.
+- GitHub pull request #15 passed exact-head verification and was squash-merged into `main` as `4eff8492e4da25898e2623be96c3b454200d577f` on 2026-09-05; the resulting `main` tree exactly matched the reviewed Phase 1–4 head.
+- GitHub pull request #16 was retargeted to `main` after an ancestry-only merge that did not change its Phase 5 tree. At the final pre-authorization head recorded here, GitHub reported it mergeable and clean, with 35 expected files and a successful `Verify pull request` check.
+
 Those older production results describe the deployed architecture and must not be cited as verification of the new target.
 
 ## Next
 
-1. Review pull request #15 and confirm its current exact-head check in GitHub before any separately authorized merge.
-2. Merge and run Pages/Zeabur acceptance only when separately requested.
-3. Implement the Phase 5 footer/social assets as a separate approved scope.
+1. Complete the user-authorized pull request #16 merge with an allowed linear-history method and run focused Pages acceptance against the deployed revision. The backend should not redeploy for a Phase 5-only diff.
+2. Track the deployed advisor live-verification issue as a separate backend change from `main`: first add non-sensitive stage/error telemetry and a live contract probe, then change timeout/query/wire handling only after the actual branch is identified.

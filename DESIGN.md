@@ -44,7 +44,7 @@ Hash routes are required so GitHub Pages can refresh and deep-link without a ser
 
 Unknown hashes return to the home page. Every detail-page back arrow always links to `#/`, including after a direct deep link; browser back/forward navigation remains functional through the hash history.
 
-Detail headers center the page title while the back control remains pinned to the left. Ability keeps one concise metric description; the speed and price headers contain only their titles. Source attribution and the update date appear only in the home footer.
+Detail headers center the page title while the back control remains pinned to the left. Ability, speed, and price headers contain only their titles. Source attribution and the update date appear only in the home footer.
 
 ## 3. Home page
 
@@ -58,22 +58,22 @@ The initial viewport contains the title `AI 模型排行榜` and four cards. It 
 │ │ 模型能力榜单 · Intelligence 前 5 单条预览               │ │
 │ ├────────────────────────────┬─────────────────────────────┤ │
 │ │ 模型速度榜单               │ 模型价格榜单                │ │
-│ │ 输出速度前 5 单条预览       │ 输出价格前 5 单条预览        │ │
+│ │ 首字延迟前 5 单条预览       │ 输出价格前 5 单条预览        │ │
 │ ├────────────────────────────┴─────────────────────────────┤ │
 │ │                       按需求选模型                       │ │
 │ └─────────────────────────────────────────────────────────┘ │
 │                                                              │
-│           WS   GitHub   Bilibili   微信公众号                │
+│                       ○   ○   ○                             │
 │  数据来源：Artificial Analysis · 更新日期：YYYY-MM-DD         │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-On desktop, the ability card spans the full first row. The speed and price cards share one edge in a two-column second row, and the advisor spans the full row below them. Its `开始选择` action uses the advisor purple at 20–24px with a matching 42px arrow so the destination reads as a primary call to action. Home preview bars retain a clearly visible 20px thickness, with a square left edge and semicircular right edge. No single-metric chart draws a dark remainder track; each value sits 8px after the actual fill endpoint. Home and full-detail model names and values use 15px type, and all units stay visually quieter. All three ranking previews use the same single-bar row grammar and shared identity/plot widths: the ability plot begins on the speed plot's vertical baseline and its plot boundary ends on the price plot's vertical baseline. The leading visible ability fill also ends exactly on the leading visible price fill. To satisfy that visible desktop composition without filling either plot, the home ability preview uses a responsive linear ceiling derived from those rendered endpoints; lower ability rows retain their exact linear proportions. Speed and price previews use deterministic readable ceilings strictly above the largest observed value. At 1024px and below, all four cards stack in the order ability, speed, price, advisor, the ability preview returns to its absolute 0–100 AA scale, and narrow preview rows place model identity above the bar to prevent horizontal overflow.
+On desktop, the ability card spans the full first row. The speed and price cards share one edge in a two-column second row, and the advisor spans the full row below them. Its `开始选择` action uses the advisor purple at 20–24px with a matching 42px arrow so the destination reads as a primary call to action. Home preview bars retain a clearly visible 20px thickness, with a square left edge and semicircular right edge. No single-metric chart draws a dark remainder track; each value sits 8px after the actual fill endpoint. Home and full-detail model names and values use 15px type, and all units stay visually quieter. All three ranking previews use the same single-bar row grammar and shared identity/plot widths: the ability plot begins on the speed plot's vertical baseline and its plot boundary ends on the price plot's vertical baseline. The leading visible ability fill also ends exactly on the leading visible price fill. To satisfy that visible desktop composition without filling either plot, the home ability preview uses a responsive linear ceiling derived from those rendered endpoints; lower ability rows retain their exact linear proportions. The speed preview uses a deterministic readable ceiling strictly above the slowest displayed top-five latency, while the price preview uses one strictly above the largest observed output price. At 1024px and below, all four cards stack in the order ability, speed, price, advisor, the ability preview returns to its absolute 0–100 AA scale, and narrow preview rows place model identity above the bar to prevent horizontal overflow.
 
 Card destinations and preview rules are fixed:
 
 - ability → `#/ability/intelligence`, using exactly the first five source rows after Intelligence descending, name sort key ascending, then `sourceId` ascending;
-- speed → `#/efficiency/speed`, using exactly the first five rows after output-speed descending, name sort key ascending, then `sourceId` ascending, and previewing output speed as one blue bar and one exact value;
+- speed → `#/efficiency/speed`, using exactly the first five rows after first-answer latency ascending, name sort key ascending, then `sourceId` ascending, and previewing exact seconds as one inverse blue bar where faster is longer;
 - price → `#/efficiency/price`, using exactly the first five rows after output-price descending, name sort key ascending, then `sourceId` ascending, and previewing output price as one amber bar and one exact value;
 - advisor → `#/advisor`.
 
@@ -89,7 +89,7 @@ Competition ties do not expand a preview beyond five rows. Home previews do not 
 | Primary text | `#F5F7FA` | Titles, names, values |
 | Directory divider | `#41484E` | Shared home-card grid |
 | Ability | `#25DAB0` → `#00DFF1` | Ability card single bars |
-| Speed | `#397FE5` → `#0FC4F3` | Home output-speed bars and the first full-view metric |
+| Speed | `#397FE5` → `#0FC4F3` | Home first-answer-latency bars and the first full-view metric |
 | Price / secondary | `#FF9D1C` → `#FFD21A` | Home output-price bars and the second full-view metric |
 | Advisor | `#9B6CFF` | Advisor card and primary action |
 | OpenAI | `#19C37D` | OpenAI model names in full ability views |
@@ -160,7 +160,7 @@ blue: 首个答案 Token 时间 [sort]   amber: 输出速度 [sort]
 - Both speed axes use a deterministic readable ceiling strictly above the largest observed value. The ceiling is selected from `1 / 1.25 / 1.5 / 2 / 2.5 / 3 / 4 / 5 / 6 / 8 × 10^n` after adding 5% headroom.
 - The blue bar encodes first-answer-time desirability as `(ceiling - value) / ceiling`, so lower latency is longer without allowing the fastest observed row to define the endpoint. The exact seconds and `越低越好` label remain visible.
 - The amber bar length is linear from zero to the readable output-speed ceiling. If the observed maximum is zero, all rows use the same 2% visual stub and still show `0 tokens/s`.
-- Default order is output speed from high to low. Selecting first-answer latency initially sorts low to high; selecting output speed initially sorts high to low. Clicking the active metric toggles its direction.
+- Default order is first-answer latency from low to high. Selecting first-answer latency initially sorts low to high; selecting output speed initially sorts high to low. Clicking the active metric toggles its direction.
 - Only rows with both required finite values appear.
 - Equal active-sort values use the name sort key by Unicode code-point order ascending, then `sourceId` ascending; competition rank uses only the active sort metric and is recomputed before creator filtering.
 
@@ -183,7 +183,7 @@ Changing an efficiency sort does not replay the entry animation. The native sort
 
 ## 7. Creator filters and ordering
 
-Full leaderboard pages deliberately omit search and result-count summary rows. Ability provides its three centered metric tabs; the independent speed and price pages provide no cross-leaderboard tabs. Every detail page centers its title and visible creator controls; only ability renders a header description.
+Full leaderboard pages deliberately omit search and result-count summary rows. Ability provides its three centered metric tabs; the independent speed and price pages provide no cross-leaderboard tabs. Every detail page centers its title and visible creator controls; none renders a header description.
 
 Fixed vendor controls are:
 
@@ -217,7 +217,7 @@ If two otherwise identical records differ by mode, their visible labels become f
 
 When supplied by AA, the complete substantive raw name remains in the generated record after boundary whitespace normalization for sync validation and evidence, but it is not rendered as a small subtitle. A null raw name remains null.
 
-OpenAI, Anthropic, Google, DeepSeek, and xAI use locally stored, appropriately licensed brand SVGs matched by AA creator identity. Each asset records its source and license. Every other creator, including one newly entering a home preview through an automatic data update, may use a circular initial mark and remains fully visible; absence of a bespoke icon never blocks a data refresh.
+Nine reviewed AA creator identities use locally stored, appropriately licensed brand SVGs: OpenAI and DeepSeek use their provider marks; Anthropic uses Claude; Google uses Gemini; xAI uses Grok; Z AI uses GLM; Kimi uses its own product mark; Alibaba uses Qwen; and Meta uses its provider mark. Each asset records its source and license, and the complete applicable notice ships at `/THIRD_PARTY_NOTICES.txt`. Every other creator, including a prototype-like ID such as `constructor` or one newly entering a home preview through an automatic data update, uses a circular initial mark and remains fully visible; absence of a bespoke icon never blocks a data refresh.
 
 ## 9. Motion
 
@@ -363,13 +363,12 @@ Zeabur remains fixed at one replica and one Uvicorn worker, so the in-process li
 
 The footer appears on the home page only and contains only:
 
-- `WS` as a plain, non-clickable personal wordmark;
 - GitHub icon linking to `https://github.com/joker01-01`;
 - Bilibili icon linking to `https://space.bilibili.com/691663896`;
 - WeChat official-account icon for `23号切片`;
 - `数据来源：Artificial Analysis · 更新日期：<AA observedAt>`.
 
-The social row renders `WS` and three icons, never bare URLs. Every icon has an accessible name. The WeChat button opens the locally bundled user-provided QR image in an `aria-modal` dialog; initial focus moves to the close button, Tab remains within the dialog, and closing through the button, backdrop, or Escape returns focus to the invoking button.
+The social row renders the three icons without a `WS` wordmark or bare URLs. Every icon has an accessible name. Pointer hover or keyboard focus on the WeChat control reveals the locally bundled user-provided QR image in a non-modal popover. The popover contains only the QR image: no visible account label, scan hint, close control, or native `title` tooltip.
 
 The update date is the AA snapshot observation date, not the deployment date. A failed refresh therefore leaves the previous date visible.
 
@@ -382,7 +381,7 @@ The update date is the AA snapshot observation date, not the deployment date. A 
 - Use landmarks, a continuous heading order, keyboard-operable cards/tabs/filters, visible focus, and explicit selected state.
 - Bars are decorative only when adjacent text exposes the exact model, metric, value, and unit.
 - Empty and failure states say what is unavailable and what still works.
-- The QR image has a useful alternative label and is not the only text identifying the account.
+- The WeChat control has a concise non-visual accessible name; its decorative popover image does not duplicate that announcement.
 
 ## 13. Source data and refresh boundary
 

@@ -1,6 +1,6 @@
 # AI Model Leaderboard Full-Product Refactor Plan
 
-> Execution plan for the user-confirmed product direction in `DESIGN.md`. Phases 1–4 are implemented and locally verified on pull request #15, and the Phase 3 public pages have completed visual acceptance. Phase 5 is next; implementation and publication claims still require the evidence recorded in `PROJECT_STATE.md`.
+> Execution plan for the user-confirmed product direction in `DESIGN.md`. Phases 1–4 are implemented and locally verified on pull request #15. Phase 5 has completed implementation, local verification, and final visual acceptance on its separate branch; Phase 6 protected stacked review and post-merge deployment acceptance remain governed by `PROJECT_STATE.md`.
 
 ## 1. Status and implementation boundary
 
@@ -47,11 +47,11 @@ The existing curated catalog, exact-version evidence, editorial scoring, update-
 
 - Ability metrics are AA Intelligence, Coding, and Agentic.
 - Efficiency metrics are AA first-answer latency, output tokens per second, input price, and output price.
-- Home previews Intelligence, output speed, and output price as three independent single-bar charts. Full efficiency rows show one model identity followed by two same-direction bars stacked vertically under blue/amber metric-sort controls.
+- Home previews Intelligence, first-answer latency, and output price as three independent single-bar charts. Full efficiency rows show one model identity followed by two same-direction bars stacked vertically under blue/amber metric-sort controls.
 - Each view includes every source row with the finite values required by that view.
 - Source configurations remain separate and are keyed by `sourceId`; no family merge, public-page pagination, or fixed Top-20 limit is allowed. The sync job still validates and consumes every upstream API page.
 - Ability scores sort high to low.
-- Speed defaults to output tokens per second high to low; its full view can select latency or throughput and toggle direction.
+- Speed defaults to first-answer latency low to high; its full view can select latency or throughput and toggle direction.
 - Price defaults to output price high to low; its full view can select input or output price and toggle direction.
 - Equal primary values sort by the deterministic name sort key from `DESIGN.md`, then `sourceId` ascending; competition rank uses only the primary metric.
 - Competition ranks are computed before creator filtering.
@@ -80,8 +80,8 @@ The existing curated catalog, exact-version evidence, editorial scoring, update-
 
 ### 3.5 Footer and publication
 
-- Footer content is limited to `WS`, GitHub, Bilibili, WeChat official account, source attribution, and the AA observation date.
-- The WeChat QR image is bundled locally and shown in an accessible dialog.
+- Footer content is limited to GitHub, Bilibili, WeChat official account, source attribution, and the AA observation date; the earlier `WS` wordmark is omitted.
+- The WeChat QR image is bundled locally and shown as an image-only popover on pointer hover or keyboard focus.
 - The user reports that the required AA redistribution permission has been obtained. Keep attribution and do not store contract or credential material.
 - Scheduled refreshes continue through pull requests. After one human-reviewed full-data baseline, normal model additions/removals and metric value/date/order changes may auto-merge; structural anomalies remain open for review.
 
@@ -340,14 +340,16 @@ Add:
 
 - `src/components/SiteFooter.tsx`
 - `src/components/SiteFooter.test.tsx`
-- `src/components/WechatQrDialog.tsx`
-- `src/components/WechatQrDialog.test.tsx`
 - `src/assets/wechat-qrcode.jpg`, copied from `D:\qrcode1788526628636.jpg`
 - `src/assets/brands/openai.svg`
-- `src/assets/brands/anthropic.svg`
-- `src/assets/brands/google.svg`
+- `src/assets/brands/claude.svg`
+- `src/assets/brands/gemini.svg`
 - `src/assets/brands/deepseek.svg`
-- `src/assets/brands/xai.svg`
+- `src/assets/brands/grok.svg`
+- `src/assets/brands/glm.svg`
+- `src/assets/brands/kimi.svg`
+- `src/assets/brands/qwen.svg`
+- `src/assets/brands/meta.svg`
 - `src/assets/brands/github.svg`
 - `src/assets/brands/bilibili.svg`
 - `src/assets/brands/wechat.svg`
@@ -448,8 +450,8 @@ Scope:
 Focused acceptance:
 
 - all routes deep-link, refresh, and navigate correctly;
-- every detail header centers its title while the back control remains pinned left; ability keeps its concise metric description, speed and price omit header descriptions, and source/date attribution stays in the home footer;
-- home previews use real current data and remain static; on desktop the ability preview uses a responsive linear ceiling that aligns its leading visible fill with the leading price fill without filling either plot, while stacked ability previews and every full ability page use the absolute 0–100 scale; speed and price use deterministic readable ceilings above the observed maxima;
+- every detail header centers its title while the back control remains pinned left; ability, speed, and price omit header descriptions, and source/date attribution stays in the home footer;
+- home previews use real current data and remain static; on desktop the ability preview uses a responsive linear ceiling that aligns its leading visible fill with the leading price fill without filling either plot, while stacked ability previews and every full ability page use the absolute 0–100 scale; speed uses inverse first-answer-latency bars with a readable ceiling above the slowest displayed top-five value, and price uses a readable ceiling above the observed output-price maximum;
 - desktop home gives ability a full-width row, places the speed and price single-bar previews in one common-edge two-column row, and gives the advisor a full-width row; mobile stacks all four cards in reading order;
 - the advisor destination keeps its minimal copy while presenting `开始选择` as a prominent purple 20–24px action with a matching 42px arrow;
 - the full-width ability plot aligns from the left speed-plot baseline through the right price-plot boundary; its leading visible fill additionally ends on the leading visible price fill, and shared preview identity and value columns prevent the three charts from drifting apart;
@@ -521,14 +523,14 @@ Scope:
 
 - add the final social footer;
 - bundle the WeChat QR locally;
-- complete icon licensing notes, QR dialog behavior, focus handling, and responsive polish;
+- complete icon licensing notes, image-only QR hover/focus behavior, and responsive polish;
 - remove only superseded public UI code proven unreachable.
 
 Focused acceptance:
 
 - exact GitHub and Bilibili links are correct;
-- `WS` is not a link;
-- WeChat identifies `23号切片` and closes by button, backdrop, and Escape with focus restored;
+- `WS` is absent;
+- hovering or keyboard-focusing the WeChat control reveals only the QR image, without visible account or scan-instruction copy;
 - footer date comes from `observedAt`;
 - unknown creators remain visible;
 - a creator without a bespoke SVG uses the initial fallback, including after an automatically merged data update;
@@ -541,7 +543,7 @@ Verification:
 - `npm run test:frontend`;
 - `npm run build`.
 
-Stop gate: final visual review.
+Stop gate: final visual review completed on 2026-09-05.
 
 ### Phase 6 — Full verification, documentation, and publication
 
@@ -601,7 +603,7 @@ Publication acceptance:
 
 ### Accessibility and performance
 
-- Keyboard, focus, semantic selected state, readable numeric alternatives, reduced motion, and QR dialog behavior are complete.
+- Keyboard, focus, semantic selected state, readable numeric alternatives, reduced motion, and QR popover behavior are complete.
 - A full leaderboard does not create one animation loop per row.
 - Mobile has no document-level horizontal overflow.
 
