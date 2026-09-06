@@ -380,10 +380,24 @@ def test_action_only_search_response_is_continued_once_with_validated_calls(
 
     assert len(requests) == 2
     first, second = requests
+    first_text = cast(dict[str, object], first["text"])
+    first_format = cast(dict[str, object], first_text["format"])
+    assert first_format["type"] == "json_schema"
+    assert first_format["name"] == "advisor_candidate_verification"
+    assert isinstance(first_format["schema"], dict)
+    assert "temperature" not in first
     assert second["tool_choice"] == "none"
     assert "tools" not in second
     assert "previous_response_id" not in second
+    assert second["text"] == {"format": {"type": "json_object"}}
+    assert second["temperature"] == 0
     assert second["instructions"] != first["instructions"]
+    continuation_instructions = " ".join(cast(str, second["instructions"]).split())
+    assert "exactly one JSON object" in continuation_instructions
+    assert "exactly one root key named candidates" in continuation_instructions
+    assert "candidate object must contain exactly candidateSlot and checks" in continuation_instructions
+    assert "check object must contain exactly check, verdict, and summary" in continuation_instructions
+    assert "Do not use a result wrapper" in continuation_instructions
     continuation_input = cast(list[dict[str, object]], second["input"])
     assert continuation_input[0] == {"role": "user", "content": first["input"]}
     assert [item["id"] for item in continuation_input[1:]] == ["ws-test-0", "ws-test-1"]
@@ -1282,6 +1296,104 @@ def test_search_output_accepts_only_the_advertised_wire_aliases() -> None:
 
     with pytest.raises(AdvisorGatewayError, match="invalid verification output"):
         _run_verify(handler)
+
+
+@pytest.mark.parametrize(
+    "invalid_kind",
+    [
+        "result_wrapper",
+        "root_extra",
+        "candidate_extra",
+        "check_extra",
+        "candidate_slot_type",
+        "checks_type",
+    ],
+)
+def test_local_verification_contract_rejects_wrappers_extras_and_bad_types(
+    invalid_kind: str,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        output = _verification_output()
+        candidates = cast(list[dict[str, object]], output["candidates"])
+        checks = cast(list[dict[str, object]], candidates[0]["checks"])
+        if invalid_kind == "result_wrapper":
+            output = {"result": output}
+        elif invalid_kind == "root_extra":
+            output["unexpected"] = True
+        elif invalid_kind == "candidate_extra":
+            candidates[0]["unexpected"] = True
+        elif invalid_kind == "check_extra":
+            checks[0]["unexpected"] = True
+        elif invalid_kind == "candidate_slot_type":
+            candidates[0]["candidateSlot"] = "0"
+        else:
+            candidates[0]["checks"] = {"model_identity": checks[0]}
+        return _output_response(output, query=_search_query(request))
+
+    with pytest.raises(AdvisorGatewayError, match="invalid verification output"):
+        _run_verify(handler)
+
+
+@pytest.mark.parametrize(
+    ("stage", "error_kind"),
+    [("initial", "schema"), ("continuation", "json_syntax")],
+)
+def test_invalid_verification_output_logs_only_safe_aggregates(
+    caplog: pytest.LogCaptureFixture,
+    stage: str,
+    error_kind: str,
+) -> None:
+    private_marker = f"PRIVATE_VERIFICATION_OUTPUT_{stage.upper()}"
+    private_body = f"{private_marker} provider-generated body"
+    private_url = f"https://openai.com/research/{private_marker}"
+    expected_chars = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal expected_chars
+        body = json.loads(request.content)
+        if stage == "continuation" and body["tool_choice"] != "none":
+            return _action_only_response(
+                [{"type": "search", "query": _search_query(request)}]
+            )
+        output = _verification_output(summary=private_body)
+        if error_kind == "schema":
+            output["unexpected"] = private_marker
+        response = _output_response(
+            output,
+            query=_search_query(request) if stage == "initial" else None,
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=private_url,
+                    title=private_marker,
+                )
+            ],
+        )
+        payload = response.json()
+        content = cast(list[dict[str, object]], payload["output"][-1]["content"])
+        if error_kind == "json_syntax":
+            content[0]["text"] = f'{content[0]["text"]} {private_marker}'
+        expected_chars = len(cast(str, content[0]["text"]))
+        return httpx.Response(200, json=payload)
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    with pytest.raises(AdvisorGatewayError, match="invalid verification output"):
+        _run_verify(handler)
+
+    diagnostics = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "app.services.deepseek_advisor_gateway"
+        and record.getMessage().startswith("advisor_verification_output_invalid ")
+    ]
+    assert diagnostics == [
+        "advisor_verification_output_invalid "
+        f"stage={stage} error_kind={error_kind} "
+        f"output_parts=1 output_chars={expected_chars} provider_annotations=1"
+    ]
+    assert private_marker not in caplog.text
+    assert private_body not in caplog.text
+    assert private_url not in caplog.text
 
 
 def test_reviewed_navigation_is_accepted_but_search_sources_remain_strict() -> None:

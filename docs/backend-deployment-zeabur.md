@@ -170,6 +170,8 @@ For an `aa_only` result, inspect the server-side `advisor_verification_*`, `advi
 
 An `ignored_searches` or `ignored_navigations` count above zero means the provider generated an action outside the finite query set or reviewed URL registry. That action and the first response message were discarded; the adapter attempted its single stateless continuation using only completed, candidate-bound search items whose queries all validated. Query, URL, and pattern text remain intentionally absent from logs.
 
+An `advisor_verification_output_invalid` event distinguishes `json_syntax` from a schema mismatch and records only the initial/continuation stage plus aggregate part, character, and annotation counts. It never records the returned text or validation inputs.
+
 ### 6. Browser boundary
 
 Check the browser preflight explicitly:
