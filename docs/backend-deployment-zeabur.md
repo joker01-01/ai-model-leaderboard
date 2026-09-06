@@ -19,7 +19,8 @@ The legacy `/api/v1/agent/query` SSE endpoint remains supported alongside the pu
 - Service: `modelops-agent-api`
 - Source: GitHub `main`, built with the root-level `Dockerfile`
 - Public origin: `https://modelops-agent-api.zeabur.app`
-- Verified on 2026-09-04: readiness, a live DeepSeek-backed invoke, POST SSE, and the GitHub Pages CORS preflight passed. The observed runtime logs showed no out-of-memory event or process restart during acceptance.
+- Runtime baseline: `4b9e5f3` from PR #37, verified in Zeabur deployment `deployment-6a9cc58caad15df0678d3f30` on 2026-09-06.
+- Readiness and a bounded advisor request passed. The request returned a schema-valid `aa_only` result; its advisor diagnostic events contained only the designed aggregate fields and confirmed zero raw URL annotations or accepted citations from the current DeepSeek Responses path.
 
 ## Repository layout requirement
 
