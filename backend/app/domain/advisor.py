@@ -182,7 +182,8 @@ _URL_LIKE_PATTERN = re.compile(
 )
 _MARKDOWN_PATTERN = re.compile(
     r"(?m)(?:"
-    r"[`*_~]"
+    r"[`*_]"
+    r"|~~"
     r"|!\["
     r"|\[[^\]\r\n]*\]\("
     r"|^\s{0,3}(?:#{1,6}|>|[-+]|\d+[.)])\s"
