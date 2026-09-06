@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -130,10 +130,16 @@ describe("public product routes", () => {
     const { container } = render(<App />);
 
     expect(screen.getByRole("heading", { level: 1, name: "按需求选模型" })).toBeTruthy();
+    expect(screen.queryByText("MODEL ADVISOR")).toBeNull();
     expect(screen.getByRole("textbox", { name: "你的需求" })).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "部署地区（可选）" })).toBeTruthy();
-    expect(screen.getByRole("checkbox", { name: "我有明确预算" })).toBeTruthy();
+    expect(screen.queryByRole("checkbox", { name: "我有明确预算" })).toBeNull();
+    expect(screen.queryByLabelText("月预算（USD）")).toBeNull();
+    expect(screen.queryByRole("region", { name: "模型推荐结果" })).toBeNull();
     expect((screen.getByRole("button", { name: "获取推荐" }) as HTMLButtonElement).disabled).toBe(true);
+    const formRow = container.querySelector(".advisor-form-row");
+    expect(formRow).not.toBeNull();
+    expect(within(formRow as HTMLElement).getByRole("button", { name: "获取推荐" })).toBeTruthy();
     expect(container.textContent).not.toContain("写下任务、预算和部署要求");
     expect(container.textContent).not.toContain("写清任务和最重要的偏好");
     expect(container.textContent).not.toContain("仅作为官方资料核验要求");
