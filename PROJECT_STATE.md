@@ -21,10 +21,10 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - Phones up to 620 CSS pixels fit a 760px single-column canvas to the available width. Home displays Top 3 per ranking; tablet/desktop display Top 5. Complete rankings retain every eligible row.
 - Home previews, detail entry, and metric/creator/sort changes play a 600ms animation. Visible bars use Web Animations transforms and one number-text RAF per chart; unsupported browsers show final values. The user explicitly chose chart growth regardless of the OS reduced-motion setting.
 - Superseded frontend/ModelOps implementation plans and initial reuse research have been removed from the repository tree. Historical copies remain available in Git history; current design and operational documentation remain maintained.
-- The current worktree is replacing the public Advisor's search-capable path with a no-search two-stage flow: strict DeepSeek intent parsing, deterministic AA filtering/order, then an optional strict note for each frozen Top 3 candidate. Both provider requests explicitly disable tools; there is no continuation or URL retrieval.
+- The public Advisor now uses a no-search two-stage flow: strict DeepSeek intent parsing, deterministic AA filtering/order, then an optional strict note for each frozen Top 3 candidate. Both provider requests explicitly disable tools; there is no continuation or URL retrieval.
 - The public response wire contract remains compatible; the revised runtime contract constrains produced outputs to `verification_status = "aa_only"`, empty candidate `checks`, and empty top-level `citations` and `rejections`. DeepSeek knowledge notes cannot filter, replace, or reorder candidates and are never interpreted as verification of hard requirements or deployment region.
 - The Advisor UI now presents normal results as `未联网核验`, states that AA owns ranking and values, warns that model knowledge may be stale, and says hard requirements and deployment region were not verified or used for filtering. Older `verified`/`partial` payloads remain parser/display compatibility only.
-- Published Zeabur production still runs search-era runtime baseline `4b9e5f3` from PR #37 in deployment `deployment-6a9cc58caad15df0678d3f30`. The no-search revision has passed the complete local frontend/backend gates but has not yet merged or been deployed.
+- PR #40 merged as `473cccc`; GitHub Pages and Zeabur now publish that no-search revision. Zeabur reports one Running instance sourced from `main` with the PR #40 commit message.
 
 ## Important Decisions
 
@@ -37,7 +37,6 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 
 ## Known Problems
 
-- The published Zeabur revision predates the no-search design. Until the new revision is verified, merged, and redeployed, production must not be described as enforcing `tool_choice: "none"` or as having an unreachable search gateway.
 - Data-refresh PR #18 was regenerated from `a0f5e7b` as App-signed head `ee615ac`; all fetch, contract, frontend, backend, and policy checks passed. Auto-merge correctly stopped because AA Intelligence moved from 4.1 to 4.2, Agentic finite coverage fell from 197 to 100, and legacy AA compatibility membership changed. PR #18 remains open for explicit review of those upstream methodology and coverage changes.
 - The deployed service showed one healthy instance and the Docker command fixes Uvicorn at one worker. Exact Zeabur trusted-proxy CIDRs remain unverified, so forwarded client IP headers must stay disabled and `MODELOPS_TRUSTED_PROXY_CIDRS` empty.
 - Real high-DPR WeChat animation frame rate remains unmeasured. Browser layout checks used host DPR approximately 1 and reduced motion.
@@ -61,10 +60,11 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - The no-search backend passed 38 focused pytest cases. Coverage includes explicit `tool_choice: "none"`, absence of tools/continuation fields, strict response envelopes, URL-like/common-Markdown rejection, exact frozen-slot coverage, deterministic AA order, empty evidence arrays, capacity/failure fallback, and cancellation.
 - The complete local gate passed on 2026-09-06: 199 frontend tests, the TypeScript/Vite production build, the full backend pytest suite, Ruff, mypy across `app tests evals`, and all 29 deterministic evaluations including five public-Advisor cases. Vite retained the existing non-failing main-bundle size advisory.
 - The Advisor desktop page was visually checked at the 1440px breakpoint and `docs/screenshots/advisor.jpg` was refreshed with the no-search explanatory copy.
+- No-search PR #40 passed pull-request Verify run `34017366051`; merged-`main` Verify run `34017432761` and Pages run `34017432848` passed. Zeabur then reported the PR #40 deployment Running from `main`.
+- Post-deployment `/healthz` returned `ok`. One bounded public Advisor request returned `recommendation`, `aa_only`, two alternatives, and empty checks, citations, and rejections. Its reason remained the deterministic AA explanation because an optional knowledge note was not returned.
+- The published Pages bundle contains the AA-snapshot/no-search explanation and no longer contains the former controlled-source or live-verification copy.
 
 ## Next
 
-- Review the final diff and publish it through a protected pull request. Local contract tests prove both provider requests omit tools and continuation state, explicitly use `tool_choice: "none"`, reject tool/URL output, and cannot change the frozen AA Top 3.
-- Merge through a protected PR, wait for GitHub Pages and Zeabur to deploy the same merged revision, then run one bounded public Advisor smoke. Require `aa_only`, empty checks/citations/rejections, stable AA order, and an explicit unverified-knowledge label when a note is returned.
 - Merge PR #18 only after explicit acceptance of the AA v4.2 scale change, the Agentic 197-to-100 coverage reduction, and the resulting advisor-candidate impact. Before manual merge, confirm the signed head was generated from then-current runtime code on `main`; rerun and re-review only if it has become stale. Missing Agentic values remain missing, never zero.
 - Keep `MODELOPS_TRUSTED_PROXY_CIDRS` empty until Zeabur publishes or confirms the exact ingress ranges.
