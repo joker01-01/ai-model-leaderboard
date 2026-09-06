@@ -463,6 +463,7 @@ def test_continuation_rejects_any_new_web_action() -> None:
 def test_continuation_rejects_any_incomplete_or_non_assistant_message(
     invalid_status: str,
     invalid_role: str,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     call_count = 0
 
@@ -486,9 +487,15 @@ def test_continuation_rejects_any_incomplete_or_non_assistant_message(
         )
         return httpx.Response(200, json=payload)
 
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
     with pytest.raises(AdvisorGatewayError, match="invalid continuation response"):
         _run_verify(handler)
     assert call_count == 2
+    assert (
+        "advisor_continuation_output_invalid raw_annotations=0 raw_url_annotations=0 "
+        "valid_url_annotations=0 invalid_url_annotations=0 "
+        "out_of_bounds_url_annotations=0 invalid_annotation_containers=0"
+    ) in caplog.messages
 
 
 def test_unknown_first_response_item_cannot_trigger_continuation() -> None:

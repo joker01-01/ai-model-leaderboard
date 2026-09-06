@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import subprocess
+import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import date
@@ -221,12 +223,56 @@ def test_docker_disables_uvicorn_proxy_header_rewriting() -> None:
 
     assert "--workers 1" in command
     assert "--no-proxy-headers" in command
+    assert "COPY backend/logging.json backend/logging.json" in dockerfile.read_text(encoding="utf-8")
+    assert "--log-config /opt/modelops/backend/logging.json" in command
     assert {
+        "!backend/logging.json",
         "!data/aa/",
         "!data/aa/generated/",
         "!data/aa/generated/snapshot.json",
         "!data/aa/official-sources.json",
     }.issubset(context_rules)
+
+
+def test_production_logging_config_enables_application_info_without_root_info() -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    logging_config = json.loads((repository_root / "backend" / "logging.json").read_text(encoding="utf-8"))
+
+    assert logging_config["disable_existing_loggers"] is False
+    assert "root" not in logging_config
+    assert logging_config["loggers"]["app"] == {
+        "handlers": ["default"],
+        "level": "INFO",
+        "propagate": False,
+    }
+    assert logging_config["handlers"]["default"]["stream"] == "ext://sys.stderr"
+
+
+def test_production_logging_config_emits_app_info_once_without_unconfigured_library_info() -> None:
+    repository_root = Path(__file__).resolve().parents[3]
+    logging_config = repository_root / "backend" / "logging.json"
+    script = """
+import json
+import logging
+import sys
+from logging.config import dictConfig
+from pathlib import Path
+
+dictConfig(json.loads(Path(sys.argv[1]).read_text(encoding="utf-8")))
+logging.getLogger("app.services.logging_probe").info("APP_INFO_SENTINEL")
+logging.getLogger("httpx").info("THIRD_PARTY_INFO_SENTINEL")
+"""
+
+    completed = subprocess.run(
+        [sys.executable, "-c", script, str(logging_config)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = completed.stdout + completed.stderr
+
+    assert output.count("APP_INFO_SENTINEL") == 1
+    assert "THIRD_PARTY_INFO_SENTINEL" not in output
 
 
 def test_default_runtime_factory_composes_without_network_access() -> None:
