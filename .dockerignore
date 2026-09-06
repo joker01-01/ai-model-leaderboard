@@ -3,6 +3,7 @@
 !.dockerignore
 !backend/
 !backend/pyproject.toml
+!backend/logging.json
 !backend/app/
 !backend/app/**
 !data/

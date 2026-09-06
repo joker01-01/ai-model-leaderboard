@@ -55,7 +55,7 @@ Local API startup can serve deterministic AA-only advisor fallback without a pro
 
 ```powershell
 $env:MODELOPS_MODEL_API_KEY = "<DeepSeek API key>"
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-config logging.json
 ```
 
 - `npm run build` is the TypeScript and production frontend gate.
