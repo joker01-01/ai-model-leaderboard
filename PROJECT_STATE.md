@@ -26,6 +26,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - The Advisor UI now presents normal results as `未联网核验`, states that AA owns ranking and values, warns that model knowledge may be stale, and says hard requirements and deployment region were not verified or used for filtering. Older `verified`/`partial` payloads remain parser/display compatibility only.
 - PR #40 merged as `473cccc`; documentation follow-up PR #41 merged as `f2eca68`. GitHub Pages and Zeabur publish the no-search Advisor from protected `main`, and Zeabur reports one Running instance.
 - Knowledge-note validation treats a single literal `~` as plain approximation text while continuing to reject actual `~~` Markdown strikethrough, other Markdown, and URL-like content. PR #42 released this production false-positive fix without changing the AA-only evidence boundary.
+- The Advisor UI removes `MODEL ADVISOR`, uses the advisor purple for the Chinese title, shows only requirement plus optional deployment region, places `获取推荐` to the region field's right, sends `budget: null` from the browser, and renders no idle result placeholder. Focused frontend tests and local desktop/mobile browser acceptance passed, and the Advisor screenshot was refreshed.
 
 ## Important Decisions
 
@@ -34,6 +35,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - Advisor membership, filtering, metrics, cost calculations, and ordering are deterministic from AA data. DeepSeek may parse the strict intent and add explicitly unverified, URL-free existing-knowledge notes only after the Top 3 is frozen.
 - Public Advisor requests never enable `web_search`, continue a provider response, or fetch citation URLs. “No web search” still requires remote DeepSeek API access for intent parsing and optional notes; it is not a fully offline service.
 - Hard requirements and deployment region remain unverified request context and never filter or reorder candidates. The revised public runtime must keep every response `aa_only` with empty checks, citations, and rejections; provider/configuration/capacity failure falls back to deterministic AA-only output.
+- The public browser has no budget UI and always sends `budget: null`; the backend/API retains its optional validated budget-object contract for compatibility. The idle Advisor has no result placeholder, and its submit action remains to the right of the optional deployment-region field.
 - Keep source mappings, generated-data policy, branch protection, credentials, and deployed legacy endpoints intact during repository housekeeping.
 
 ## Known Problems
@@ -66,6 +68,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - Sanitized production-container diagnostics isolated that fallback to the Markdown detector rejecting a single ASCII `~` used as an approximation marker in otherwise schema-valid notes. A focused regression failed with the previous detector; after the narrow fix, all 22 offline-gateway unit tests and targeted Ruff checks passed.
 - PR #42 passed pull-request Verify run `34020282845`; merged-`main` Verify run `34020344535` and Pages run `34020344545` passed. Zeabur then reported the PR #42 revision Running from `main`; `/healthz` returned `ok`, and one bounded public Advisor request returned all three optional knowledge notes while preserving `aa_only` and empty checks, citations, and rejections.
 - The published Pages bundle contains the AA-snapshot/no-search explanation and no longer contains the former controlled-source or live-verification copy.
+- The latest Advisor UI simplification was checked with the two directly related frontend test files and local desktop/mobile browser layouts. The full frontend suite and production build are delegated to the protected pull-request gate.
 
 ## Next
 

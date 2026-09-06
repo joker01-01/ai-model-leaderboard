@@ -22,7 +22,6 @@ export default function AdvisorPage({ apiOrigin, displayNames }: AdvisorPageProp
       </a>
       <section className="advisor-shell" aria-labelledby="advisor-title">
         <header className="advisor-page-head">
-          <p className="advisor-kicker">MODEL ADVISOR</p>
           <h1 id="advisor-title" ref={titleRef} tabIndex={-1}>按需求选模型</h1>
         </header>
         <AdvisorForm apiOrigin={apiOrigin} displayNames={displayNames} />

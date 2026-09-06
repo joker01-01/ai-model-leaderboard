@@ -239,21 +239,22 @@ Motion never changes sorting, rank, evidence, or the accessible final value.
 
 ## 10. Advisor experience
 
-The advisor is a one-shot form, not a chat history.
+The advisor is a one-shot form, not a chat history. Its Chinese title is `按需求选模型` in the advisor purple; it has no `MODEL ADVISOR` kicker.
 
 Visible inputs:
 
 - one large free-form requirement field;
-- optional deployment region;
-- `我有明确预算` switch;
-- when enabled: monthly budget, average input tokens, average output tokens, and monthly request count.
+- optional deployment region.
 
-The idle page deliberately keeps its copy sparse. It retains the `MODEL ADVISOR` kicker, title, field labels, placeholders, budget toggle copy, validation errors, and result states, but omits a header description, requirement/deployment helper paragraphs, and service-connection status copy.
+The `获取推荐` action sits to the right of the deployment-region field. The public browser exposes no budget controls and always sends `budget: null`. The idle page renders no result container, result placeholder, or result-placeholder copy; results appear only after a request begins. It otherwise retains only the title, field labels, placeholders, validation errors, and submit action, with no header description, helper paragraphs, or service-connection status copy.
 
-Input contracts are explicit:
+The public browser input contracts are explicit:
 
 - requirement text: required, trimmed, 1–2,000 characters;
-- deployment region: optional free text, trimmed, at most 64 characters, retained only as an explicitly unverified constraint; it never filters or reorders candidates and is never proof of availability;
+- deployment region: optional free text, trimmed, at most 64 characters, retained only as an explicitly unverified constraint; it never filters or reorders candidates and is never proof of availability.
+
+The backend endpoint retains compatibility with an optional validated budget object for non-browser callers. That request-only object contains:
+
 - currency: USD;
 - monthly budget: finite decimal greater than or equal to zero;
 - average input/output tokens: non-negative integers;
@@ -263,7 +264,7 @@ Invalid fields receive an adjacent error and do not start a request.
 
 The default priority when the user does not specify one is:
 
-`capability fit > budget constraint > lower output price > higher output speed`
+`capability fit > validated request budget when present > lower output price > higher output speed`
 
 Explicit requests such as `最便宜`, `最快`, or `最强` take priority. DeepSeek produces a locally validated intent contract, not a ranking. The contract contains an ordered ability-purpose list and at most one promoted objective. General/reasoning/research maps to Intelligence, coding maps to Coding, and tool/automation/Agent work maps to Agentic. Explicitly emphasized purposes retain user order; when no purpose is detected, Intelligence is the default.
 
@@ -280,12 +281,12 @@ interface ParsedAdvisorNeed {
 }
 ```
 
-Unknown fields, duplicate values, unbounded text, URLs, provider/model IDs, and unsupported enum values are rejected. This model-produced object never owns deployment region, budget, or token values. The validated advisor request supplies those form fields separately, and the backend combines them with `ParsedAdvisorNeed` only after both contracts pass local validation. Required AA metric availability and an explicit form-supplied budget may eliminate a candidate. `hardRequirements` and deployment region remain unverified request context; they never eliminate or reorder candidates because the public advisor does not fetch current evidence.
+Unknown fields, duplicate values, unbounded text, URLs, provider/model IDs, and unsupported enum values are rejected. This model-produced object never owns deployment region, budget, or token values. The validated advisor request supplies deployment region and any optional compatibility budget separately, and the backend combines them with `ParsedAdvisorNeed` only after both contracts pass local validation. Required AA metric availability and a validated request budget may eliminate a candidate. The public browser always supplies `budget: null`. `hardRequirements` and deployment region remain unverified request context; they never eliminate or reorder candidates because the public advisor does not fetch current evidence.
 
 The deterministic selector then applies these rules:
 
 1. Require a finite value for every explicitly required ability. Explicit `最快` additionally requires output speed; explicit `最便宜` requires output price.
-2. When budget is enabled, require both input and output prices and calculate
+2. When the validated request contains a budget object, require both input and output prices and calculate
    `monthly requests × ((average input tokens / 1,000,000 × input price) + (average output tokens / 1,000,000 × output price))`.
    Exclude a row when that cost is missing or exceeds the USD budget.
 3. Promote an explicit objective to the first sort key: output price ascending for cheapest, output speed descending for fastest, or the ordered ability tuple descending for strongest.

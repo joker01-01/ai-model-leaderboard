@@ -70,39 +70,31 @@ function jsonFetch(body: object): typeof fetch {
 }
 
 describe("AdvisorForm", () => {
-  it("shows progressive budget fields and blocks invalid input before fetch", async () => {
+  it("omits idle and budget UI, keeps the action in the region row, and blocks invalid input", async () => {
     const fetchImpl = jsonFetch(recommendationResponse());
     const user = userEvent.setup();
-    render(<AdvisorForm apiOrigin="https://api.example.com" displayNames={new Map()} fetchImpl={fetchImpl} />);
+    const { container } = render(
+      <AdvisorForm apiOrigin="https://api.example.com" displayNames={new Map()} fetchImpl={fetchImpl} />,
+    );
 
     expect(screen.getByLabelText("你的需求").hasAttribute("aria-describedby")).toBe(false);
     expect(screen.getByLabelText("部署地区（可选）").hasAttribute("aria-describedby")).toBe(false);
     expect(screen.queryByText("写清任务和最重要的偏好；系统只从完整 AA 榜单中筛选。")).toBeNull();
     expect(screen.queryByText("仅作为官方资料核验要求，不代表该地区一定可用。")).toBeNull();
-    expect(screen.getByText(/排序与数值来自 AA 已提交快照/)).toBeTruthy();
-    expect(screen.getByText(/DeepSeek 仅用已有知识补充说明，不进行联网搜索/)).toBeTruthy();
-    expect(screen.getByText(/硬性要求和部署地区未核验且不参与筛选/)).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "模型推荐结果" })).toBeNull();
+    expect(container.querySelector(".advisor-result-empty")).toBeNull();
+    expect(screen.queryByRole("checkbox", { name: "我有明确预算" })).toBeNull();
+    expect(screen.queryByLabelText("月预算（USD）")).toBeNull();
+    expect(screen.queryByLabelText("平均输入 tokens")).toBeNull();
+    expect(screen.queryByLabelText("平均输出 tokens")).toBeNull();
+    expect(screen.queryByLabelText("每月请求次数")).toBeNull();
+    const formRow = container.querySelector(".advisor-form-row");
+    expect(formRow).not.toBeNull();
+    expect(within(formRow as HTMLElement).getByRole("button", { name: "获取推荐" })).toBeTruthy();
     expect(screen.queryByText(/受控官方来源|联网失败|实时核验/)).toBeNull();
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
     expect(screen.getByText("请输入你的需求。")).toBeTruthy();
     expect(screen.getByLabelText("你的需求").getAttribute("aria-describedby")).toBe("advisor-requirement-error");
-    expect(fetchImpl).not.toHaveBeenCalled();
-
-    await user.click(screen.getByRole("checkbox", { name: "我有明确预算" }));
-    expect(screen.getByLabelText("月预算（USD）")).toBeTruthy();
-    expect(screen.getByLabelText("平均输入 tokens")).toBeTruthy();
-    expect(screen.getByLabelText("平均输出 tokens")).toBeTruthy();
-    expect(screen.getByLabelText("每月请求次数")).toBeTruthy();
-
-    await user.type(screen.getByLabelText("你的需求"), "推荐一个编程模型");
-    await user.type(screen.getByLabelText("月预算（USD）"), "-1");
-    await user.type(screen.getByLabelText("平均输入 tokens"), "0");
-    await user.type(screen.getByLabelText("平均输出 tokens"), "0");
-    await user.type(screen.getByLabelText("每月请求次数"), "0");
-    await user.click(screen.getByRole("button", { name: "获取推荐" }));
-
-    expect(screen.getByText("月预算必须是大于或等于 0 的数字。")).toBeTruthy();
-    expect(screen.getByText("每月请求次数必须是正整数。")).toBeTruthy();
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
@@ -120,11 +112,6 @@ describe("AdvisorForm", () => {
 
     await user.type(screen.getByLabelText("你的需求"), "  推荐一个编程模型  ");
     await user.type(screen.getByLabelText("部署地区（可选）"), "  Singapore  ");
-    await user.click(screen.getByRole("checkbox", { name: "我有明确预算" }));
-    await user.type(screen.getByLabelText("月预算（USD）"), "20.50");
-    await user.type(screen.getByLabelText("平均输入 tokens"), "0");
-    await user.type(screen.getByLabelText("平均输出 tokens"), "800");
-    await user.type(screen.getByLabelText("每月请求次数"), "1000");
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
 
     const primaryStatusLabel = await screen.findByText("推荐依据");
@@ -148,13 +135,7 @@ describe("AdvisorForm", () => {
     expect(JSON.parse(String(init.body))).toEqual({
       requirement: "推荐一个编程模型",
       deployment_region: "Singapore",
-      budget: {
-        currency: "USD",
-        monthly_budget: "20.50",
-        average_input_tokens: 0,
-        average_output_tokens: 800,
-        monthly_request_count: 1000,
-      },
+      budget: null,
     });
   });
 

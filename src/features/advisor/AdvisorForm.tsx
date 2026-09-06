@@ -22,13 +22,7 @@ interface AdvisorFormProps {
 }
 
 type AdvisorPhase = "idle" | "running" | "success" | "cancelled" | "error";
-type FieldName =
-  | "requirement"
-  | "deploymentRegion"
-  | "monthlyBudget"
-  | "averageInputTokens"
-  | "averageOutputTokens"
-  | "monthlyRequestCount";
+type FieldName = "requirement" | "deploymentRegion";
 
 type FieldErrors = Partial<Record<FieldName, string>>;
 
@@ -59,27 +53,9 @@ const OBJECTIVE_LABELS = {
   cheapest: "最低价格优先",
 } as const;
 
-const INTEGER_PATTERN = /^\d+$/;
-const DECIMAL_PATTERN = /^\d+(?:\.\d+)?$/;
-
-function parseIntegerField(value: string, minimum: number): number | null {
-  if (!INTEGER_PATTERN.test(value)) return null;
-  const parsed = Number(value);
-  return Number.isSafeInteger(parsed) && parsed >= minimum ? parsed : null;
-}
-
-function validBudget(value: string): boolean {
-  return value.length <= 128 && DECIMAL_PATTERN.test(value) && Number.isFinite(Number(value));
-}
-
 function buildRequest(fields: {
   requirement: string;
   deploymentRegion: string;
-  hasBudget: boolean;
-  monthlyBudget: string;
-  averageInputTokens: string;
-  averageOutputTokens: string;
-  monthlyRequestCount: string;
 }): { request: AdvisorRecommendationRequest | null; errors: FieldErrors } {
   const errors: FieldErrors = {};
   const requirement = fields.requirement.trim();
@@ -88,34 +64,12 @@ function buildRequest(fields: {
   else if (requirement.length > 2_000) errors.requirement = "需求不能超过 2,000 个字符。";
   if (deploymentRegion.length > 64) errors.deploymentRegion = "部署地区不能超过 64 个字符。";
 
-  let budget: AdvisorRecommendationRequest["budget"] = null;
-  if (fields.hasBudget) {
-    if (!validBudget(fields.monthlyBudget)) {
-      errors.monthlyBudget = "月预算必须是大于或等于 0 的数字。";
-    }
-    const inputTokens = parseIntegerField(fields.averageInputTokens, 0);
-    if (inputTokens === null) errors.averageInputTokens = "平均输入 tokens 必须是非负整数。";
-    const outputTokens = parseIntegerField(fields.averageOutputTokens, 0);
-    if (outputTokens === null) errors.averageOutputTokens = "平均输出 tokens 必须是非负整数。";
-    const requestCount = parseIntegerField(fields.monthlyRequestCount, 1);
-    if (requestCount === null) errors.monthlyRequestCount = "每月请求次数必须是正整数。";
-    if (Object.keys(errors).length === 0) {
-      budget = {
-        currency: "USD",
-        monthly_budget: fields.monthlyBudget,
-        average_input_tokens: inputTokens!,
-        average_output_tokens: outputTokens!,
-        monthly_request_count: requestCount!,
-      };
-    }
-  }
-
   if (Object.keys(errors).length > 0) return { request: null, errors };
   return {
     request: {
       requirement,
       deployment_region: deploymentRegion || null,
-      budget,
+      budget: null,
     },
     errors,
   };
@@ -138,11 +92,6 @@ function errorMessage(error: unknown): string {
 export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: AdvisorFormProps) {
   const [requirement, setRequirement] = useState("");
   const [deploymentRegion, setDeploymentRegion] = useState("");
-  const [hasBudget, setHasBudget] = useState(false);
-  const [monthlyBudget, setMonthlyBudget] = useState("");
-  const [averageInputTokens, setAverageInputTokens] = useState("");
-  const [averageOutputTokens, setAverageOutputTokens] = useState("");
-  const [monthlyRequestCount, setMonthlyRequestCount] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [phase, setPhase] = useState<AdvisorPhase>("idle");
   const [result, setResult] = useState<AdvisorRecommendationResponse | null>(null);
@@ -165,11 +114,6 @@ export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: Advi
     const validated = buildRequest({
       requirement,
       deploymentRegion,
-      hasBudget,
-      monthlyBudget,
-      averageInputTokens,
-      averageOutputTokens,
-      monthlyRequestCount,
     });
     if (validated.request === null) {
       setErrors(validated.errors);
@@ -250,126 +194,34 @@ export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: Advi
             {errors.deploymentRegion && <p id="advisor-deployment-region-error" className="advisor-field-error">{errors.deploymentRegion}</p>}
           </div>
 
-          <label className="advisor-budget-toggle">
-            <input
-              type="checkbox"
-              aria-label="我有明确预算"
-              checked={hasBudget}
-              disabled={isRunning}
-              onChange={(event) => { setHasBudget(event.target.checked); clearErrors(); }}
-            />
-            <span><strong>我有明确预算</strong><small>按每月请求量估算 USD 成本</small></span>
-          </label>
-        </div>
-
-        {hasBudget && (
-          <fieldset className="advisor-budget-fields" disabled={isRunning}>
-            <legend>预算与用量</legend>
-            <AdvisorNumericField
-              id="advisor-monthlyBudget"
-              label="月预算（USD）"
-              value={monthlyBudget}
-              inputMode="decimal"
-              placeholder="20.00"
-              error={errors.monthlyBudget}
-              onChange={(value) => { setMonthlyBudget(value); clearErrors(); }}
-            />
-            <AdvisorNumericField
-              id="advisor-averageInputTokens"
-              label="平均输入 tokens"
-              value={averageInputTokens}
-              inputMode="numeric"
-              placeholder="2000"
-              error={errors.averageInputTokens}
-              onChange={(value) => { setAverageInputTokens(value); clearErrors(); }}
-            />
-            <AdvisorNumericField
-              id="advisor-averageOutputTokens"
-              label="平均输出 tokens"
-              value={averageOutputTokens}
-              inputMode="numeric"
-              placeholder="800"
-              error={errors.averageOutputTokens}
-              onChange={(value) => { setAverageOutputTokens(value); clearErrors(); }}
-            />
-            <AdvisorNumericField
-              id="advisor-monthlyRequestCount"
-              label="每月请求次数"
-              value={monthlyRequestCount}
-              inputMode="numeric"
-              placeholder="1000"
-              error={errors.monthlyRequestCount}
-              onChange={(value) => { setMonthlyRequestCount(value); clearErrors(); }}
-            />
-          </fieldset>
-        )}
-
-        <div className="advisor-form-actions">
-          <div>
-            {isRunning && <button type="button" className="advisor-stop" onClick={() => controllerRef.current?.abort()}>停止推荐</button>}
-            <button type="submit" className="advisor-submit" disabled={!isConnected || isRunning}>
-              {isRunning ? "正在筛选…" : "获取推荐"}
-            </button>
+          <div className="advisor-form-actions">
+            <div>
+              {isRunning && <button type="button" className="advisor-stop" onClick={() => controllerRef.current?.abort()}>停止推荐</button>}
+              <button type="submit" className="advisor-submit" disabled={!isConnected || isRunning}>
+                {isRunning ? "正在筛选…" : "获取推荐"}
+              </button>
+            </div>
           </div>
         </div>
       </form>
 
-      <section className="advisor-result" aria-live="polite" aria-busy={isRunning} aria-label="模型推荐结果">
-        {phase === "idle" && (
-          <div className="advisor-result-empty">
-            <span aria-hidden="true">AA → 03</span>
-            <p>排序与数值来自 AA 已提交快照。DeepSeek 仅用已有知识补充说明，不进行联网搜索；模型知识可能过时。硬性要求和部署地区未核验且不参与筛选。</p>
-          </div>
-        )}
-        {isRunning && (
-          <div className="advisor-result-pending" role="status">
-            <i aria-hidden="true" />
-            <div><strong>正在按 AA 快照筛选</strong><p>DeepSeek 仅补充说明，不参与候选排序。</p></div>
-          </div>
-        )}
-        {(phase === "cancelled" || phase === "error") && (
-          <div className={`advisor-result-notice is-${phase}`} role="status">
-            <strong>{phase === "cancelled" ? "推荐已停止" : "本次推荐未完成"}</strong>
-            <p>{failure}</p>
-          </div>
-        )}
-        {result && <AdvisorResult result={result} displayNames={displayNames} />}
-      </section>
-    </div>
-  );
-}
-
-function AdvisorNumericField({
-  id,
-  label,
-  value,
-  inputMode,
-  placeholder,
-  error,
-  onChange,
-}: {
-  readonly id: `advisor-${FieldName}`;
-  readonly label: string;
-  readonly value: string;
-  readonly inputMode: "decimal" | "numeric";
-  readonly placeholder: string;
-  readonly error?: string;
-  readonly onChange: (value: string) => void;
-}) {
-  return (
-    <div className="advisor-field advisor-field--numeric">
-      <label htmlFor={id}>{label}</label>
-      <input
-        id={id}
-        type="text"
-        inputMode={inputMode}
-        value={value}
-        placeholder={placeholder}
-        aria-invalid={error ? "true" : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        onChange={(event) => onChange(event.target.value)}
-      />
-      {error && <p id={`${id}-error`} className="advisor-field-error">{error}</p>}
+      {phase !== "idle" && (
+        <section className="advisor-result" aria-live="polite" aria-busy={isRunning} aria-label="模型推荐结果">
+          {isRunning && (
+            <div className="advisor-result-pending" role="status">
+              <i aria-hidden="true" />
+              <div><strong>正在按 AA 快照筛选</strong><p>DeepSeek 仅补充说明，不参与候选排序。</p></div>
+            </div>
+          )}
+          {(phase === "cancelled" || phase === "error") && (
+            <div className={`advisor-result-notice is-${phase}`} role="status">
+              <strong>{phase === "cancelled" ? "推荐已停止" : "本次推荐未完成"}</strong>
+              <p>{failure}</p>
+            </div>
+          )}
+          {result && <AdvisorResult result={result} displayNames={displayNames} />}
+        </section>
+      )}
     </div>
   );
 }
@@ -408,7 +260,7 @@ function AdvisorResult({ result, displayNames }: {
           ) : (
             <>
               <h2>没有模型满足当前条件</h2>
-              <p>当前 AA 快照中没有同时满足能力、价格和预算筛选条件的候选。硬性要求和部署地区未核验，也未参与筛选。</p>
+              <p>当前 AA 快照中没有满足所需指标条件的候选。硬性要求和部署地区未核验，也未参与筛选。</p>
             </>
           )}
         </div>

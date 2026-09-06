@@ -1068,13 +1068,6 @@ textarea { -webkit-tap-highlight-color: transparent; }
   text-align: center;
 }
 
-.advisor-kicker {
-  margin: 0;
-  font: 700 12px/1.2 var(--mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .home-header h1 {
   margin: 0;
   font: 750 clamp(40px, 5vw, 58px)/1.08 var(--display);
@@ -1964,15 +1957,14 @@ textarea { -webkit-tap-highlight-color: transparent; }
   background: #07080a;
 }
 
-.advisor-kicker { color: var(--advisor); }
-
 .advisor-page-head {
   padding: clamp(28px, 5vw, 52px);
   border-bottom: 1px solid #2b2f36;
 }
 
 .advisor-page-head h1 {
-  margin: 12px 0 0;
+  margin: 0;
+  color: var(--advisor);
   font: 750 clamp(38px, 6vw, 64px)/1.08 var(--display);
   letter-spacing: -0.05em;
 }
@@ -1981,8 +1973,7 @@ textarea { -webkit-tap-highlight-color: transparent; }
 
 .advisor-field { min-width: 0; }
 
-.advisor-field > label,
-.advisor-budget-fields legend {
+.advisor-field > label {
   display: block;
   margin: 0 0 9px;
   color: rgba(245, 247, 250, 0.84);
@@ -2033,55 +2024,22 @@ textarea { -webkit-tap-highlight-color: transparent; }
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 0.72fr);
   gap: 18px;
-  align-items: stretch;
+  align-items: end;
   margin-top: 24px;
 }
-
-.advisor-budget-toggle {
-  display: flex;
-  gap: 13px;
-  align-items: center;
-  min-height: 92px;
-  padding: 16px;
-  border: 1px solid #383d45;
-  color: rgba(245, 247, 250, 0.88);
-  background: #0b0d10;
-  cursor: pointer;
-}
-
-.advisor-budget-toggle:has(input:checked) { border-color: rgba(155, 108, 255, 0.82); background: rgba(155, 108, 255, 0.08); }
-.advisor-budget-toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--advisor); }
-.advisor-budget-toggle span { display: grid; gap: 4px; }
-.advisor-budget-toggle strong { font-size: 13px; }
-.advisor-budget-toggle small { color: #77808b; font-size: 11px; line-height: 1.45; }
-
-.advisor-budget-fields {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  padding: 22px 0 0;
-  margin: 24px 0 0;
-  border: 0;
-  border-top: 1px solid #2b2f36;
-}
-
-.advisor-budget-fields legend { float: left; width: 100%; padding: 0 0 12px; }
-.advisor-budget-fields > .advisor-field { clear: both; }
 
 .advisor-form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 20px;
-  align-items: center;
-  padding-top: 24px;
-  margin-top: 28px;
-  border-top: 1px solid #2b2f36;
+  align-items: stretch;
+  min-width: 0;
 }
 
-.advisor-form-actions > div { display: flex; gap: 10px; }
+.advisor-form-actions > div { display: flex; width: 100%; gap: 10px; }
 
 .advisor-form-actions button {
-  min-height: 46px;
+  flex: 1;
+  min-height: 48px;
   padding: 0 21px;
   border: 1px solid rgba(155, 108, 255, 0.72);
   border-radius: 0;
@@ -2096,18 +2054,6 @@ textarea { -webkit-tap-highlight-color: transparent; }
 .advisor-form-actions button:disabled { cursor: not-allowed; opacity: 0.45; }
 
 .advisor-result { min-height: 210px; border-top: 1px solid rgba(155, 108, 255, 0.48); }
-
-.advisor-result-empty {
-  display: grid;
-  grid-template-columns: minmax(130px, 0.35fr) minmax(0, 1fr);
-  gap: 26px;
-  align-items: center;
-  min-height: 210px;
-  padding: clamp(26px, 4vw, 40px);
-}
-
-.advisor-result-empty > span { color: var(--advisor); font: 700 clamp(22px, 4vw, 34px)/1 var(--mono); letter-spacing: -0.06em; }
-.advisor-result-empty > p { max-width: 650px; margin: 0; color: #88919c; line-height: 1.7; }
 
 .advisor-result-pending,
 .advisor-result-notice {
@@ -2261,7 +2207,6 @@ textarea { -webkit-tap-highlight-color: transparent; }
 }
 
 @media (min-width: 621px) and (max-width: 800px) {
-  .advisor-budget-fields,
   .advisor-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .advisor-candidate-head { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .advisor-result-head { display: grid; align-items: start; }
@@ -2294,6 +2239,8 @@ textarea { -webkit-tap-highlight-color: transparent; }
 }
 
 @media (max-width: 620px) {
+  .advisor-form-row { grid-template-columns: minmax(0, 1fr); }
+  .advisor-form-actions { width: 100%; }
   .dual-metric-chart__axis { min-height: 48px; }
   .dual-metric-chart__axis-scale > span {
     display: grid;
