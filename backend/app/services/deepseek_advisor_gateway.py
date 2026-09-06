@@ -89,9 +89,15 @@ Use candidateSlot, never a model/provider ID, in the structured result.
 """
 _SEARCH_CONTINUATION_INSTRUCTIONS = """Use only the restored web-search results supplied in the
 input items. Do not search again or call any tool. Inspect only the numbered frozen candidate slots
-from the supplied JSON. Return only the supplied schema. A satisfied or contradicted verdict must
-be supported by a URL citation annotation on the output_text; otherwise use unverified. Use
-candidateSlot, never a model/provider ID, in the structured result.
+from the supplied JSON. Return exactly one JSON object with exactly one root key named candidates.
+Candidates must contain exactly one object per supplied candidateSlot. Each candidate object must
+contain exactly candidateSlot and checks, and checks must contain exactly one object per supplied
+requiredChecks value. Each check object must contain exactly check, verdict, and summary. Preserve
+the supplied integer candidateSlot and requiredChecks strings. Verdict must be satisfied,
+contradicted, or unverified. Summary must be null or a non-empty string of at most 500 characters
+without surrounding whitespace. A satisfied or contradicted verdict must be supported by a URL
+citation annotation on the output_text; otherwise use unverified. Do not use a result wrapper,
+model/provider ID, prose, Markdown, tool syntax, special token, or any other key.
 """
 
 
@@ -159,6 +165,14 @@ def _strict_schema(model_type: type[StrictModel]) -> JsonObject:
     if not isinstance(adapted, dict):  # pragma: no cover - Pydantic model roots are objects
         raise RuntimeError("advisor schema root must be an object")
     return adapted
+
+
+def _verification_output_error_kind(text: str) -> Literal["json_syntax", "schema"]:
+    try:
+        json.loads(text)
+    except (json.JSONDecodeError, RecursionError):
+        return "json_syntax"
+    return "schema"
 
 
 _NEED_SCHEMA = _strict_schema(ParsedAdvisorNeed)
@@ -1171,6 +1185,7 @@ class DeepSeekAdvisorGateway:
                 str(exc),
                 failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
             ) from None
+        verification_output_stage: Literal["initial", "continuation"] = "initial"
         if validated_actions.has_message and not validated_actions.has_ignored_action:
             parts = _output_parts(payload)
         else:
@@ -1187,6 +1202,8 @@ class DeepSeekAdvisorGateway:
                     *validated_actions.replay_items,
                 ],
                 "tool_choice": "none",
+                "temperature": 0,
+                "text": {"format": {"type": "json_object"}},
             }
             continuation_body.pop("tools", None)
             try:
@@ -1210,6 +1227,7 @@ class DeepSeekAdvisorGateway:
                 len(validated_actions.replay_items),
             )
             continuation_payload = await self._post(continuation_body)
+            verification_output_stage = "continuation"
             parts = _message_only_output_parts(continuation_payload)
         provider_annotation_count = sum(len(annotations) for _text, annotations in parts)
         text = "".join(part for part, _annotations in parts)
@@ -1221,6 +1239,15 @@ class DeepSeekAdvisorGateway:
                 by_name=False,
             )
         except ValidationError:
+            logger.info(
+                "advisor_verification_output_invalid stage=%s error_kind=%s "
+                "output_parts=%d output_chars=%d provider_annotations=%d",
+                verification_output_stage,
+                _verification_output_error_kind(text),
+                len(parts),
+                len(text),
+                provider_annotation_count,
+            )
             raise AdvisorGatewayError(
                 "advisor provider returned invalid verification output",
                 failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
