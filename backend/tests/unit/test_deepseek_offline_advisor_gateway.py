@@ -200,6 +200,23 @@ def test_explanation_uses_only_frozen_top_three_and_sanitized_aa_fields() -> Non
     assert not hasattr(DeepSeekOfflineAdvisorGateway, "verify_candidates")
 
 
+def test_allows_literal_tilde_in_plaintext_knowledge_note() -> None:
+    knowledge_note = "该模型的输出速度约为 ~100 tokens/s，可能随产品更新而变化。"
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return _response(
+            {
+                "candidates": [
+                    {"candidateSlot": 0, "knowledgeNote": knowledge_note},
+                ]
+            }
+        )
+
+    explanations = _run_explain(handler, (_candidate(0),))
+
+    assert explanations[0].knowledge_note == knowledge_note
+
+
 def test_full_offline_flow_is_exactly_two_posts_and_zero_gets() -> None:
     requests: list[httpx.Request] = []
 
@@ -303,6 +320,7 @@ def test_rejects_tool_actions_annotations_and_noncompleted_outputs(payload: obje
         "联系 mailto:owner@example.invalid",
         "参考 127.0.0.1/docs",
         "**加粗说明**",
+        "~~删除线说明~~",
         "- 列表说明",
         "x" * 501,
     ],
