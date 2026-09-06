@@ -244,14 +244,16 @@ The advisor is a one-shot form, not a chat history. Its Chinese title is `按需
 Visible inputs:
 
 - one large free-form requirement field;
-- optional deployment region.
+- optional deployment-region native select.
 
-The `获取推荐` action sits to the right of the deployment-region field. The public browser exposes no budget controls and always sends `budget: null`. The idle page renders no result container, result placeholder, or result-placeholder copy; results appear only after a request begins. It otherwise retains only the title, field labels, placeholders, validation errors, and submit action, with no header description, helper paragraphs, or service-connection status copy.
+The `获取推荐` action sits to the right of the deployment-region select. The public browser exposes no budget controls and always sends `budget: null`. The idle page renders no result container, result placeholder, or result-placeholder copy; results appear only after a request begins. It otherwise retains only the title, field labels, placeholders, validation errors, and submit action, with no header description, helper paragraphs, or service-connection status copy.
 
 The public browser input contracts are explicit:
 
 - requirement text: required, trimmed, 1–2,000 characters;
-- deployment region: optional free text, trimmed, at most 64 characters, retained only as an explicitly unverified constraint; it never filters or reorders candidates and is never proof of availability.
+- deployment region: an optional native select whose default `不指定` serializes as `null`. Its remaining fixed mappings are `中国大陆` -> `Mainland China`, `中国香港` -> `Hong Kong`, `新加坡` -> `Singapore`, `日本` -> `Japan`, `韩国` -> `South Korea`, `美国` -> `United States`, `加拿大` -> `Canada`, `欧盟` -> `European Union`, `英国` -> `United Kingdom`, and `澳大利亚` -> `Australia`.
+
+These choices are stable browser request values, not a list of verified provider locations. The selected region remains explicitly unverified, never filters or reorders candidates, and is never proof of availability. For compatibility, the backend endpoint continues to accept any clean deployment-region string of at most 64 characters or `null`; the browser-only fixed choices do not narrow the API contract.
 
 The backend endpoint retains compatibility with an optional validated budget object for non-browser callers. That request-only object contains:
 

@@ -70,6 +70,7 @@ body {
 
 button,
 input,
+select,
 textarea { font: inherit; }
 
 button { color: inherit; }
@@ -79,6 +80,7 @@ button,
 summary,
 a,
 input,
+select,
 textarea { -webkit-tap-highlight-color: transparent; }
 
 :focus-visible {
@@ -1982,8 +1984,11 @@ textarea { -webkit-tap-highlight-color: transparent; }
 }
 
 .advisor-field textarea,
-.advisor-field input {
+.advisor-field input,
+.advisor-field select {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid #383d45;
   border-radius: 0;
   color: #f5f7fa;
@@ -1998,7 +2003,11 @@ textarea { -webkit-tap-highlight-color: transparent; }
   line-height: 1.65;
 }
 
-.advisor-field input { min-height: 48px; padding: 0 14px; }
+.advisor-field input,
+.advisor-field select { min-height: 48px; padding: 0 14px; }
+
+.advisor-field select { color-scheme: dark; }
+.advisor-field select option { color: #f5f7fa; background: #0b0d10; }
 
 .advisor-field textarea::placeholder,
 .advisor-field input::placeholder { color: #646b75; }
@@ -2006,11 +2015,16 @@ textarea { -webkit-tap-highlight-color: transparent; }
 .advisor-field textarea:focus,
 .advisor-field input:focus { border-color: var(--advisor); background: #0d0f14; outline: none; }
 
+.advisor-field select:focus { border-color: var(--advisor); background: #0d0f14; }
+.advisor-field select:focus-visible { outline-color: var(--advisor); }
+
 .advisor-field textarea[aria-invalid="true"],
-.advisor-field input[aria-invalid="true"] { border-color: #f28a96; }
+.advisor-field input[aria-invalid="true"],
+.advisor-field select[aria-invalid="true"] { border-color: #f28a96; }
 
 .advisor-field textarea:disabled,
-.advisor-field input:disabled { cursor: wait; opacity: 0.72; }
+.advisor-field input:disabled,
+.advisor-field select:disabled { cursor: wait; opacity: 0.72; }
 
 .advisor-field-error {
   margin: 8px 0 0;
