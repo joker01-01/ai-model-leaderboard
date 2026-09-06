@@ -335,7 +335,7 @@ describe("parseAdvisorRecommendationResponse", () => {
     aaOnlyWithChecks.recommendation!.checks[0] = {
       requirement: "api_access",
       status: "unverified",
-      summary: "未完成实时核验。",
+      summary: "未联网核验。",
       citation_ids: [],
     };
     aaOnlyWithChecks.citations = [];

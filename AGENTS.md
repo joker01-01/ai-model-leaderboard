@@ -17,7 +17,7 @@ Preserve the working product and its evidence boundaries through small, phase-sc
 - The local public frontend uses `src/lib/hashRoute.ts`, `src/lib/modelPresentation.ts`, `src/pages/`, and the public chart components for the four-card home, five complete leaderboard views, and the one-shot `#/advisor` experience. `src/features/advisor/` owns the strict client contract, form, request lifecycle, and result presentation.
 - Python 3.12, Pydantic v2, FastAPI, and the low-level LangGraph graph API provide the backend under `backend/`.
 - `backend/app/repositories/leaderboard.py` loads committed generated ModelOps JSON. `backend/app/tools/` contains typed read-only/pure tools. `backend/app/graph/` owns state, nodes, routes, dependency injection, and orchestration.
-- `backend/app/services/openai_gateway.py` provides locally validated DeepSeek Responses structured output. `provider_document_client.py` provides bounded exact-allowlist fetching for the legacy evidence flow. The independent advisor path uses `deepseek_advisor_gateway.py`, a deterministic AA selector, a reviewed official-source registry, and bounded in-process rate/concurrency controls.
+- `backend/app/services/openai_gateway.py` provides locally validated DeepSeek Responses structured output. `provider_document_client.py` provides bounded exact-allowlist fetching for the legacy evidence flow. The independent public advisor path uses `deepseek_offline_advisor_gateway.py` for strict intent parsing and optional no-search knowledge notes, plus a deterministic AA selector and bounded in-process rate/provider-concurrency controls. `deepseek_advisor_gateway.py` and the official-source registry are preserved compatibility code and must remain unreachable from the public advisor runtime.
 - `backend/app/main.py` owns configuration/lifespan and the service status page. `backend/app/api/` exposes health, the one-shot advisor JSON endpoint, legacy non-streaming invoke, and disconnect-aware POST SSE endpoints.
 - The backend deploys to Zeabur from repository-root `Dockerfile`; it must include both Python code and required generated JSON. The service remains linked to `main`.
 - GitHub workflows prepare App-signed data PRs, evaluate routine data updates from trusted `main`, verify pull requests, and deploy merged `main` to GitHub Pages.
@@ -51,7 +51,7 @@ python -m mypy app tests evals
 python evals/run.py
 ```
 
-Local API startup can serve deterministic AA-only advisor fallback without a provider key. Live DeepSeek verification and the legacy Agent require an exported key; `.env.example` is documentation and is not loaded automatically:
+Local API startup can serve the deterministic AA-only advisor fallback without a provider key. DeepSeek intent parsing, optional no-search knowledge notes, and the legacy Agent require an exported key; `.env.example` is documentation and is not loaded automatically. The public advisor never enables web search, but these provider-backed steps still call the remote DeepSeek API and are not fully offline:
 
 ```powershell
 $env:MODELOPS_MODEL_API_KEY = "<DeepSeek API key>"
@@ -65,7 +65,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-config logging
 - Backend tests and evaluations must remain deterministic and injected; ordinary verification must not require provider or document-site network access.
 - `GET /` is the browser status boundary and `GET /healthz` is the machine readiness check. Both return 503 when required startup/runtime dependencies are unavailable. Browser/API wire fields remain snake_case.
 - `POST /api/v1/agent/query` currently provides one-run SSE with monotonic sequence, one terminal event, heartbeat comments, and disconnect cancellation. It has no persistence or replay.
-- `POST /api/v1/advisor/recommend` provides one-shot JSON. It rate-limits each client IP to five requests per ten minutes and admits at most two live web-backed recommendations in one process; capacity or provider failure returns deterministic AA fallback instead of queueing.
+- `POST /api/v1/advisor/recommend` provides one-shot JSON. It rate-limits each client IP to five requests per ten minutes and admits at most two simultaneous optional knowledge-note calls in one process; capacity or provider failure returns the deterministic AA-only result instead of queueing.
 
 ## Confirmed public-product invariants
 
@@ -106,17 +106,14 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-config logging
 - The idle advisor page keeps copy minimal: retain the `MODEL ADVISOR` kicker, title, field labels, placeholders, budget toggle copy, validation errors, and result states, but omit the header description, requirement/deployment helper paragraphs, and service-connection status copy.
 - DeepSeek may extract a strict intent/constraint contract but does not choose or rank arbitrary models.
 - Its output is limited to ordered ability enums, one promoted objective, and reviewed hard-requirement enums; deployment region/budget/token values come from validated form fields. Reject model-provided URLs, candidate/provider IDs, unknown fields, and unsupported enums.
-- Deterministic code selects a five-row verification pool from the validated full AA snapshot using the eligibility, monthly-cost, priority, missing-value, and tie-break rules in `DESIGN.md`.
-- AA remains authoritative for ability, price, speed, and ordering. Live search can supplement or validate only the selected five.
-- DeepSeek Responses built-in `web_search` is accessed through an injected server-side adapter. It accepts evidence only from a reviewed `creatorId` registry of official site/docs/pricing domains, official GitHub organizations, and AA. User input, model output, summaries without accepted citations, or redirects cannot introduce evidence URLs.
-- DeepSeek may return result-derived search queries and navigation outside the reviewed sets. Fully validate each action before deciding its disposition: an unknown query ignores its entire search action atomically, while a canonical HTTPS open/find URL outside the registry is ignored and any malformed URL remains a hard failure. Any ignored action invalidates the first-response message, so continue at most once using only completed search items whose queries are all recognized and which contain an exact or approved reformulated candidate query. Replay those items unchanged as required by the provider's stateless Responses contract; the continuation uses deterministic `json_object` generation with an explicit fixed wire contract and is still accepted only through the local strict schema. Never replay ignored, failed, or navigation actions from a contaminated response, and never log raw query, URL, or output text.
-- Search preserves AA-derived order. It may eliminate a row only when accepted official evidence explicitly contradicts a hard constraint; missing region evidence remains unverified rather than unsupported. Return the first three survivors as one recommendation plus up to two alternatives.
-- An unregistered creator remains eligible from AA data but cannot receive the fully verified status.
-- Deployment-region text is a verification requirement, not proof of availability.
-- Missing required evidence cannot be described as a complete or budget-compatible match.
-- The response must distinguish fully verified, partially verified, and AA-only fallback states. Provider/search failure still returns the deterministic AA result.
-- The public boundary is the non-streaming JSON `POST /api/v1/advisor/recommend`, per-IP 5 advisor requests per 10 minutes, and at most 2 simultaneous web-backed recommendations service-wide. Use a trusted proxy configuration before accepting forwarded client IP headers.
-- The sixth request returns 429 with `Retry-After`. When web capacity is occupied or the provider fails, return HTTP 200 deterministic AA fallback rather than queueing indefinitely. Client cancellation must abort the JSON request.
+- Deterministic code filters and orders the validated full AA snapshot using the eligibility, monthly-cost, priority, missing-value, and tie-break rules in `DESIGN.md`, then freezes the first three rows as the public recommendation and alternatives.
+- AA remains authoritative for candidate membership, ability, price, speed, cost filtering, and order. DeepSeek may only add a short note for each frozen Top 3 candidate from its existing model knowledge; those notes are explicitly unverified and may be stale, and the backend must never treat their text as changing AA facts.
+- Both public-advisor provider requests must set `tool_choice: "none"` and omit tools, search, URL fetching, `previous_response_id`, and continuation. Reject tool calls, URLs, unknown fields, unexpected candidate slots, and any explanation result that does not cover the frozen candidate slots exactly.
+- Model knowledge must never filter or reorder candidates, create citations, or promote a result beyond `aa_only`. The explanation request must instruct DeepSeek not to claim hard-requirement or deployment-region verification; regardless of note wording, the backend never interprets the note as verification. Hard-requirement enums and deployment-region text remain unverified request context and do not eliminate candidates.
+- Every successful public response keeps `verification_status = "aa_only"`; every candidate has empty `checks`, and top-level `citations` and `rejections` are empty. Intent/explanation failure, provider-capacity exhaustion, or missing provider configuration returns HTTP 200 with the deterministic AA-only result and fixed AA reason.
+- `deepseek_advisor_gateway.py`, advisor web-search validation, and `data/aa/official-sources.json` may remain for compatibility tests, but the public API and application startup must not construct or call that path.
+- The public boundary is the non-streaming JSON `POST /api/v1/advisor/recommend`, per-IP 5 advisor requests per 10 minutes, and at most 2 simultaneous optional knowledge-note calls service-wide. Use a trusted proxy configuration before accepting forwarded client IP headers.
+- The sixth request returns 429 with `Retry-After`. When provider-note capacity is occupied or the provider fails, return HTTP 200 deterministic AA-only output rather than queueing indefinitely. Client cancellation must abort the JSON request.
 - Keep Zeabur at one replica and one Uvicorn worker while the limiter is in process. Horizontal or multi-worker scaling requires a reviewed shared limiter first.
 - Provider keys remain server-side environment variables. Never place them in generated data, client bundles, logs, tests, docs, or commits.
 
@@ -151,7 +148,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-config logging
 - The public snapshot records schema version, source URL, observation date, a fingerprint of the selected Free v2 wire-contract projection, the positive finite AA Intelligence Index version, complete-pagination proof, and normalized model rows. Coding and Agentic are derived indices and have no invented version fields. Its TypeScript and backend JSON forms come from one validated object and must be semantically equal.
 - At the external AA boundary, trim optional name/slug/creator text and convert a blank result to `null`; never trim or infer the required `sourceId`. Generated snapshots and downstream parsers continue to accept only canonical `null` or non-empty trimmed optional text.
 - Public price/latency/speed values are nullable, finite, and non-negative; zero remains valid. Ability indices must satisfy the inspected AA contract.
-- `data/aa/official-sources.json` is a reviewed input, not generated data. Changes to creator/domain/GitHub bindings require human review.
+- `data/aa/official-sources.json` is a reviewed compatibility input for the unreachable legacy advisor-search adapter, not generated data and not a public-advisor knowledge source. Changes to creator/domain/GitHub bindings require human review.
 - Change public mappings or generator logic, regenerate, inspect all generated diffs and `data/aa/generated/sync-report.json`, and prove the public-only mode left legacy artifacts unchanged before running the relevant contract tests.
 - Change reviewed ModelOps inputs/exporter logic, run `npm run modelops:data`, inspect generated JSON, then run `npm run test:modelops-data` and `npm run modelops:data:check`.
 - Treat both public `data/aa/generated/sync-report.json` and legacy `data/sync-report.json` as review evidence for their respective domains. Do not hide missing, ambiguous, conflicting, malformed, or dropped data.
@@ -172,7 +169,7 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-config logging
 
 - Match review depth to the trust boundary touched. Documentation, styling, presentation-only UI, and deterministic pure functions normally need focused correctness/regression checks, not a repository-wide security audit.
 - Do not run broad vulnerability scans, dependency audits, or unrelated threat-model/hardening work unless the user requests it or concrete evidence requires it.
-- For advisor/network work, target only relevant risks: server-side key handling, strict schemas, prompt/tool output validation, official-domain allowlists, redirect binding, timeouts, response bounds, proxy/IP trust, rate/concurrency limits, and safe fallback.
+- For public-advisor network work, target only relevant risks: server-side key handling, strict schemas, explicit no-tool requests, tool/URL rejection, frozen candidate-slot coverage, timeouts, response bounds, proxy/IP trust, rate/provider-concurrency limits, and safe AA-only fallback. Official-domain and redirect controls remain relevant only to preserved legacy evidence paths.
 - For sync/GitHub work, target only relevant risks: source validation, safe generated writes, changed-path controls, least-privilege permissions, provenance, immutable SHAs, and approval bypasses.
 - Proportional review never permits weakening exact-version rules, hiding missing evidence, or bypassing protected publication.
 

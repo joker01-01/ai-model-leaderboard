@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from decimal import Decimal
 from enum import StrEnum
@@ -158,7 +159,7 @@ class AaPublicSnapshot(StrictModel):
 
 
 class RankedAdvisorCandidate(StrictModel):
-    """One immutable AA-derived row in the five-candidate verification pool."""
+    """One immutable AA-derived row in the bounded deterministic candidate pool."""
 
     candidate_slot: Annotated[int, Field(ge=0, lt=5)]
     model: AaPublicModel
@@ -166,6 +167,50 @@ class RankedAdvisorCandidate(StrictModel):
 
 
 BoundedEvidenceText = Annotated[NonEmptyString, StringConstraints(max_length=500)]
+
+
+_URL_LIKE_PATTERN = re.compile(
+    r"(?ix)(?:"
+    r"[a-z][a-z0-9+.-]*://"
+    r"|(?:mailto|data|file|ftp|ftps|ws|wss):"
+    r"|//[^\s]+"
+    r"|\]\(\s*[^)]+\)"
+    r"|(?:localhost|(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63})"
+    r"(?::\d{1,5})?(?:[/#?][^\s]*)?"
+    r"|(?:\d{1,3}\.){3}\d{1,3}(?::\d{1,5})?(?:[/#?][^\s]*)?"
+    r")"
+)
+_MARKDOWN_PATTERN = re.compile(
+    r"(?m)(?:"
+    r"[`*_~]"
+    r"|!\["
+    r"|\[[^\]\r\n]*\]\("
+    r"|^\s{0,3}(?:#{1,6}|>|[-+]|\d+[.)])\s"
+    r"|^\s*\|.*\|\s*$"
+    r"|</?[a-z][^>]*>"
+    r")",
+    re.IGNORECASE,
+)
+
+
+def _reject_knowledge_note_url(value: str) -> str:
+    if _URL_LIKE_PATTERN.search(value) or _MARKDOWN_PATTERN.search(value):
+        raise ValueError("advisor knowledge notes cannot contain URLs or Markdown")
+    return value
+
+
+KnowledgeNoteText = Annotated[
+    NonEmptyString,
+    StringConstraints(max_length=500),
+    AfterValidator(_reject_knowledge_note_url),
+]
+
+
+class CandidateKnowledgeExplanation(StrictModel):
+    """Unverified model-knowledge context attached to one server-owned slot."""
+
+    candidate_slot: Annotated[int, Field(ge=0, lt=5)]
+    knowledge_note: KnowledgeNoteText
 
 
 def _validate_official_citation_url(value: str) -> str:

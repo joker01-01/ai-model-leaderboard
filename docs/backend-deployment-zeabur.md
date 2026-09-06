@@ -9,10 +9,10 @@ GitHub Pages
   -> HTTPS POST /api/v1/advisor/recommend (one-shot JSON)
   -> Zeabur / Tencent Cloud Singapore
   -> FastAPI + LangGraph
-  -> AA selection + DeepSeek Responses API and reviewed official sources
+  -> deterministic AA selection + DeepSeek intent / optional no-search notes
 ```
 
-The legacy `/api/v1/agent/query` SSE endpoint remains supported alongside the public advisor. Neither path adds persistence, replay, authentication, or data writes. `prepare_data_update` remains a review-only proposal operation. The advisor must remain at one replica and one Uvicorn worker while its rate and concurrency limits are in process; verify trusted-proxy CIDRs before trusting forwarded client IPs.
+The public Advisor never enables `web_search`, performs a provider continuation, or fetches citation URLs. It may still make remote DeepSeek API calls, so no web search does not mean a fully offline deployment. The legacy `/api/v1/agent/query` SSE endpoint and its separate reviewed document-evidence path remain supported alongside the public advisor. Neither path adds persistence, replay, authentication, or data writes. `prepare_data_update` remains a review-only proposal operation. The advisor must remain at one replica and one Uvicorn worker while its per-IP and provider-note limits are in process; verify trusted-proxy CIDRs before trusting forwarded client IPs.
 
 ## Current deployment
 
@@ -20,7 +20,7 @@ The legacy `/api/v1/agent/query` SSE endpoint remains supported alongside the pu
 - Source: GitHub `main`, built with the root-level `Dockerfile`
 - Public origin: `https://modelops-agent-api.zeabur.app`
 - Runtime baseline: `4b9e5f3` from PR #37, verified in Zeabur deployment `deployment-6a9cc58caad15df0678d3f30` on 2026-09-06.
-- Readiness and a bounded advisor request passed. The request returned a schema-valid `aa_only` result; its advisor diagnostic events contained only the designed aggregate fields and confirmed zero raw URL annotations or accepted citations from the current DeepSeek Responses path.
+- Readiness and a bounded advisor request passed on that search-era baseline. The request returned a schema-valid `aa_only` result, but this deployment predates the no-search design and does not prove that `tool_choice: "none"` or the unreachable legacy search gateway is active in production. Deploy and smoke-test the new merged revision before making that claim.
 
 ## Repository layout requirement
 
@@ -31,9 +31,10 @@ The runtime imports Python from `backend/app/`, while `LeaderboardRepository.loa
 ```text
 data/modelops/generated/catalog.json
 data/modelops/generated/evidence.json
+data/aa/generated/snapshot.json
 ```
 
-The root-level `Dockerfile` preserves both paths in the image and starts Uvicorn from the container's `backend/` directory. It loads `backend/logging.json`, which preserves Uvicorn's default access/error logging and adds an INFO handler for `app.*`; ordinary unconfigured library INFO events still inherit the root WARNING threshold. Zeabur injects `PORT`; do not define or override it in the service variables.
+The root-level `Dockerfile` preserves these paths in the image and starts Uvicorn from the container's `backend/` directory. It also currently preserves `data/aa/official-sources.json` for compatibility code, but the public Advisor must not load or consult that registry. The container loads `backend/logging.json`, which preserves Uvicorn's default access/error logging and adds an INFO handler for `app.*`; ordinary unconfigured library INFO events still inherit the root WARNING threshold. Zeabur injects `PORT`; do not define or override it in the service variables.
 
 ## Zeabur project setup
 
@@ -77,9 +78,9 @@ MODELOPS_TRUSTED_PROXY_CIDRS=
 
 `MODELOPS_CORS_ORIGINS` contains origins only, so the GitHub Pages repository path must not be appended.
 
-Keep `MODELOPS_MODEL_TIMEOUT_SECONDS` at 60 for the production advisor. A live Zeabur probe confirmed that 30 seconds could terminate the bounded verification request before the provider returned, while the same request reached a provider response with a 60-second timeout.
+Keep `MODELOPS_MODEL_TIMEOUT_SECONDS` at 60 for the production advisor's remote intent and optional knowledge-note calls. The new no-search path still needs bounded provider time; remeasure its actual latency after deployment rather than reusing the former web-search timing as proof.
 
-`MODELOPS_MODEL_API_KEY` is required for the legacy Agent and live advisor verification. Without it, the Phase 4 runtime deliberately keeps the deterministic AA-only advisor available while provider-backed paths degrade; `/healthz` does not validate provider credentials. Keep `MODELOPS_TRUSTED_PROXY_CIDRS` empty until Zeabur's exact forwarding networks have been reviewed, and never use a catch-all CIDR merely to enable forwarded client IPs.
+`MODELOPS_MODEL_API_KEY` is required for the legacy Agent and for public-Advisor intent parsing and optional model-knowledge notes. Without it, the runtime deliberately keeps deterministic AA-only Advisor output available while provider-backed steps degrade; `/healthz` does not validate provider credentials. The configured DeepSeek base URL therefore still requires outbound HTTPS even though the public Advisor performs no web search or URL retrieval. Keep `MODELOPS_TRUSTED_PROXY_CIDRS` empty until Zeabur's exact forwarding networks have been reviewed, and never use a catch-all CIDR merely to enable forwarded client IPs.
 
 Do not add `AA_API_KEY`; it belongs to the separate data-sync workflow. `VITE_AGENT_API_URL` is injected only into the reviewed GitHub Pages build and is not a backend service variable.
 
@@ -113,7 +114,7 @@ Expected response:
 {"status":"ok"}
 ```
 
-A `503` response means generated JSON or another required startup dependency is unavailable. A `200` response proves repository-backed runtime readiness only: the Phase 4 service can return deterministic AA-only advisor results without a model key, so readiness does not prove that DeepSeek or live web verification works.
+A `503` response means generated JSON or another required startup dependency is unavailable. A `200` response proves repository-backed runtime readiness only: the service can return deterministic AA-only Advisor results without a model key, so readiness does not prove that remote DeepSeek intent parsing or optional knowledge notes work.
 
 ### 3. Non-streaming live request
 
@@ -145,9 +146,9 @@ Verify all of the following:
 - closing the client connection cancels unfinished server work;
 - a complete run finishes within the configured model/document timeouts without the gateway terminating the stream.
 
-### 5. Phase 4 advisor live verification
+### 5. Public Advisor no-search boundary
 
-After the Phase 4 revision is deployed, submit one bounded advisor request:
+After the no-search revision is deployed, submit one bounded Advisor request:
 
 ```powershell
 $AdvisorBody = @{
@@ -162,18 +163,22 @@ $Advisor = Invoke-RestMethod `
   -ContentType "application/json" `
   -Body $AdvisorBody
 
-$Advisor | Select-Object verification_status, citations
+$Candidates = @($Advisor.recommendation) + @($Advisor.alternatives)
+$Advisor | Select-Object verification_status, citations, rejections
+$Candidates | Select-Object source_id, reason, verification_status, checks
 ```
 
-HTTP 200 with a schema-valid result proves deterministic advisor availability. A `verified` or `partial` result, or any accepted item in `citations`, proves that this request also completed the bounded live-evidence path. An `aa_only` result is an intentional fallback and by itself does not distinguish a missing or invalid key from provider failure, web-capacity saturation, or rejected evidence.
+Acceptance requires HTTP 200 and the following invariant for both provider-enriched and fallback responses:
 
-For an `aa_only` result, inspect the server-side `advisor_verification_*`, `advisor_web_action_diagnostics`, and `advisor_citation_diagnostics` events. They expose only bounded stage, duration, failure category, action/query counts, and aggregate citation counts; they intentionally omit keys, requirements, query text, URLs, titles, and provider response bodies.
+- top-level `verification_status` is exactly `aa_only`;
+- every returned candidate has `verification_status = "aa_only"` and `checks = []`;
+- top-level `citations = []` and `rejections = []`;
+- candidate membership, metrics, calculated cost, and order come only from the committed AA snapshot and deterministic selector;
+- any provider-added note is prefixed `模型知识参考（未联网核验）`, contains no URL, and makes no verified hard-requirement or deployment-region claim.
 
-An `ignored_searches` or `ignored_navigations` count above zero means the provider generated an action outside the finite query set or reviewed URL registry. That action and the first response message were discarded; the adapter attempted its single stateless continuation using only completed, candidate-bound search items whose queries all validated. Query, URL, and pattern text remain intentionally absent from logs.
+An absent note is a valid deterministic fallback and does not by itself identify whether the key was absent, both note-call slots were occupied, the provider failed, or provider output failed strict validation. Inspect only bounded failure-category and duration logs when diagnosis is needed; never log the user requirement, model note, provider body, or key.
 
-An `advisor_continuation_output_invalid` event means the continuation envelope was not one completed assistant message and records only raw annotation-shape counts. If the envelope is valid but its JSON body fails syntax or schema validation, `advisor_verification_output_invalid` records the initial/continuation stage plus aggregate part, character, and annotation counts. `raw_annotations` and `raw_url_annotations` distinguish an upstream empty annotation array from locally rejected URL-annotation shapes or spans; `provider_annotations` is the valid parsed subset. Neither event records returned text or validation inputs.
-
-On 2026-09-06, controlled probes against the deployed DeepSeek Responses integration exercised JSON mode, plain-text JSON, natural-language text, and provider auto-continuation. Completed output parts consistently exposed zero raw annotations, and the bounded web-search actions exposed zero source URLs. DeepSeek's current Responses reference shows `annotations: []` in its response example but does not define or guarantee non-empty URL citations. Until that provider contract changes, a schema-valid `aa_only` response is the expected safe outcome: do not reinterpret search queries, restored private results, generated prose, or model-written URLs as accepted evidence. Enabling `partial` or `verified` requires a reviewed provider/tool contract that exposes claim-bound citation URLs while retaining the existing candidate, official-domain, redirect, and span checks.
+The live response proves the public wire boundary, not the exact provider request body. Before deployment, injected transport tests must prove that both Advisor requests explicitly send `tool_choice: "none"`, omit `tools`, `include`, `previous_response_id`, and restored response items, reject tool calls and URLs, and never call the preserved `DeepSeekAdvisorGateway`. Do not accept production `partial`/`verified` results or non-empty evidence arrays as a compatibility success; they violate the no-search design.
 
 ### 6. Browser boundary
 
@@ -215,7 +220,7 @@ After recovery, the Zeabur 12-hour Usage graph showed low-single-digit CPU perce
 
 The purchased server is a fixed monthly resource. Start with one service and one Uvicorn worker. Observe CPU and memory before adding replicas or increasing limits.
 
-The public API has no authentication. CORS constrains browsers but does not prevent direct scripted requests. The Phase 4 advisor enforces five requests per client IP per ten minutes and allows at most two simultaneous web-backed recommendations in its single process; the preserved legacy Agent endpoints do not gain that limiter. Keep one Zeabur replica and one Uvicorn worker until a reviewed shared limiter exists, and configure only exact trusted proxy CIDRs before relying on forwarded client IPs. Expose the backend only through the reviewed Pages build, do not widen the configured browser origins without a separate review, keep a controlled small DeepSeek balance, and review provider usage regularly.
+The public API has no authentication. CORS constrains browsers but does not prevent direct scripted requests. The Advisor enforces five requests per client IP per ten minutes and allows at most two simultaneous optional knowledge-note calls in its single process; intent parsing happens before that provider gate but remains bounded by the per-IP window and provider timeout. The preserved legacy Agent endpoints do not gain that limiter. Keep one Zeabur replica and one Uvicorn worker until a reviewed shared limiter exists, and configure only exact trusted proxy CIDRs before relying on forwarded client IPs. Expose the backend only through the reviewed Pages build, do not widen the configured browser origins without a separate review, keep a controlled small DeepSeek balance, and review provider usage regularly.
 
 ## Rollback
 

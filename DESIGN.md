@@ -253,7 +253,7 @@ The idle page deliberately keeps its copy sparse. It retains the `MODEL ADVISOR`
 Input contracts are explicit:
 
 - requirement text: required, trimmed, 1–2,000 characters;
-- deployment region: optional free text, trimmed, at most 64 characters, used only as a verification requirement and never as proof of availability;
+- deployment region: optional free text, trimmed, at most 64 characters, retained only as an explicitly unverified constraint; it never filters or reorders candidates and is never proof of availability;
 - currency: USD;
 - monthly budget: finite decimal greater than or equal to zero;
 - average input/output tokens: non-negative integers;
@@ -280,7 +280,7 @@ interface ParsedAdvisorNeed {
 }
 ```
 
-Unknown fields, duplicate values, unbounded text, URLs, provider/model IDs, and unsupported enum values are rejected. This model-produced object never owns deployment region, budget, or token values. The validated advisor request supplies those form fields separately, and the backend combines them with `ParsedAdvisorNeed` only after both contracts pass local validation. Only the enumerated `hardRequirements`, explicit form-supplied deployment region, and explicit form-supplied budget may eliminate a candidate; an LLM summary or inferred preference cannot.
+Unknown fields, duplicate values, unbounded text, URLs, provider/model IDs, and unsupported enum values are rejected. This model-produced object never owns deployment region, budget, or token values. The validated advisor request supplies those form fields separately, and the backend combines them with `ParsedAdvisorNeed` only after both contracts pass local validation. Required AA metric availability and an explicit form-supplied budget may eliminate a candidate. `hardRequirements` and deployment region remain unverified request context; they never eliminate or reorder candidates because the public advisor does not fetch current evidence.
 
 The deterministic selector then applies these rules:
 
@@ -292,76 +292,34 @@ The deterministic selector then applies these rules:
 4. Apply the remaining default keys without duplication: ordered ability tuple descending, lower output price, then higher output speed. Missing non-required values sort last.
 5. Stabilize equal rows by the name sort key using Unicode code-point order, then `sourceId` ascending.
 
-The first five rows form the verification pool. DeepSeek server-side web search may inspect only those five. Search preserves their AA-derived order and may remove a candidate only when accepted official evidence explicitly contradicts a hard requirement; missing region evidence is not a contradiction. The final result uses the first three surviving rows as one recommendation plus up to two alternatives. Rows four and five are verification buffers only. If fewer than three survive, return fewer rather than silently adding an unverified sixth candidate.
+The deterministic selector orders the eligible AA rows, and the first three become the frozen public result: one recommendation plus up to two alternatives. If fewer than three rows are eligible, return fewer. DeepSeek cannot add a fourth candidate, substitute an arbitrary model, filter a frozen candidate, or change that order.
 
-Deployment region is checked only from accepted official evidence and never inferred from a provider name. A missing region match is marked unverified rather than unsupported.
+After selection, the backend may make one optional second DeepSeek request for short candidate notes based only on the model's existing knowledge. Its strict output root is `candidates`; it must contain exactly one object for every frozen candidate slot and no others. Each object contains only `candidateSlot` and a 1–500 character `knowledgeNote`. Notes containing a URL or failing any local shape, length, slot-uniqueness, or exact-coverage check are rejected as a whole.
 
-DeepSeek's Responses `web_search` tool is accessed only through a server-side adapter. Server-generated search queries come from frozen candidate data plus a reviewed `creatorId` source registry; the original user requirement is never included in the search prompt. Returned searches may use an exact server-generated query, a bounded provider continuation marker, or one of a finite set of provider-observed reformulations assembled only from a frozen candidate's complete name, recognized configuration groups, source slug, fixed requested-check terms, and the matching creator/AA registry scope. Recognized configuration groups may appear as an order-preserving non-empty subset only when the qualifier has at most three groups; larger qualifiers receive no subset variants beyond the existing full and derived forms. An unscoped exact full-name query or a finite approved query that matches multiple frozen candidate slots is tolerated only as auxiliary metadata: it cannot satisfy the completed-search gate or authorize evidence. A completed search action is atomic: one unknown query makes the entire action ignored, while unknown fields, malformed or excessive metadata, and unreviewed returned source URLs still fail closed. A canonical absolute HTTPS open/find URL outside the reviewed registry is also ignored, but an invalid URL or pattern remains a hard failure. Ignored actions never satisfy the completed-search gate, authorize a candidate, or enter a continuation request; logs expose only their aggregate counts, never their contents, query text, URLs, or patterns. At least one completed search action whose queries are all recognized and include an exact or approved reformulated candidate query remains required. It may also contain a bounded continuation marker because DeepSeek's documented stateless contract restores the results of each replayed `web_search_call` item as a unit. A candidate's live verdict is accepted only when that same candidate slot has such a completed scoped query.
+Both advisor calls explicitly set Responses `tool_choice` to `none` and send no `tools`, `include`, `previous_response_id`, or restored response items. The public advisor never enables `web_search`, never performs a continuation, and never opens, finds, follows, or validates a citation URL. A returned tool call or unexpected response item is invalid output and triggers the deterministic AA-only fallback.
 
-Provider-reported failed `search`, `open_page`, and `find_in_page` actions are narrow compatibility exceptions: their complete action shape, bounded query or canonical URL, returned search-source URLs, and bounded pattern must validate, but they are never replayed, cannot satisfy the completed-search gate, and never become evidence. A literal URL fragment may be ignored only while checking open/find action metadata; citations, returned search sources, and redirect hops keep the stricter fragment rejection. When a completed first response contains only validated web-search calls and no message, the adapter performs at most one stateless continuation. The same clean continuation is mandatory when any search or navigation action was ignored, even if the first response also contains a message: that message is discarded, and only completed search items whose queries are all recognized and include an exact or approved reformulated candidate query are restored. The items are replayed unchanged, as required by [DeepSeek's Responses compatibility contract](https://api-docs.deepseek.com/guides/responses_api/); every open/find action is excluded in this contaminated-response case. The continuation uses the same server-generated frozen-candidate JSON, disables tools, fixes temperature to zero, and requests `json_object` with an explicit fixed root/candidate/check contract because the live web-search continuation path can emit non-JSON DSML text despite advertising `json_schema` support. The returned text still must pass the unchanged local strict schema before any verdict is considered. It accepts only a completed message response and never uses `previous_response_id`, replays failed or ignored calls, or permits a third round. A search summary is not evidence until its output-text citation passes the candidate-specific registry, redirect, and live 2xx checks. The current provider API does not expose query-to-citation provenance, so these controls bound the trust surface but do not independently prove that a cited page's text supports every generated summary.
+Candidate notes are labelled `模型知识参考（未联网核验）`. They may be useful context, but they are not current or official evidence and may be stale. The explanation instructions forbid claims that a hard requirement or deployment region was verified. Regardless of a note's wording, the backend never parses it as verification or lets it alter an AA metric or cost, create citations/checks/rejections, change eligibility, or affect ordering. Missing or invalid notes leave the same frozen candidates with fixed AA-derived reasons.
 
-Accepted web evidence is limited to:
+The no-search advisor still sends intent and optional explanation requests to the remote DeepSeek API when a valid provider key is configured. `不联网搜索` therefore means no web-search/tool/URL retrieval, not a fully local or network-isolated runtime. Without the key, or on provider timeout, HTTP failure, capacity exhaustion, invalid output, or cancellation, the service retains deterministic AA-only behavior.
 
-- the model creator's official site and API/pricing documentation;
-- the creator's official GitHub organization;
-- Artificial Analysis.
-
-The reviewed registry is `data/aa/official-sources.json` and follows this minimum shape:
-
-```json
-{
-  "schemaVersion": 1,
-  "artificialAnalysis": [
-    {
-      "host": "artificialanalysis.ai",
-      "allowSubdomains": true,
-      "pathPrefix": "/"
-    }
-  ],
-  "creators": [
-    {
-      "creatorId": "example-creator",
-      "sources": [
-        {
-          "kind": "official_site",
-          "host": "example.com",
-          "allowSubdomains": false,
-          "pathPrefix": "/"
-        },
-        {
-          "kind": "official_github",
-          "host": "github.com",
-          "allowSubdomains": false,
-          "pathPrefix": "/example-org/"
-        }
-      ]
-    }
-  ]
-}
-```
-
-Registry validation rejects unknown fields, duplicate `creatorId` values, non-ASCII registry hosts, non-HTTPS citation URLs, credentials, non-default ports, fragments, and ambiguous GitHub organization paths. Citation hosts are normalized through IDNA to lowercase ASCII and matched exactly; subdomains are accepted only when `allowSubdomains` is true and the dot boundary is preserved. Every redirect hop, final citation URL, and GitHub first path segment must revalidate against the same candidate creator binding. A missing/unregistered creator can still use AA facts but cannot receive `已完成实时核验`. Registry/schema changes require human review.
+The former search-capable `deepseek_advisor_gateway.py` and `data/aa/official-sources.json` may remain as compatibility code and test fixtures, but application startup and the public advisor endpoint must not construct or call that gateway. The legacy ModelOps Agent retains its separate evidence path and is outside this public-advisor rule.
 
 The result contains:
 
 - one highlighted recommendation;
 - relevant ability, price, and speed values;
 - one short reason;
-- a collapsed `查看依据` section;
+- a collapsed `查看依据` section containing the AA source and the no-search/unverified-knowledge boundary, never live citations;
 - a collapsed `查看另外 2 个备选` section;
-- a visible live-verification or AA-only fallback state.
+- a visible `未联网核验` state stating that ranking and values come from the committed AA snapshot and, when present, clearly labelled model-knowledge context that was not checked online.
 
 Every absent value is rendered as `暂无 AA 数据`, never zero. A candidate missing an explicitly required core metric cannot be described as a complete match.
 
-The verification state is one of:
-
-- `已完成实时核验`: every supplemental claim used in the primary recommendation has accepted current official evidence;
-- `部分来源未核验`: search completed and at least one accepted official source was found, but one or more displayed supplemental claims are marked unverified;
-- `实时资料未完成核验`: no usable live verification completed, so the result contains only deterministic AA facts and says `仅依据 AA`.
+Every production result uses the existing wire value `verification_status = "aa_only"`. Each returned candidate has `checks = []`, and the response has `citations = []` and `rejections = []`. The client may retain the older status variants in its compatibility parser, but the public runtime does not produce them.
 
 The UI does not show event rails, tool calls, trace IDs, raw graph states, exact-version diagnostic consoles, or update proposals. Existing backend explain/update abilities may remain available outside the ordinary UI.
 
-The public transport is one non-streaming JSON endpoint, `POST /api/v1/advisor/recommend`. Client cancellation aborts the request; all provider operations have finite time and response bounds. Invalid input returns the normal validation 4xx response. The sixth request from one IP within 10 minutes returns 429 with `Retry-After`. If both global web-search slots are occupied, or the provider/search fails, the endpoint returns HTTP 200 with the deterministic AA result labelled `实时资料未完成核验`; it does not queue indefinitely or expose an SSE trace.
+The public transport is one non-streaming JSON endpoint, `POST /api/v1/advisor/recommend`. Client cancellation aborts the request; all provider operations have finite time and response bounds. Invalid input returns the normal validation 4xx response. The sixth request from one IP within 10 minutes returns 429 with `Retry-After`. At most two optional knowledge-note calls run simultaneously in one process. If both slots are occupied, or any provider step fails, the endpoint returns HTTP 200 with deterministic `aa_only` output; it does not queue indefinitely or expose an SSE trace.
 
 Zeabur remains fixed at one replica and one Uvicorn worker, so the in-process limit is service-wide for this deployment. Increasing either count is blocked until a shared limiter is designed and reviewed.
 
@@ -423,10 +381,10 @@ Duplicate IDs, non-finite/invalid values, incomplete pagination, contract/index/
 - No public-page pagination; the sync job still consumes every upstream API page.
 - No user accounts, saved conversations, database, or recommendation history.
 - No client-side DeepSeek or AA keys.
-- No unregistered or non-official search results as recommendation evidence; AA and registry-bound official creator/GitHub sources are the only exceptions.
+- No public-Advisor web search, continuation, URL retrieval, citations, or claim of current official verification. Only committed AA data controls the result; optional DeepSeek knowledge notes remain unverified context.
 - No visible technical Agent console.
 - No new router, chart, animation, UI framework, or state-management dependency.
 
 ## 15. Design acceptance
 
-The design is accepted only when the implemented page follows this information architecture, every chart is driven by validated source data, the full and simplified identities remain correctly separated, mobile and reduced-motion behavior are complete, and the advisor can visibly distinguish live verification from AA-only fallback.
+The design is accepted only when the implemented page follows this information architecture, every chart is driven by validated source data, the full and simplified identities remain correctly separated, mobile and reduced-motion behavior are complete, and the Advisor visibly keeps AA facts authoritative while labelling every optional model-knowledge note as unverified and not searched online.

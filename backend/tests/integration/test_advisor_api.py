@@ -14,26 +14,21 @@ from typing import cast
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 from starlette.types import Message, Scope
 
 from app.api.advisor import AdvisorRuntime, _client_ip, _decimal_text
 from app.config import ApiSettings
 from app.domain.advisor import (
     AbilityPurpose,
-    CandidateEvidenceCheck,
-    CandidateVerification,
-    EvidenceVerdict,
+    CandidateKnowledgeExplanation,
     HardRequirement,
-    OfficialCitation,
-    OfficialSourceKind,
     ParsedAdvisorNeed,
     PromotedObjective,
     RankedAdvisorCandidate,
-    VerificationCheckKind,
 )
-from app.main import AdvisorRuntimeFactory, create_app
+from app.main import AdvisorRuntimeFactory, create_app, default_advisor_runtime_factory
 from app.repositories.aa_snapshot import AaSnapshotRepository
-from app.repositories.official_sources import OfficialSourcesRepository
 from app.services.advisor_gateway import (
     AdvisorGateway,
     AdvisorGatewayError,
@@ -46,6 +41,7 @@ from app.services.advisor_rate_limit import (
     SlidingWindowRateLimiter,
 )
 from app.services.advisor_selector import select_verification_pool
+from app.services.deepseek_offline_advisor_gateway import DeepSeekOfflineAdvisorGateway
 
 _REQUIREMENT = "需要综合能力最强的模型"
 _REQUEST = {
@@ -77,10 +73,9 @@ def _runtime(
 ) -> AdvisorRuntime:
     return AdvisorRuntime(
         snapshot_repository=snapshot_repository or AaSnapshotRepository.load(),
-        official_sources=OfficialSourcesRepository.load(),
         gateway=gateway,
         rate_limiter=limiter or SlidingWindowRateLimiter(limit=5, window_seconds=600),
-        web_gate=gate or NonBlockingConcurrencyGate(capacity=2),
+        provider_gate=gate or NonBlockingConcurrencyGate(capacity=2),
     )
 
 
@@ -99,36 +94,13 @@ def _application(runtime: AdvisorRuntime) -> FastAPI:
     )
 
 
-def _citation(
-    slot: int,
-    creator_id: str | None,
-    *,
-    citation_id: str | None = None,
-    suffix: str = "model",
-    explicit_port: bool = False,
-) -> OfficialCitation:
-    official_sources = OfficialSourcesRepository.load()
-    creator_sources = () if creator_id is None else official_sources.sources_for(creator_id)
-    if not creator_sources:
-        aa_rule = official_sources.registry.artificial_analysis[0]
-        host = aa_rule.host
-        path_prefix = aa_rule.path_prefix
-        source_kind = OfficialSourceKind.ARTIFICIAL_ANALYSIS
-        bound_creator_id = None
-    else:
-        creator_rule = creator_sources[0]
-        host = creator_rule.host
-        path_prefix = creator_rule.path_prefix
-        source_kind = creator_rule.kind
-        bound_creator_id = creator_id
-    authority = f"{host}:443" if explicit_port else host
-    prefix = path_prefix.rstrip("/")
-    return OfficialCitation(
-        citation_id=citation_id or f"citation-{slot}",
-        title="Official model documentation",
-        url=f"https://{authority}{prefix}/advisor-test/{slot}/{suffix}",
-        source_kind=source_kind,
-        creator_id=bound_creator_id,
+def _knowledge_notes(count: int = 3) -> tuple[CandidateKnowledgeExplanation, ...]:
+    return tuple(
+        CandidateKnowledgeExplanation(
+            candidate_slot=slot,
+            knowledge_note=f"候选 {slot + 1} 的通用能力说明可能随产品更新而变化。",
+        )
+        for slot in range(count)
     )
 
 
@@ -140,12 +112,13 @@ class BlockingAdvisorGateway:
     async def parse_need(self, _requirement: str) -> ParsedAdvisorNeed:
         return _need()
 
-    async def verify_candidates(
+    async def explain_candidates(
         self,
-        *args: object,
-        **kwargs: object,
-    ) -> tuple[CandidateVerification, ...]:
-        del args, kwargs
+        candidates: tuple[RankedAdvisorCandidate, ...],
+        *,
+        need: ParsedAdvisorNeed,
+    ) -> tuple[CandidateKnowledgeExplanation, ...]:
+        del candidates, need
         self.started.set()
         try:
             await asyncio.Event().wait()
@@ -153,28 +126,6 @@ class BlockingAdvisorGateway:
             self.cancelled.set()
             raise
         raise AssertionError("unreachable")
-
-
-class InvalidCitationGateway:
-    def __init__(self, url: str) -> None:
-        self._url = url
-
-    async def parse_need(self, _requirement: str) -> ParsedAdvisorNeed:
-        return _need()
-
-    async def verify_candidates(
-        self,
-        *args: object,
-        **kwargs: object,
-    ) -> tuple[CandidateVerification, ...]:
-        del args, kwargs
-        OfficialCitation(
-            citation_id="oversized",
-            title="Rejected oversized URL",
-            url=self._url,
-            source_kind=OfficialSourceKind.OFFICIAL_SITE,
-        )
-        return ()
 
 
 def test_recommend_returns_strict_snake_case_aa_fallback() -> None:
@@ -190,9 +141,9 @@ def test_recommend_returns_strict_snake_case_aa_fallback() -> None:
     assert payload["outcome"] == "recommendation"
     assert payload["verification_status"] == "aa_only"
     assert payload["citations"] == []
+    assert payload["rejections"] == []
     assert "aa_source" in payload and "aaSource" not in payload
-    parsed_need = cast(dict[str, object], payload["parsed_need"])
-    assert parsed_need == {
+    assert payload["parsed_need"] == {
         "ability_purposes": ["intelligence"],
         "promoted_objective": "strongest",
         "hard_requirements": [],
@@ -222,6 +173,17 @@ def test_default_runtime_without_key_is_ready_and_returns_aa_only() -> None:
     assert response.status_code == 200
     assert response.json()["verification_status"] == "aa_only"
     assert response.json()["citations"] == []
+
+
+def test_default_runtime_with_key_uses_the_structurally_offline_gateway() -> None:
+    async def scenario() -> None:
+        settings = ApiSettings(model_api_key=SecretStr("test-provider-key"))
+        async with default_advisor_runtime_factory(settings) as runtime:
+            assert isinstance(runtime.gateway, DeepSeekOfflineAdvisorGateway)
+            assert not hasattr(runtime.gateway, "verify_candidates")
+            assert not hasattr(runtime.gateway, "search")
+
+    asyncio.run(scenario())
 
 
 def test_request_is_strict_and_accepts_bounded_leading_zero_decimal() -> None:
@@ -308,9 +270,7 @@ def test_extremely_small_exact_cost_returns_a_bounded_decimal_instead_of_500() -
         )
 
     assert response.status_code == 200
-    assert response.json()["recommendation"]["estimated_monthly_cost_usd"] == (
-        exact_cost
-    )
+    assert response.json()["recommendation"]["estimated_monthly_cost_usd"] == exact_cost
     assert len(response.json()["recommendation"]["estimated_monthly_cost_usd"]) == 332
 
 
@@ -351,7 +311,7 @@ def test_sixth_request_is_rate_limited_with_exposed_retry_after() -> None:
     }
 
 
-def test_full_capacity_keeps_parsed_need_and_skips_web_search() -> None:
+def test_full_capacity_keeps_parsed_need_and_skips_knowledge_explanation() -> None:
     async def fill_gate(gate: NonBlockingConcurrencyGate) -> tuple[ConcurrencyLease, ConcurrencyLease]:
         first = await gate.try_acquire()
         second = await gate.try_acquire()
@@ -364,7 +324,8 @@ def test_full_capacity_keeps_parsed_need_and_skips_web_search() -> None:
                 purpose=AbilityPurpose.CODING,
                 objective=PromotedObjective.FASTEST,
             )
-        }
+        },
+        explanations=_knowledge_notes(),
     )
     gate = NonBlockingConcurrencyGate(capacity=2)
     leases = asyncio.run(fill_gate(gate))
@@ -384,25 +345,28 @@ def test_full_capacity_keeps_parsed_need_and_skips_web_search() -> None:
         "hard_requirements": [],
     }
     assert gateway.parse_calls == [_REQUIREMENT]
-    assert gateway.verification_calls == []
+    assert gateway.explanation_calls == []
 
 
-def test_parse_and_search_failures_return_deterministic_aa_only_results() -> None:
+def test_parse_and_explanation_failures_return_deterministic_aa_only_results() -> None:
     parse_failure = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: AdvisorGatewayError("sensitive parse failure")}
+        parsed_needs={_REQUIREMENT: AdvisorGatewayError("sensitive parse failure")},
+        explanations=_knowledge_notes(),
     )
-    search_failure = FakeAdvisorGateway(
+    explanation_failure = FakeAdvisorGateway(
         parsed_needs={_REQUIREMENT: _need()},
-        verification=AdvisorGatewayError("sensitive search failure"),
+        explanations=AdvisorGatewayError("sensitive explanation failure"),
     )
 
-    for gateway in (parse_failure, search_failure):
+    for gateway in (parse_failure, explanation_failure):
         with TestClient(_application(_runtime(gateway))) as client:
             response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
         assert response.status_code == 200
         assert response.json()["verification_status"] == "aa_only"
         assert response.json()["citations"] == []
         assert "sensitive" not in response.text
+    assert parse_failure.explanation_calls == []
+    assert len(explanation_failure.explanation_calls) == 1
 
 
 @pytest.mark.parametrize(
@@ -413,14 +377,14 @@ def test_parse_and_search_failures_return_deterministic_aa_only_results() -> Non
         AdvisorGatewayFailureKind.PROVIDER_WIRE,
     ],
 )
-def test_search_failure_logs_safe_stage_and_failure_kind(
+def test_explanation_failure_logs_safe_stage_and_failure_kind(
     failure_kind: AdvisorGatewayFailureKind,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    private_marker = "sensitive search failure"
+    private_marker = "sensitive explanation failure"
     gateway = FakeAdvisorGateway(
         parsed_needs={_REQUIREMENT: _need()},
-        verification=AdvisorGatewayError(private_marker, failure_kind=failure_kind),
+        explanations=AdvisorGatewayError(private_marker, failure_kind=failure_kind),
     )
     caplog.set_level(logging.INFO, logger="app.api.advisor")
 
@@ -430,404 +394,91 @@ def test_search_failure_logs_safe_stage_and_failure_kind(
     assert response.status_code == 200
     assert response.json()["verification_status"] == "aa_only"
     assert response.json()["citations"] == []
-    assert "advisor_verification_started" in caplog.text
-    assert "advisor_verification_fallback" in caplog.text
-    assert "stage=verification" in caplog.text
+    assert "advisor_explanation_started" in caplog.text
+    assert "advisor_explanation_fallback" in caplog.text
+    assert "stage=explanation" in caplog.text
     assert f"failure_kind={failure_kind.value}" in caplog.text
     assert "duration_ms=" in caplog.text
     assert private_marker not in caplog.text
 
 
-@pytest.mark.parametrize(
-    "url",
-    [
-        "https://openai.com/" + "x" * 2_048,
-        "http://openai.com/not-https",
-    ],
-)
-def test_invalid_gateway_citation_is_closed_into_aa_only_fallback(url: str) -> None:
-    with TestClient(_application(_runtime(InvalidCitationGateway(url)))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    assert response.status_code == 200
-    assert response.json()["verification_status"] == "aa_only"
-    assert response.json()["citations"] == []
-
-
-def _registered_candidate_in_visible_pool(
-    need: ParsedAdvisorNeed,
-) -> tuple[RankedAdvisorCandidate, str]:
-    snapshot = AaSnapshotRepository.load()
-    official_sources = OfficialSourcesRepository.load()
-    candidate = next(
-        item
-        for item in select_verification_pool(snapshot.models, need)[:3]
-        if item.model.creator_id is not None
-        and official_sources.sources_for(item.model.creator_id)
-    )
-    assert candidate.model.creator_id is not None
-    return candidate, candidate.model.creator_id
-
-
-def test_cross_creator_gateway_citation_falls_back_to_aa_only() -> None:
-    need = _need()
-    candidate, creator_id = _registered_candidate_in_visible_pool(need)
-    official_sources = OfficialSourcesRepository.load()
-    wrong_creator_id = next(
-        registered_id
-        for registered_id in official_sources.creator_ids
-        if registered_id != creator_id
-    )
-    citation = _citation(candidate.candidate_slot, wrong_creator_id)
-    verification = CandidateVerification(
-        candidate_slot=candidate.candidate_slot,
-        checks=(
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.MODEL_IDENTITY,
-                verdict=EvidenceVerdict.SATISFIED,
-                summary="A different creator's page was incorrectly attached to this model.",
-                citation_ids=(citation.citation_id,),
-            ),
-        ),
-        citations=(citation,),
+def test_knowledge_notes_only_annotate_the_frozen_top_three() -> None:
+    need = _need(
+        purpose=AbilityPurpose.AGENTIC,
+        objective=PromotedObjective.CHEAPEST,
+        hard_requirements=(HardRequirement.API_ACCESS,),
     )
     gateway = FakeAdvisorGateway(
         parsed_needs={_REQUIREMENT: need},
-        verification=(verification,),
+        explanations=_knowledge_notes(),
     )
+    repository = AaSnapshotRepository.load()
+    expected = select_verification_pool(repository.models, need)[:3]
 
     with TestClient(_application(_runtime(gateway))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    assert response.status_code == 200
-    assert response.json()["citations"] == []
-    assert all(
-        item["verification_status"] == "aa_only"
-        for item in [response.json()["recommendation"], *response.json()["alternatives"]]
-    )
-
-
-@pytest.mark.parametrize("invalid_binding", ["wrong_source_kind", "unreviewed_url"])
-def test_wrong_gateway_source_binding_falls_back_to_aa_only(invalid_binding: str) -> None:
-    need = _need()
-    candidate, creator_id = _registered_candidate_in_visible_pool(need)
-    valid = _citation(candidate.candidate_slot, creator_id)
-    if invalid_binding == "wrong_source_kind":
-        wrong_kind = (
-            OfficialSourceKind.OFFICIAL_GITHUB
-            if valid.source_kind != OfficialSourceKind.OFFICIAL_GITHUB
-            else OfficialSourceKind.OFFICIAL_SITE
+        response = client.post(
+            "/api/v1/advisor/recommend",
+            json={**_REQUEST, "deployment_region": "Singapore"},
         )
-        citation = OfficialCitation(
-            citation_id=valid.citation_id,
-            title=valid.title,
-            url=valid.url,
-            source_kind=wrong_kind,
-            creator_id=valid.creator_id,
-        )
-    else:
-        citation = OfficialCitation(
-            citation_id=valid.citation_id,
-            title=valid.title,
-            url="https://unreviewed.example/model",
-            source_kind=valid.source_kind,
-            creator_id=valid.creator_id,
-        )
-    verification = CandidateVerification(
-        candidate_slot=candidate.candidate_slot,
-        checks=(
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.MODEL_IDENTITY,
-                verdict=EvidenceVerdict.SATISFIED,
-                summary="The source metadata does not match the reviewed registry binding.",
-                citation_ids=(citation.citation_id,),
-            ),
-        ),
-        citations=(citation,),
-    )
-    gateway = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: need},
-        verification=(verification,),
-    )
-
-    with TestClient(_application(_runtime(gateway))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    assert response.status_code == 200
-    assert response.json()["citations"] == []
-
-
-def test_candidate_binding_preserves_separate_identity_and_constraint_documents() -> None:
-    need = _need(hard_requirements=(HardRequirement.API_ACCESS,))
-    candidate, creator_id = _registered_candidate_in_visible_pool(need)
-    identity = _citation(
-        candidate.candidate_slot,
-        creator_id,
-        citation_id="identity-document",
-        suffix="identity",
-    )
-    constraint = _citation(
-        candidate.candidate_slot,
-        creator_id,
-        citation_id="constraint-document",
-        suffix="api-access",
-    )
-    verification = CandidateVerification(
-        candidate_slot=candidate.candidate_slot,
-        checks=(
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.MODEL_IDENTITY,
-                verdict=EvidenceVerdict.SATISFIED,
-                summary="The official identity document identifies the model.",
-                citation_ids=(identity.citation_id,),
-            ),
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.API_ACCESS,
-                verdict=EvidenceVerdict.SATISFIED,
-                summary="A separate official document confirms API access.",
-                citation_ids=(constraint.citation_id,),
-            ),
-        ),
-        citations=(identity, constraint),
-    )
-    gateway = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: need},
-        verification=(verification,),
-    )
-
-    with TestClient(_application(_runtime(gateway))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    assert response.status_code == 200
-    candidates = [response.json()["recommendation"], *response.json()["alternatives"]]
-    selected = next(item for item in candidates if item["source_id"] == candidate.model.source_id)
-    assert selected["verification_status"] == "verified"
-    assert {item["citation_id"] for item in response.json()["citations"]} == {
-        identity.citation_id,
-        constraint.citation_id,
-    }
-
-
-def test_cross_candidate_citation_id_collision_falls_back_to_aa_only() -> None:
-    snapshot = AaSnapshotRepository.load()
-    pool = select_verification_pool(snapshot.models, _need())
-    verifications = tuple(
-        CandidateVerification(
-            candidate_slot=candidate.candidate_slot,
-            checks=(
-                CandidateEvidenceCheck(
-                    check=VerificationCheckKind.MODEL_IDENTITY,
-                    verdict=EvidenceVerdict.SATISFIED,
-                    summary="The official page identifies this model.",
-                    citation_ids=("colliding-id",),
-                ),
-            ),
-            citations=(
-                _citation(
-                    candidate.candidate_slot,
-                    candidate.model.creator_id,
-                    citation_id="colliding-id",
-                ),
-            ),
-        )
-        for candidate in pool[:2]
-    )
-    gateway = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: _need()},
-        verification=verifications,
-    )
-
-    with TestClient(_application(_runtime(gateway))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    assert response.status_code == 200
-    assert response.json()["verification_status"] == "aa_only"
-    assert response.json()["citations"] == []
-
-
-def test_contradicted_explicit_requirement_removes_only_that_candidate() -> None:
-    need = _need(hard_requirements=(HardRequirement.OPEN_WEIGHTS,))
-    snapshot = AaSnapshotRepository.load()
-    first_creator = snapshot.models[0].creator_id
-    citation = _citation(0, first_creator)
-    verification = CandidateVerification(
-        candidate_slot=0,
-        checks=(
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.MODEL_IDENTITY,
-                verdict=EvidenceVerdict.SATISFIED,
-                summary="Official documentation identifies this model.",
-                citation_ids=(citation.citation_id,),
-            ),
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.OPEN_WEIGHTS,
-                verdict=EvidenceVerdict.CONTRADICTED,
-                summary="Official documentation contradicts this requirement.",
-                citation_ids=(citation.citation_id,),
-            ),
-        ),
-        citations=(citation,),
-    )
-    gateway = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: need},
-        verification=(verification,),
-    )
-    runtime = _runtime(gateway)
-
-    with TestClient(_application(runtime)) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    assert response.status_code == 200
-    selected_ids = [
-        response.json()["recommendation"]["source_id"],
-        *(item["source_id"] for item in response.json()["alternatives"]),
-    ]
-    rejected_id = gateway.verification_calls[0].candidates[0].model.source_id
-    assert rejected_id not in selected_ids
-    assert response.json()["citations"] == []
-
-
-def test_contradiction_cannot_remove_candidate_until_identity_is_confirmed() -> None:
-    need = _need(hard_requirements=(HardRequirement.OPEN_WEIGHTS,))
-    citation = _citation(0, None)
-    verification = CandidateVerification(
-        candidate_slot=0,
-        checks=(
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.MODEL_IDENTITY,
-                verdict=EvidenceVerdict.UNVERIFIED,
-            ),
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.OPEN_WEIGHTS,
-                verdict=EvidenceVerdict.CONTRADICTED,
-                summary="A same-creator page contradicts this requirement.",
-                citation_ids=(citation.citation_id,),
-            ),
-        ),
-        citations=(citation,),
-    )
-    gateway = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: need},
-        verification=(verification,),
-    )
-
-    with TestClient(_application(_runtime(gateway))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    assert response.status_code == 200
-    assert response.json()["recommendation"]["source_id"] == (
-        gateway.verification_calls[0].candidates[0].model.source_id
-    )
-    assert all(
-        "contradicts" not in check["summary"]
-        for candidate in [response.json()["recommendation"], *response.json()["alternatives"]]
-        for check in candidate["checks"]
-    )
-
-
-def test_all_five_live_exclusions_return_auditable_partial_no_candidate() -> None:
-    need = _need(hard_requirements=(HardRequirement.OPEN_WEIGHTS,))
-    snapshot = AaSnapshotRepository.load()
-    pool = select_verification_pool(snapshot.models, need)
-    assert len(pool) == 5
-    verifications: list[CandidateVerification] = []
-    for candidate in pool:
-        slot = candidate.candidate_slot
-        identity = _citation(
-            slot,
-            candidate.model.creator_id,
-            citation_id=f"identity-{slot}",
-            suffix="identity",
-        )
-        contradiction = _citation(
-            slot,
-            candidate.model.creator_id,
-            citation_id=f"contradiction-{slot}",
-            suffix="open-weights",
-        )
-        verifications.append(
-            CandidateVerification(
-                candidate_slot=slot,
-                checks=(
-                    CandidateEvidenceCheck(
-                        check=VerificationCheckKind.MODEL_IDENTITY,
-                        verdict=EvidenceVerdict.SATISFIED,
-                        summary="The official page identifies this model.",
-                        citation_ids=(identity.citation_id,),
-                    ),
-                    CandidateEvidenceCheck(
-                        check=VerificationCheckKind.OPEN_WEIGHTS,
-                        verdict=EvidenceVerdict.CONTRADICTED,
-                        summary="Official evidence contradicts the open-weights requirement.",
-                        citation_ids=(contradiction.citation_id,),
-                    ),
-                ),
-                citations=(identity, contradiction),
-            )
-        )
-    gateway = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: need},
-        verification=tuple(verifications),
-    )
-
-    with TestClient(_application(_runtime(gateway))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
 
     payload = response.json()
-    assert response.status_code == 200
-    assert payload["outcome"] == "no_eligible_candidate"
-    assert payload["verification_status"] == "partial"
-    assert payload["recommendation"] is None
-    assert payload["alternatives"] == []
-    assert [item["source_id"] for item in payload["rejections"]] == [
-        candidate.model.source_id for candidate in pool
+    candidates = [payload["recommendation"], *payload["alternatives"]]
+    assert [item["source_id"] for item in candidates] == [
+        item.model.source_id for item in expected
     ]
-    referenced: set[str] = set()
-    for rejection in payload["rejections"]:
-        assert rejection["identity_check"]["requirement"] == "model_identity"
-        assert rejection["identity_check"]["status"] == "satisfied"
-        assert rejection["contradictions"][0]["requirement"] == "open_weights"
-        assert rejection["contradictions"][0]["status"] == "contradicted"
-        referenced.update(rejection["identity_check"]["citation_ids"])
-        referenced.update(rejection["contradictions"][0]["citation_ids"])
-    assert referenced == {citation["citation_id"] for citation in payload["citations"]}
-
-
-def test_alternative_evidence_is_preserved_when_primary_is_aa_only() -> None:
-    snapshot = AaSnapshotRepository.load()
-    creator_id = next(model.creator_id for model in snapshot.models if model.creator_id is not None)
-    citation = _citation(
-        1,
-        creator_id,
-        explicit_port=True,
-    )
-    verification = CandidateVerification(
-        candidate_slot=1,
-        checks=(
-            CandidateEvidenceCheck(
-                check=VerificationCheckKind.MODEL_IDENTITY,
-                verdict=EvidenceVerdict.SATISFIED,
-                summary="The official page identifies this model.",
-                citation_ids=(citation.citation_id,),
-            ),
-        ),
-        citations=(citation,),
-    )
-    gateway = FakeAdvisorGateway(
-        parsed_needs={_REQUIREMENT: _need()},
-        verification=(verification,),
-    )
-
-    with TestClient(_application(_runtime(gateway))) as client:
-        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
-
-    payload = response.json()
-    assert response.status_code == 200
     assert payload["verification_status"] == "aa_only"
-    assert payload["recommendation"]["checks"] == []
-    assert payload["alternatives"][0]["verification_status"] != "aa_only"
-    assert payload["alternatives"][0]["checks"][0]["citation_ids"] == [citation.citation_id]
-    assert [item["citation_id"] for item in payload["citations"]] == [citation.citation_id]
+    assert payload["citations"] == []
+    assert payload["rejections"] == []
+    assert all(item["checks"] == [] for item in candidates)
+    assert all(
+        "模型知识参考（未联网核验）" in item["reason"]
+        for item in candidates
+    )
+    assert len(gateway.explanation_calls) == 1
+    assert gateway.explanation_calls[0].candidates == expected
+    assert gateway.explanation_calls[0].need == need
+
+
+def test_mismatched_knowledge_slots_fall_back_to_fixed_aa_reasons() -> None:
+    gateway = FakeAdvisorGateway(
+        parsed_needs={_REQUIREMENT: _need()},
+        explanations=_knowledge_notes(2),
+    )
+
+    with TestClient(_application(_runtime(gateway))) as client:
+        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
+
+    candidates = [response.json()["recommendation"], *response.json()["alternatives"]]
+    assert all("模型知识参考" not in item["reason"] for item in candidates)
+    assert response.json()["verification_status"] == "aa_only"
+    assert response.json()["citations"] == []
+    assert response.json()["rejections"] == []
+
+
+def test_no_eligible_pool_skips_knowledge_explanation() -> None:
+    repository = AaSnapshotRepository.load()
+    empty_models = tuple(
+        model.model_copy(update={"intelligence": None})
+        for model in repository.models
+    )
+    empty_repository = AaSnapshotRepository(
+        repository.snapshot.model_copy(update={"models": empty_models})
+    )
+    gateway = FakeAdvisorGateway(
+        parsed_needs={_REQUIREMENT: _need()},
+        explanations=_knowledge_notes(),
+    )
+
+    with TestClient(
+        _application(_runtime(gateway, snapshot_repository=empty_repository))
+    ) as client:
+        response = client.post("/api/v1/advisor/recommend", json=_REQUEST)
+
+    assert response.status_code == 200
+    assert response.json()["outcome"] == "no_eligible_candidate"
+    assert response.json()["verification_status"] == "aa_only"
+    assert response.json()["rejections"] == []
+    assert gateway.explanation_calls == []
 
 
 def test_forwarded_ip_is_used_only_for_a_reviewed_proxy_network() -> None:
@@ -851,7 +502,7 @@ def test_forwarded_ip_is_used_only_for_a_reviewed_proxy_network() -> None:
     assert _client_ip(trusted, networks) == "203.0.113.7"
 
 
-def test_client_disconnect_cancels_web_verification_and_releases_capacity() -> None:
+def test_client_disconnect_cancels_knowledge_explanation_and_releases_capacity() -> None:
     async def scenario() -> None:
         gateway = BlockingAdvisorGateway()
         gate = NonBlockingConcurrencyGate(capacity=2)
