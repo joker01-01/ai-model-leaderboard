@@ -19,8 +19,8 @@ The public Advisor never enables `web_search`, performs a provider continuation,
 - Service: `modelops-agent-api`
 - Source: GitHub `main`, built with the root-level `Dockerfile`
 - Public origin: `https://modelops-agent-api.zeabur.app`
-- Runtime baseline: `4b9e5f3` from PR #37, verified in Zeabur deployment `deployment-6a9cc58caad15df0678d3f30` on 2026-09-06.
-- Readiness and a bounded advisor request passed on that search-era baseline. The request returned a schema-valid `aa_only` result, but this deployment predates the no-search design and does not prove that `tool_choice: "none"` or the unreachable legacy search gateway is active in production. Deploy and smoke-test the new merged revision before making that claim.
+- Runtime baseline: `473cccc` from PR #40, reported Running by Zeabur from `main` on 2026-09-06.
+- Readiness and a bounded Advisor request passed on this no-search baseline. The response returned `recommendation`, `aa_only`, two alternatives, and empty checks, citations, and rejections; the published Pages bundle contains the no-search explanatory copy.
 
 ## Repository layout requirement
 
