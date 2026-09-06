@@ -25,7 +25,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - The public response wire contract remains compatible; the revised runtime contract constrains produced outputs to `verification_status = "aa_only"`, empty candidate `checks`, and empty top-level `citations` and `rejections`. DeepSeek knowledge notes cannot filter, replace, or reorder candidates and are never interpreted as verification of hard requirements or deployment region.
 - The Advisor UI now presents normal results as `未联网核验`, states that AA owns ranking and values, warns that model knowledge may be stale, and says hard requirements and deployment region were not verified or used for filtering. Older `verified`/`partial` payloads remain parser/display compatibility only.
 - PR #40 merged as `473cccc`; documentation follow-up PR #41 merged as `f2eca68`. GitHub Pages and Zeabur publish the no-search Advisor from protected `main`, and Zeabur reports one Running instance.
-- Knowledge-note validation treats a single literal `~` as plain approximation text while continuing to reject actual `~~` Markdown strikethrough, other Markdown, and URL-like content. This removes a production false positive without changing the AA-only evidence boundary.
+- Knowledge-note validation treats a single literal `~` as plain approximation text while continuing to reject actual `~~` Markdown strikethrough, other Markdown, and URL-like content. PR #42 released this production false-positive fix without changing the AA-only evidence boundary.
 
 ## Important Decisions
 
@@ -63,7 +63,8 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 - The Advisor desktop page was visually checked at the 1440px breakpoint and `docs/screenshots/advisor.jpg` was refreshed with the no-search explanatory copy.
 - No-search PR #40 passed pull-request Verify run `34017366051`; merged-`main` Verify run `34017432761` and Pages run `34017432848` passed. Zeabur then reported the PR #40 deployment Running from `main`.
 - Post-deployment `/healthz` returned `ok`. One bounded public Advisor request returned `recommendation`, `aa_only`, two alternatives, and empty checks, citations, and rejections. Its reason remained the deterministic AA explanation because the optional knowledge-note batch fell back.
-- Sanitized production-container diagnostics isolated that fallback to the Markdown detector rejecting a single ASCII `~` used as an approximation marker in otherwise schema-valid notes. A focused regression failed with the previous detector; after the narrow fix, all 22 offline-gateway unit tests and targeted Ruff checks passed. The full suite is deferred to protected pull-request CI.
+- Sanitized production-container diagnostics isolated that fallback to the Markdown detector rejecting a single ASCII `~` used as an approximation marker in otherwise schema-valid notes. A focused regression failed with the previous detector; after the narrow fix, all 22 offline-gateway unit tests and targeted Ruff checks passed.
+- PR #42 passed pull-request Verify run `34020282845`; merged-`main` Verify run `34020344535` and Pages run `34020344545` passed. Zeabur then reported the PR #42 revision Running from `main`; `/healthz` returned `ok`, and one bounded public Advisor request returned all three optional knowledge notes while preserving `aa_only` and empty checks, citations, and rejections.
 - The published Pages bundle contains the AA-snapshot/no-search explanation and no longer contains the former controlled-source or live-verification copy.
 
 ## Next
