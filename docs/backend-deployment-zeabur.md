@@ -170,7 +170,9 @@ For an `aa_only` result, inspect the server-side `advisor_verification_*`, `advi
 
 An `ignored_searches` or `ignored_navigations` count above zero means the provider generated an action outside the finite query set or reviewed URL registry. That action and the first response message were discarded; the adapter attempted its single stateless continuation using only completed, candidate-bound search items whose queries all validated. Query, URL, and pattern text remain intentionally absent from logs.
 
-An `advisor_verification_output_invalid` event distinguishes `json_syntax` from a schema mismatch and records only the initial/continuation stage plus aggregate part, character, and annotation counts. It never records the returned text or validation inputs.
+An `advisor_verification_output_invalid` event distinguishes `json_syntax` from a schema mismatch and records only the initial/continuation stage plus aggregate part, character, and annotation counts. `raw_annotations` and `raw_url_annotations` distinguish an upstream empty annotation array from locally rejected URL-annotation shapes or spans; `provider_annotations` is the valid parsed subset. It never records the returned text or validation inputs.
+
+On 2026-09-06, controlled probes against the deployed DeepSeek Responses integration exercised JSON mode, plain-text JSON, natural-language text, and provider auto-continuation. Completed output parts consistently exposed zero raw annotations, and the bounded web-search actions exposed zero source URLs. DeepSeek's current Responses reference shows `annotations: []` in its response example but does not define or guarantee non-empty URL citations. Until that provider contract changes, a schema-valid `aa_only` response is the expected safe outcome: do not reinterpret search queries, restored private results, generated prose, or model-written URLs as accepted evidence. Enabling `partial` or `verified` requires a reviewed provider/tool contract that exposes claim-bound citation URLs while retaining the existing candidate, official-domain, redirect, and span checks.
 
 ### 6. Browser boundary
 
@@ -227,6 +229,8 @@ There is no database or persistent migration to reverse.
 
 ## Zeabur references
 
+- [DeepSeek Responses API compatibility](https://api-docs.deepseek.com/guides/responses_api/)
+- [DeepSeek Responses API reference](https://api-docs.deepseek.com/api/create-response/)
 - [Deploying with Dockerfile](https://zeabur.com/docs/en-US/deploy/methods/dockerfile)
 - [GitHub integration](https://zeabur.com/docs/en-US/deploy/methods/github-integration)
 - [Environment variables](https://zeabur.com/docs/en-US/deploy/config/environment-variables)

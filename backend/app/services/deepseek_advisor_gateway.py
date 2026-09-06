@@ -233,6 +233,92 @@ class _CitationAnnotation(StrictModel):
         return self
 
 
+@dataclass(frozen=True, slots=True)
+class _CitationAnnotationDiagnostics:
+    raw_annotations: int = 0
+    raw_url_annotations: int = 0
+    valid_url_annotations: int = 0
+    invalid_url_annotations: int = 0
+    out_of_bounds_url_annotations: int = 0
+    invalid_annotation_containers: int = 0
+
+
+def _citation_annotation_diagnostics(payload: object) -> _CitationAnnotationDiagnostics:
+    if not isinstance(payload, dict) or not isinstance(payload.get("output"), list):
+        return _CitationAnnotationDiagnostics()
+
+    raw_annotations = 0
+    raw_url_annotations = 0
+    valid_url_annotations = 0
+    invalid_url_annotations = 0
+    out_of_bounds_url_annotations = 0
+    invalid_annotation_containers = 0
+    for item in cast(list[object], payload["output"]):
+        if (
+            not isinstance(item, dict)
+            or item.get("type") != "message"
+            or item.get("status") != "completed"
+            or item.get("role") != "assistant"
+        ):
+            continue
+        content = item.get("content")
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            if (
+                not isinstance(part, dict)
+                or part.get("type") != "output_text"
+                or not isinstance(part.get("text"), str)
+            ):
+                continue
+            annotations = part.get("annotations", [])
+            if not isinstance(annotations, list):
+                invalid_annotation_containers += 1
+                continue
+            raw_annotations += len(annotations)
+            for annotation in annotations:
+                if not isinstance(annotation, dict) or annotation.get("type") != "url_citation":
+                    continue
+                raw_url_annotations += 1
+                url = annotation.get("url")
+                title = annotation.get("title")
+                start_index = annotation.get("start_index")
+                end_index = annotation.get("end_index")
+                if (
+                    not isinstance(url, str)
+                    or not isinstance(title, str)
+                    or not isinstance(start_index, int)
+                    or isinstance(start_index, bool)
+                    or not isinstance(end_index, int)
+                    or isinstance(end_index, bool)
+                ):
+                    invalid_url_annotations += 1
+                    continue
+                try:
+                    parsed_annotation = _CitationAnnotation(
+                        url=url,
+                        title=title,
+                        start_index=start_index,
+                        end_index=end_index,
+                    )
+                except ValidationError:
+                    invalid_url_annotations += 1
+                    continue
+                if parsed_annotation.end_index > len(cast(str, part["text"])):
+                    invalid_url_annotations += 1
+                    out_of_bounds_url_annotations += 1
+                    continue
+                valid_url_annotations += 1
+    return _CitationAnnotationDiagnostics(
+        raw_annotations=raw_annotations,
+        raw_url_annotations=raw_url_annotations,
+        valid_url_annotations=valid_url_annotations,
+        invalid_url_annotations=invalid_url_annotations,
+        out_of_bounds_url_annotations=out_of_bounds_url_annotations,
+        invalid_annotation_containers=invalid_annotation_containers,
+    )
+
+
 def _output_parts(payload: object) -> tuple[tuple[str, tuple[_CitationAnnotation, ...]], ...]:
     if not isinstance(payload, dict) or payload.get("status") != "completed":
         raise AdvisorGatewayError(
@@ -248,6 +334,7 @@ def _output_parts(payload: object) -> tuple[tuple[str, tuple[_CitationAnnotation
 
     parts: list[tuple[str, tuple[_CitationAnnotation, ...]]] = []
     refused = False
+    raw_annotation_count = 0
     for item in output:
         if (
             not isinstance(item, dict)
@@ -270,6 +357,12 @@ def _output_parts(payload: object) -> tuple[tuple[str, tuple[_CitationAnnotation
             annotations: list[_CitationAnnotation] = []
             raw_annotations = part.get("annotations", [])
             if isinstance(raw_annotations, list):
+                raw_annotation_count += len(raw_annotations)
+                if raw_annotation_count > _MAX_CITATION_ANNOTATIONS:
+                    raise AdvisorGatewayError(
+                        "advisor provider returned too many citation annotations",
+                        failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
+                    )
                 for annotation in raw_annotations:
                     if not isinstance(annotation, dict) or annotation.get("type") != "url_citation":
                         continue
@@ -306,11 +399,6 @@ def _output_parts(payload: object) -> tuple[tuple[str, tuple[_CitationAnnotation
     if not parts or not any(text for text, _annotations in parts):
         raise AdvisorGatewayError(
             "advisor provider returned no output text",
-            failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
-        )
-    if sum(len(annotations) for _text, annotations in parts) > _MAX_CITATION_ANNOTATIONS:
-        raise AdvisorGatewayError(
-            "advisor provider returned too many citation annotations",
             failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
         )
     return tuple(parts)
@@ -1186,6 +1274,7 @@ class DeepSeekAdvisorGateway:
                 failure_kind=AdvisorGatewayFailureKind.PROVIDER_WIRE,
             ) from None
         verification_output_stage: Literal["initial", "continuation"] = "initial"
+        verification_payload = payload
         if validated_actions.has_message and not validated_actions.has_ignored_action:
             parts = _output_parts(payload)
         else:
@@ -1228,7 +1317,25 @@ class DeepSeekAdvisorGateway:
             )
             continuation_payload = await self._post(continuation_body)
             verification_output_stage = "continuation"
-            parts = _message_only_output_parts(continuation_payload)
+            verification_payload = continuation_payload
+            try:
+                parts = _message_only_output_parts(continuation_payload)
+            except AdvisorGatewayError:
+                annotation_diagnostics = _citation_annotation_diagnostics(continuation_payload)
+                logger.info(
+                    "advisor_continuation_output_invalid raw_annotations=%d "
+                    "raw_url_annotations=%d valid_url_annotations=%d "
+                    "invalid_url_annotations=%d out_of_bounds_url_annotations=%d "
+                    "invalid_annotation_containers=%d",
+                    annotation_diagnostics.raw_annotations,
+                    annotation_diagnostics.raw_url_annotations,
+                    annotation_diagnostics.valid_url_annotations,
+                    annotation_diagnostics.invalid_url_annotations,
+                    annotation_diagnostics.out_of_bounds_url_annotations,
+                    annotation_diagnostics.invalid_annotation_containers,
+                )
+                raise
+        annotation_diagnostics = _citation_annotation_diagnostics(verification_payload)
         provider_annotation_count = sum(len(annotations) for _text, annotations in parts)
         text = "".join(part for part, _annotations in parts)
         try:
@@ -1241,12 +1348,21 @@ class DeepSeekAdvisorGateway:
         except ValidationError:
             logger.info(
                 "advisor_verification_output_invalid stage=%s error_kind=%s "
-                "output_parts=%d output_chars=%d provider_annotations=%d",
+                "output_parts=%d output_chars=%d provider_annotations=%d "
+                "raw_annotations=%d raw_url_annotations=%d valid_url_annotations=%d "
+                "invalid_url_annotations=%d "
+                "out_of_bounds_url_annotations=%d invalid_annotation_containers=%d",
                 verification_output_stage,
                 _verification_output_error_kind(text),
                 len(parts),
                 len(text),
                 provider_annotation_count,
+                annotation_diagnostics.raw_annotations,
+                annotation_diagnostics.raw_url_annotations,
+                annotation_diagnostics.valid_url_annotations,
+                annotation_diagnostics.invalid_url_annotations,
+                annotation_diagnostics.out_of_bounds_url_annotations,
+                annotation_diagnostics.invalid_annotation_containers,
             )
             raise AdvisorGatewayError(
                 "advisor provider returned invalid verification output",
@@ -1330,9 +1446,19 @@ class DeepSeekAdvisorGateway:
         rejected_citation_count = sum(match is None for match in resolved_annotations.values())
         accepted_citation_count = sum(len(verification.citations) for verification in verifications)
         logger.info(
-            "advisor_citation_diagnostics provider_annotations=%d summary_annotation_matches=%d "
-            "rejected_citations=%d accepted_citations=%d checks_downgraded=%d",
+            "advisor_citation_diagnostics stage=%s provider_annotations=%d raw_annotations=%d "
+            "raw_url_annotations=%d valid_url_annotations=%d invalid_url_annotations=%d "
+            "out_of_bounds_url_annotations=%d invalid_annotation_containers=%d "
+            "summary_annotation_matches=%d rejected_citations=%d accepted_citations=%d "
+            "checks_downgraded=%d",
+            verification_output_stage,
             provider_annotation_count,
+            annotation_diagnostics.raw_annotations,
+            annotation_diagnostics.raw_url_annotations,
+            annotation_diagnostics.valid_url_annotations,
+            annotation_diagnostics.invalid_url_annotations,
+            annotation_diagnostics.out_of_bounds_url_annotations,
+            annotation_diagnostics.invalid_annotation_containers,
             matched_annotation_count,
             rejected_citation_count,
             accepted_citation_count,

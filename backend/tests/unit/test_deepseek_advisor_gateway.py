@@ -1389,7 +1389,10 @@ def test_invalid_verification_output_logs_only_safe_aggregates(
     assert diagnostics == [
         "advisor_verification_output_invalid "
         f"stage={stage} error_kind={error_kind} "
-        f"output_parts=1 output_chars={expected_chars} provider_annotations=1"
+        f"output_parts=1 output_chars={expected_chars} provider_annotations=1 "
+        "raw_annotations=1 raw_url_annotations=1 valid_url_annotations=1 "
+        "invalid_url_annotations=0 out_of_bounds_url_annotations=0 "
+        "invalid_annotation_containers=0"
     ]
     assert private_marker not in caplog.text
     assert private_body not in caplog.text
@@ -2096,6 +2099,187 @@ def test_accepted_citation_emits_only_safe_aggregate_diagnostics(
     assert "accepted_citations=1" in caplog.text
     assert official_url not in caplog.text
     assert private_title not in caplog.text
+
+
+def test_malformed_citations_emit_safe_raw_aggregates_and_are_never_fetched(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_summary = "PRIVATE_RAW_ANNOTATION_SUMMARY"
+    output = _verification_output(summary=private_summary)
+    output_text = json.dumps(output)
+    official_url = "https://openai.com/research/valid-test-model"
+    private_marker = "PRIVATE_RAW_ANNOTATION_MARKER"
+    malformed_url = f"https://openai.com/research/{private_marker}-malformed"
+    out_of_bounds_url = f"https://openai.com/research/{private_marker}-out-of-bounds"
+    get_urls: list[str] = []
+
+    valid_annotation = _annotation_for_summary(
+        output,
+        url=official_url,
+        title="Valid official citation",
+    )
+    malformed_annotation = _annotation_for_summary(
+        output,
+        url=malformed_url,
+        title=f"{private_marker} malformed title",
+    )
+    malformed_annotation["start_index"] = "0"
+    out_of_bounds_annotation = _annotation_for_summary(
+        output,
+        url=out_of_bounds_url,
+        title=f"{private_marker} out-of-bounds title",
+    )
+    out_of_bounds_annotation["start_index"] = len(output_text)
+    out_of_bounds_annotation["end_index"] = len(output_text) + 1
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        return _output_response(
+            output,
+            query=_search_query(request),
+            annotations=[
+                valid_annotation,
+                malformed_annotation,
+                out_of_bounds_annotation,
+                {
+                    "type": "file_citation",
+                    "url": f"https://openai.com/research/{private_marker}-file",
+                    "title": f"{private_marker} file title",
+                    "text": f"{private_marker} file text",
+                },
+            ],
+        )
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    (verification,) = _run_verify(handler)
+
+    assert get_urls == [official_url]
+    assert verification.checks[0].verdict == EvidenceVerdict.SATISFIED
+    diagnostics = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "app.services.deepseek_advisor_gateway"
+        and record.getMessage().startswith("advisor_citation_diagnostics ")
+    ]
+    assert len(diagnostics) == 1
+    assert "raw_annotations=4" in diagnostics[0]
+    assert "raw_url_annotations=3" in diagnostics[0]
+    assert "valid_url_annotations=1" in diagnostics[0]
+    assert "invalid_url_annotations=2" in diagnostics[0]
+    assert "out_of_bounds_url_annotations=1" in diagnostics[0]
+    assert malformed_url not in get_urls
+    assert out_of_bounds_url not in get_urls
+    assert official_url not in caplog.text
+    assert private_marker not in caplog.text
+    assert private_summary not in caplog.text
+
+
+def test_citation_diagnostics_ignore_annotated_incomplete_assistant_messages(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    output = _verification_output()
+    official_url = "https://openai.com/research/valid-completed-model"
+    ignored_url = "https://openai.com/research/PRIVATE_INCOMPLETE_MESSAGE_URL"
+    ignored_title = "PRIVATE_INCOMPLETE_MESSAGE_TITLE"
+    ignored_text = "PRIVATE_INCOMPLETE_MESSAGE_TEXT"
+    get_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        response = _output_response(
+            output,
+            query=_search_query(request),
+            annotations=[
+                _annotation_for_summary(
+                    output,
+                    url=official_url,
+                    title="Valid completed citation",
+                )
+            ],
+        )
+        payload = response.json()
+        payload["output"].append(
+            {
+                "type": "message",
+                "status": "in_progress",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": ignored_text,
+                        "annotations": [
+                            {
+                                "type": "url_citation",
+                                "url": ignored_url,
+                                "title": ignored_title,
+                                "start_index": 0,
+                                "end_index": len(ignored_text),
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+        return httpx.Response(200, json=payload)
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    (verification,) = _run_verify(handler)
+
+    assert get_urls == [official_url]
+    assert len(verification.citations) == 1
+    diagnostics = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == "app.services.deepseek_advisor_gateway"
+        and record.getMessage().startswith("advisor_citation_diagnostics ")
+    ]
+    assert len(diagnostics) == 1
+    assert "provider_annotations=1" in diagnostics[0]
+    assert "raw_annotations=1" in diagnostics[0]
+    assert "raw_url_annotations=1" in diagnostics[0]
+    assert "valid_url_annotations=1" in diagnostics[0]
+    assert ignored_url not in get_urls
+    assert official_url not in caplog.text
+    assert ignored_url not in caplog.text
+    assert ignored_title not in caplog.text
+    assert ignored_text not in caplog.text
+
+
+def test_raw_annotation_limit_counts_invalid_items_and_fails_provider_wire(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_marker = "PRIVATE_EXCESS_RAW_ANNOTATION_MARKER"
+    get_urls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            get_urls.append(str(request.url))
+            return httpx.Response(200)
+        return _output_response(
+            _verification_output(),
+            query=_search_query(request),
+            annotations=[
+                {
+                    "type": "file_citation",
+                    "url": f"https://openai.com/research/{private_marker}-{index}",
+                    "title": f"{private_marker} title {index}",
+                    "text": f"{private_marker} text {index}",
+                }
+                for index in range(31)
+            ],
+        )
+
+    caplog.set_level(logging.INFO, logger="app.services.deepseek_advisor_gateway")
+    with pytest.raises(AdvisorGatewayError, match="too many citation annotations") as caught:
+        _run_verify(handler)
+
+    assert caught.value.failure_kind == AdvisorGatewayFailureKind.PROVIDER_WIRE
+    assert get_urls == []
+    assert private_marker not in caplog.text
 
 
 def test_same_domain_redirect_to_outside_domain_cannot_support_a_verdict() -> None:
