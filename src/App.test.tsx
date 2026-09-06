@@ -132,7 +132,7 @@ describe("public product routes", () => {
     expect(screen.getByRole("heading", { level: 1, name: "按需求选模型" })).toBeTruthy();
     expect(screen.queryByText("MODEL ADVISOR")).toBeNull();
     expect(screen.getByRole("textbox", { name: "你的需求" })).toBeTruthy();
-    expect(screen.getByRole("textbox", { name: "部署地区（可选）" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "部署地区（可选）" })).toBeTruthy();
     expect(screen.queryByRole("checkbox", { name: "我有明确预算" })).toBeNull();
     expect(screen.queryByLabelText("月预算（USD）")).toBeNull();
     expect(screen.queryByRole("region", { name: "模型推荐结果" })).toBeNull();

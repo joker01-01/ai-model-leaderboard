@@ -53,6 +53,19 @@ const OBJECTIVE_LABELS = {
   cheapest: "最低价格优先",
 } as const;
 
+const DEPLOYMENT_REGION_OPTIONS = [
+  { label: "中国大陆", value: "Mainland China" },
+  { label: "中国香港", value: "Hong Kong" },
+  { label: "新加坡", value: "Singapore" },
+  { label: "日本", value: "Japan" },
+  { label: "韩国", value: "South Korea" },
+  { label: "美国", value: "United States" },
+  { label: "加拿大", value: "Canada" },
+  { label: "欧盟", value: "European Union" },
+  { label: "英国", value: "United Kingdom" },
+  { label: "澳大利亚", value: "Australia" },
+] as const;
+
 function buildRequest(fields: {
   requirement: string;
   deploymentRegion: string;
@@ -180,17 +193,19 @@ export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: Advi
         <div className="advisor-form-row">
           <div className="advisor-field">
             <label htmlFor="advisor-deploymentRegion">部署地区（可选）</label>
-            <input
+            <select
               id="advisor-deploymentRegion"
-              type="text"
-              maxLength={64}
               value={deploymentRegion}
               aria-invalid={errors.deploymentRegion ? "true" : undefined}
               aria-describedby={errors.deploymentRegion ? "advisor-deployment-region-error" : undefined}
               disabled={isRunning}
-              placeholder="例如：Singapore"
               onChange={(event) => { setDeploymentRegion(event.target.value); clearErrors(); }}
-            />
+            >
+              <option value="">不指定</option>
+              {DEPLOYMENT_REGION_OPTIONS.map((region) => (
+                <option key={region.value} value={region.value}>{region.label}</option>
+              ))}
+            </select>
             {errors.deploymentRegion && <p id="advisor-deployment-region-error" className="advisor-field-error">{errors.deploymentRegion}</p>}
           </div>
 

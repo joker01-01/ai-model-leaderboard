@@ -18,7 +18,7 @@
 
 支持桌面和手机浏览。数据来源于 [Artificial Analysis](https://artificialanalysis.ai/)，更新日期见网站页脚。
 
-Advisor 公共表单只显示需求和可选部署地区，紫色中文标题下不显示 `MODEL ADVISOR`；`获取推荐` 位于部署地区右侧，空闲时不显示结果占位区。浏览器请求固定发送 `budget: null`，后端 API 仍兼容经过验证的可选预算对象。
+Advisor 公共表单只显示需求和可选部署地区原生选择器，紫色中文标题下不显示 `MODEL ADVISOR`；`获取推荐` 位于部署地区右侧，空闲时不显示结果占位区。地区默认为 `不指定`，固定选项只表达未核验的用户偏好，不代表地区可用性；后端仍兼容任意 clean string 或 `null`。浏览器请求固定发送 `budget: null`，后端 API 仍兼容经过验证的可选预算对象。
 
 Advisor 不启用 `web_search`，不抓取或展示模型生成的引用 URL，也不会用 DeepSeek 的知识说明过滤或重排 AA 结果、核验硬性要求或部署地区。说明可能过时，所有结果均保持 `aa_only`；DeepSeek 请求仍会发送到远程 API，因此“不联网搜索”不等于完全离线。没有可用模型服务时，Advisor 仍返回确定性的 AA-only 结果。
 

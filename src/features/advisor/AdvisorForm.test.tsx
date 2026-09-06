@@ -78,7 +78,10 @@ describe("AdvisorForm", () => {
     );
 
     expect(screen.getByLabelText("你的需求").hasAttribute("aria-describedby")).toBe(false);
-    expect(screen.getByLabelText("部署地区（可选）").hasAttribute("aria-describedby")).toBe(false);
+    const deploymentRegion = screen.getByRole("combobox", { name: "部署地区（可选）" });
+    expect((deploymentRegion as HTMLSelectElement).value).toBe("");
+    expect(within(deploymentRegion).getByRole("option", { name: "不指定" }).getAttribute("value")).toBe("");
+    expect(deploymentRegion.hasAttribute("aria-describedby")).toBe(false);
     expect(screen.queryByText("写清任务和最重要的偏好；系统只从完整 AA 榜单中筛选。")).toBeNull();
     expect(screen.queryByText("仅作为官方资料核验要求，不代表该地区一定可用。")).toBeNull();
     expect(screen.queryByRole("region", { name: "模型推荐结果" })).toBeNull();
@@ -111,7 +114,10 @@ describe("AdvisorForm", () => {
     );
 
     await user.type(screen.getByLabelText("你的需求"), "  推荐一个编程模型  ");
-    await user.type(screen.getByLabelText("部署地区（可选）"), "  Singapore  ");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "部署地区（可选）" }),
+      screen.getByRole("option", { name: "新加坡" }),
+    );
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
 
     const primaryStatusLabel = await screen.findByText("推荐依据");
@@ -135,6 +141,27 @@ describe("AdvisorForm", () => {
     expect(JSON.parse(String(init.body))).toEqual({
       requirement: "推荐一个编程模型",
       deployment_region: "Singapore",
+      budget: null,
+    });
+  });
+
+  it("submits a null deployment region after returning to the unspecified option", async () => {
+    const fetchImpl = jsonFetch(recommendationResponse());
+    const fetchMock = fetchImpl as unknown as ReturnType<typeof vi.fn>;
+    const user = userEvent.setup();
+    render(<AdvisorForm apiOrigin="https://api.example.com" displayNames={new Map()} fetchImpl={fetchImpl} />);
+
+    await user.type(screen.getByLabelText("你的需求"), "推荐一个编程模型");
+    const deploymentRegion = screen.getByRole("combobox", { name: "部署地区（可选）" });
+    await user.selectOptions(deploymentRegion, screen.getByRole("option", { name: "新加坡" }));
+    await user.selectOptions(deploymentRegion, screen.getByRole("option", { name: "不指定" }));
+    await user.click(screen.getByRole("button", { name: "获取推荐" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse(String(init.body))).toEqual({
+      requirement: "推荐一个编程模型",
+      deployment_region: null,
       budget: null,
     });
   });
