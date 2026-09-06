@@ -28,7 +28,9 @@ function candidate(sourceId: string, verificationStatus: "verified" | "partial" 
       output_tokens_per_second: 150,
     },
     estimated_monthly_cost_usd: "0.2500",
-    reason: sourceId === "source-alpha" ? "编程能力优先且符合预算。" : "速度更高，可作为备选。",
+    reason: sourceId === "source-alpha"
+      ? "模型知识（可能过时）：编程能力强，适合代码任务。"
+      : "速度更高，可作为备选。",
     verification_status: verificationStatus,
     checks: verificationStatus === "aa_only" ? [] : [{
       requirement: "api_access",
@@ -52,22 +54,11 @@ function recommendationResponse() {
       promoted_objective: null,
       hard_requirements: ["api_access"],
     },
-    verification_status: "verified",
-    recommendation: candidate("source-alpha", "verified"),
-    alternatives: [candidate("source-beta", "partial")],
+    verification_status: "aa_only",
+    recommendation: candidate("source-alpha", "aa_only"),
+    alternatives: [candidate("source-beta", "aa_only")],
     rejections: [],
-    citations: [
-      {
-        citation_id: "citation-source-alpha",
-        title: "Alpha API documentation",
-        url: "https://alpha.example/docs/api",
-      },
-      {
-        citation_id: "citation-source-beta",
-        title: "Beta API documentation",
-        url: "https://beta.example/docs/api",
-      },
-    ],
+    citations: [],
   };
 }
 
@@ -88,6 +79,10 @@ describe("AdvisorForm", () => {
     expect(screen.getByLabelText("部署地区（可选）").hasAttribute("aria-describedby")).toBe(false);
     expect(screen.queryByText("写清任务和最重要的偏好；系统只从完整 AA 榜单中筛选。")).toBeNull();
     expect(screen.queryByText("仅作为官方资料核验要求，不代表该地区一定可用。")).toBeNull();
+    expect(screen.getByText(/排序与数值来自 AA 已提交快照/)).toBeTruthy();
+    expect(screen.getByText(/DeepSeek 仅用已有知识补充说明，不进行联网搜索/)).toBeTruthy();
+    expect(screen.getByText(/硬性要求和部署地区未核验且不参与筛选/)).toBeTruthy();
+    expect(screen.queryByText(/受控官方来源|联网失败|实时核验/)).toBeNull();
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
     expect(screen.getByText("请输入你的需求。")).toBeTruthy();
     expect(screen.getByLabelText("你的需求").getAttribute("aria-describedby")).toBe("advisor-requirement-error");
@@ -111,7 +106,7 @@ describe("AdvisorForm", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  it("submits trimmed fields, renders the recommendation, and keeps evidence collapsed", async () => {
+  it("submits trimmed fields, renders the AA-only recommendation, and keeps evidence collapsed", async () => {
     const fetchImpl = jsonFetch(recommendationResponse());
     const fetchMock = fetchImpl as unknown as ReturnType<typeof vi.fn>;
     const user = userEvent.setup();
@@ -132,17 +127,22 @@ describe("AdvisorForm", () => {
     await user.type(screen.getByLabelText("每月请求次数"), "1000");
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
 
-    const primaryStatusLabel = await screen.findByText("首选核验状态");
-    expect(within(primaryStatusLabel.parentElement as HTMLElement).getByText("已完成实时核验")).toBeTruthy();
+    const primaryStatusLabel = await screen.findByText("推荐依据");
+    expect(within(primaryStatusLabel.parentElement as HTMLElement).getByText("未联网核验")).toBeTruthy();
+    expect(within(primaryStatusLabel.parentElement as HTMLElement).getByText("排序与数值来自 AA 已提交快照")).toBeTruthy();
     expect(screen.getByRole("heading", { level: 2, name: "推荐 Alpha 简称" })).toBeTruthy();
-    expect(screen.getByText("编程能力优先且符合预算。")).toBeTruthy();
+    expect(screen.getByText("模型知识（可能过时）：编程能力强，适合代码任务。")).toBeTruthy();
     expect(screen.getAllByText("暂无 AA 数据").length).toBeGreaterThan(0);
     expect(screen.getAllByText("0", { selector: ".advisor-metric-value" }).length).toBeGreaterThan(0);
-    expect(screen.getByText("查看依据")).toBeTruthy();
+    const evidenceSummary = screen.getByText("查看依据");
+    expect((evidenceSummary.parentElement as HTMLDetailsElement).open).toBe(false);
+    expect(screen.getByText(/DeepSeek 的补充说明基于已有知识，可能过时；本次不进行联网搜索/)).toBeTruthy();
+    expect(screen.getByText(/硬性要求和部署地区未核验且不参与筛选/)).toBeTruthy();
     const alternativesSummary = screen.getByText("查看另外 1 个备选");
     expect(within(alternativesSummary.parentElement as HTMLElement).getByText("Beta Model Full")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Alpha API documentation ↗" }).getAttribute("href"))
-      .toBe("https://alpha.example/docs/api");
+    expect(screen.getByRole("link", { name: /Artificial Analysis/ }).getAttribute("href"))
+      .toBe("https://artificialanalysis.ai/leaderboards/models");
+    expect(screen.queryByText(/受控官方来源|联网失败|实时核验/)).toBeNull();
 
     const [, init] = fetchMock.mock.calls[0];
     expect(JSON.parse(String(init.body))).toEqual({
@@ -183,17 +183,19 @@ describe("AdvisorForm", () => {
     await user.type(screen.getByLabelText("你的需求"), "最便宜的智能体模型");
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
 
-    expect(await screen.findByText("实时资料未完成核验")).toBeTruthy();
-    expect(screen.getByText("仅依据 AA")).toBeTruthy();
+    expect(await screen.findByText("未联网核验")).toBeTruthy();
+    expect(screen.getByText("排序与数值来自 AA 已提交快照")).toBeTruthy();
     expect(screen.getByRole("heading", { level: 2, name: "没有模型满足当前条件" })).toBeTruthy();
+    expect(screen.getByText(/硬性要求和部署地区未核验，也未参与筛选/)).toBeTruthy();
     expect(screen.queryByText("本次推荐未完成")).toBeNull();
   });
 
-  it("keeps alternative-only citations out of an AA-only primary evidence group", async () => {
+  it("keeps legacy verified alternative citations out of an AA-only primary evidence group", async () => {
     const fetchImpl = jsonFetch({
       ...recommendationResponse(),
       verification_status: "aa_only",
       recommendation: candidate("source-alpha", "aa_only"),
+      alternatives: [candidate("source-beta", "verified")],
       rejections: [],
       citations: [{
         citation_id: "citation-source-beta",
@@ -207,20 +209,21 @@ describe("AdvisorForm", () => {
     await user.type(screen.getByLabelText("你的需求"), "推荐一个编程模型");
     await user.click(screen.getByRole("button", { name: "获取推荐" }));
 
-    expect(await screen.findByText("首选核验状态")).toBeTruthy();
-    expect(screen.getByText("首选仅依据 AA")).toBeTruthy();
+    expect(await screen.findByText("推荐依据")).toBeTruthy();
+    expect(screen.getAllByText("未联网核验").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("旧版响应：已核验").length).toBeGreaterThan(0);
 
-    const primaryEvidence = screen.getByRole("region", { name: "首选 Alpha Model Full 的核验依据" });
-    expect(within(primaryEvidence).getByText("本候选未使用实时官方资料。")).toBeTruthy();
+    const primaryEvidence = screen.getByRole("region", { name: "首选 Alpha Model Full 的推荐依据" });
+    expect(within(primaryEvidence).getByText("排序与数值来自 AA 已提交快照。")).toBeTruthy();
     expect(within(primaryEvidence).queryByRole("link", { name: "Beta API documentation ↗" })).toBeNull();
 
-    const alternativeEvidence = screen.getByRole("region", { name: "备选 Beta Model Full 的核验依据" });
+    const alternativeEvidence = screen.getByRole("region", { name: "备选 Beta Model Full 的兼容核验依据" });
     expect(within(alternativeEvidence).getByRole("link", { name: "Beta API documentation ↗" }).getAttribute("href"))
       .toBe("https://beta.example/docs/api");
     expect(screen.getAllByRole("link", { name: /Artificial Analysis/ })).toHaveLength(1);
   });
 
-  it("renders cited live rejections without claiming AA had no eligible candidates", async () => {
+  it("renders legacy cited rejections without claiming AA had no eligible candidates", async () => {
     const fetchImpl = jsonFetch({
       outcome: "no_eligible_candidate",
       aa_source: {
@@ -299,8 +302,10 @@ describe("AdvisorForm", () => {
 
     expect(await screen.findByRole("heading", {
       level: 2,
-      name: "进入核验的 AA 候选均有官方证据与硬性条件冲突",
+      name: "兼容响应：候选存在已记录的条件冲突",
     })).toBeTruthy();
+    expect(screen.getByText("兼容响应状态")).toBeTruthy();
+    expect(screen.getByText("旧版响应：部分核验")).toBeTruthy();
     expect(screen.queryByText(/当前 AA 数据中没有/)).toBeNull();
 
     const alphaSummary = screen.getByText("Alpha Model Full");

@@ -30,10 +30,9 @@ from app.graph.state import GraphContext
 from app.graph.tool_executor import ModelOpsToolExecutor
 from app.repositories.aa_snapshot import AaSnapshotRepository
 from app.repositories.leaderboard import LeaderboardRepository
-from app.repositories.official_sources import OfficialSourcesRepository
 from app.services.advisor_gateway import UnavailableAdvisorGateway
 from app.services.advisor_rate_limit import NonBlockingConcurrencyGate, SlidingWindowRateLimiter
-from app.services.deepseek_advisor_gateway import DeepSeekAdvisorGateway
+from app.services.deepseek_offline_advisor_gateway import DeepSeekOfflineAdvisorGateway
 from app.services.evidence_verifier import EvidenceVerifier
 from app.services.openai_gateway import OpenAIResponsesGateway
 from app.services.provider_document_client import HttpProviderDocumentClient
@@ -224,36 +223,26 @@ async def default_runtime_factory(settings: ApiSettings) -> AsyncIterator[AgentR
 @asynccontextmanager
 async def default_advisor_runtime_factory(settings: ApiSettings) -> AsyncIterator[AdvisorRuntime]:
     snapshot_repository = AaSnapshotRepository.load()
-    official_sources = OfficialSourcesRepository.load()
-    known_creator_ids = {
-        model.creator_id
-        for model in snapshot_repository.models
-        if model.creator_id is not None
-    }
-    if official_sources.unknown_creator_ids(known_creator_ids):
-        raise RuntimeError("official-source registry references an unknown AA creator")
 
     async with httpx.AsyncClient() as client:
         secret = None if settings.model_api_key is None else settings.model_api_key.get_secret_value()
         gateway = (
             UnavailableAdvisorGateway()
             if not secret
-            else DeepSeekAdvisorGateway(
+            else DeepSeekOfflineAdvisorGateway(
                 client=client,
                 api_key=secret,
                 model=settings.model_name,
                 base_url=settings.model_base_url,
-                official_sources=official_sources,
                 timeout_seconds=settings.model_timeout_seconds,
                 max_response_bytes=settings.model_max_response_bytes,
             )
         )
         yield AdvisorRuntime(
             snapshot_repository=snapshot_repository,
-            official_sources=official_sources,
             gateway=gateway,
             rate_limiter=SlidingWindowRateLimiter(limit=5, window_seconds=600),
-            web_gate=NonBlockingConcurrencyGate(capacity=2),
+            provider_gate=NonBlockingConcurrencyGate(capacity=2),
             trusted_proxy_networks=tuple(ip_network(cidr) for cidr in settings.trusted_proxy_cidrs),
         )
 

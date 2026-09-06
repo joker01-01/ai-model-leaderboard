@@ -1,4 +1,4 @@
-"""Injected intent and official-web verification boundary for the public advisor."""
+"""Injected intent and offline knowledge boundary for the public advisor."""
 
 from __future__ import annotations
 
@@ -7,7 +7,11 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
-from app.domain.advisor import CandidateVerification, ParsedAdvisorNeed, RankedAdvisorCandidate
+from app.domain.advisor import (
+    CandidateKnowledgeExplanation,
+    ParsedAdvisorNeed,
+    RankedAdvisorCandidate,
+)
 
 
 class AdvisorGatewayFailureKind(StrEnum):
@@ -37,21 +41,19 @@ class AdvisorGateway(Protocol):
     async def parse_need(self, requirement: str) -> ParsedAdvisorNeed:
         """Extract only the locally validated bounded need contract."""
 
-    async def verify_candidates(
+    async def explain_candidates(
         self,
         candidates: tuple[RankedAdvisorCandidate, ...],
         *,
         need: ParsedAdvisorNeed,
-        deployment_region: str | None,
-    ) -> tuple[CandidateVerification, ...]:
-        """Verify only the frozen deterministic candidate pool."""
+    ) -> tuple[CandidateKnowledgeExplanation, ...]:
+        """Add unverified knowledge notes to the frozen visible candidates."""
 
 
 @dataclass(frozen=True, slots=True)
-class AdvisorVerificationCall:
+class AdvisorExplanationCall:
     candidates: tuple[RankedAdvisorCandidate, ...]
     need: ParsedAdvisorNeed
-    deployment_region: str | None
 
 
 class FakeAdvisorGateway:
@@ -61,12 +63,12 @@ class FakeAdvisorGateway:
         self,
         *,
         parsed_needs: Mapping[str, ParsedAdvisorNeed | AdvisorGatewayError],
-        verification: tuple[CandidateVerification, ...] | AdvisorGatewayError = (),
+        explanations: tuple[CandidateKnowledgeExplanation, ...] | AdvisorGatewayError = (),
     ) -> None:
         self._parsed_needs = dict(parsed_needs)
-        self._verification = verification
+        self._explanations = explanations
         self.parse_calls: list[str] = []
-        self.verification_calls: list[AdvisorVerificationCall] = []
+        self.explanation_calls: list[AdvisorExplanationCall] = []
 
     async def parse_need(self, requirement: str) -> ParsedAdvisorNeed:
         self.parse_calls.append(requirement)
@@ -77,23 +79,16 @@ class FakeAdvisorGateway:
             raise result
         return result
 
-    async def verify_candidates(
+    async def explain_candidates(
         self,
         candidates: tuple[RankedAdvisorCandidate, ...],
         *,
         need: ParsedAdvisorNeed,
-        deployment_region: str | None,
-    ) -> tuple[CandidateVerification, ...]:
-        self.verification_calls.append(
-            AdvisorVerificationCall(
-                candidates=candidates,
-                need=need,
-                deployment_region=deployment_region,
-            )
-        )
-        if isinstance(self._verification, AdvisorGatewayError):
-            raise self._verification
-        return self._verification
+    ) -> tuple[CandidateKnowledgeExplanation, ...]:
+        self.explanation_calls.append(AdvisorExplanationCall(candidates=candidates, need=need))
+        if isinstance(self._explanations, AdvisorGatewayError):
+            raise self._explanations
+        return self._explanations
 
 
 class UnavailableAdvisorGateway:
@@ -105,14 +100,13 @@ class UnavailableAdvisorGateway:
             failure_kind=AdvisorGatewayFailureKind.PROVIDER_UNAVAILABLE,
         )
 
-    async def verify_candidates(
+    async def explain_candidates(
         self,
         _candidates: tuple[RankedAdvisorCandidate, ...],
         *,
         need: ParsedAdvisorNeed,
-        deployment_region: str | None,
-    ) -> tuple[CandidateVerification, ...]:
-        del need, deployment_region
+    ) -> tuple[CandidateKnowledgeExplanation, ...]:
+        del need
         raise AdvisorGatewayError(
             "advisor provider is unavailable",
             failure_kind=AdvisorGatewayFailureKind.PROVIDER_UNAVAILABLE,

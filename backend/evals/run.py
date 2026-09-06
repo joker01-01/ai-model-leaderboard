@@ -20,7 +20,11 @@ from app.api.advisor_contracts import (  # noqa: E402
     AdvisorOutcome,
     AdvisorRecommendationRequest,
 )
-from app.domain.advisor import ParsedAdvisorNeed, VerificationStatus  # noqa: E402
+from app.domain.advisor import (  # noqa: E402
+    CandidateKnowledgeExplanation,
+    ParsedAdvisorNeed,
+    VerificationStatus,
+)
 from app.domain.errors import ToolErrorCode, ToolName, ToolResult  # noqa: E402
 from app.domain.models import (  # noqa: E402
     AgentRequest,
@@ -49,7 +53,6 @@ from app.graph.state import AgentAnswer, AgentState, GraphContext, initial_state
 from app.graph.tool_executor import ModelOpsToolExecutor  # noqa: E402
 from app.repositories.aa_snapshot import AaSnapshotRepository  # noqa: E402
 from app.repositories.leaderboard import LeaderboardRepository  # noqa: E402
-from app.repositories.official_sources import OfficialSourcesRepository  # noqa: E402
 from app.services.advisor_gateway import AdvisorGatewayError, FakeAdvisorGateway  # noqa: E402
 from app.services.advisor_rate_limit import (  # noqa: E402
     ConcurrencyLease,
@@ -114,14 +117,14 @@ class AdvisorExpectedResult(StrictModel):
     verification_status: VerificationStatus
     parsed_need: ParsedAdvisorNeed
     candidate_count: int
-    verification_call_count: int
+    explanation_call_count: int
 
 
 class AdvisorEvaluationCase(StrictModel):
     id: str
     requirement: str
     parsed: ParsedAdvisorNeed | None
-    failure: Literal["none", "parse", "verify", "capacity"]
+    failure: Literal["none", "parse", "explain", "capacity"]
     deployment_region: str | None
     budget: AdvisorBudgetRequest | None
     expected: AdvisorExpectedResult
@@ -442,7 +445,6 @@ async def run_advisor_cases(
 ) -> tuple[dict[str, object], ...]:
     selected_cases = cases or load_advisor_cases()
     snapshot_repository = AaSnapshotRepository.load()
-    official_sources = OfficialSourcesRepository.load()
     results: list[dict[str, object]] = []
 
     for case in selected_cases:
@@ -453,28 +455,33 @@ async def run_advisor_cases(
             raise ValueError(f"{case.id}: parsed is required unless failure is parse")
         else:
             parse_result = case.parsed
-        verification: tuple[()] | AdvisorGatewayError = (
-            AdvisorGatewayError("synthetic advisor verification failure")
-            if case.failure == "verify"
-            else ()
+        explanations: tuple[CandidateKnowledgeExplanation, ...] | AdvisorGatewayError = (
+            AdvisorGatewayError("synthetic advisor explanation failure")
+            if case.failure == "explain"
+            else tuple(
+                CandidateKnowledgeExplanation(
+                    candidate_slot=slot,
+                    knowledge_note="离线模型知识说明，未联网核验。",
+                )
+                for slot in range(3)
+            )
         )
         gateway = FakeAdvisorGateway(
             parsed_needs={case.requirement: parse_result},
-            verification=verification,
+            explanations=explanations,
         )
         gate = NonBlockingConcurrencyGate(capacity=2)
         leases: tuple[ConcurrencyLease, ...] = ()
         if case.failure == "capacity":
             acquired = (await gate.try_acquire(), await gate.try_acquire())
             if any(lease is None for lease in acquired):  # pragma: no cover - gate is locally constructed
-                raise AssertionError(f"{case.id}: failed to saturate the advisor web gate")
+                raise AssertionError(f"{case.id}: failed to saturate the advisor provider gate")
             leases = tuple(lease for lease in acquired if lease is not None)
         runtime = AdvisorRuntime(
             snapshot_repository=snapshot_repository,
-            official_sources=official_sources,
             gateway=gateway,
             rate_limiter=SlidingWindowRateLimiter(limit=5, window_seconds=600),
-            web_gate=gate,
+            provider_gate=gate,
         )
         try:
             response = await _recommend(
@@ -503,14 +510,15 @@ async def run_advisor_cases(
             expected.parsed_need,
         )
         assert len(candidates) == expected.candidate_count, (case.id, len(candidates), expected.candidate_count)
-        assert len(gateway.verification_calls) == expected.verification_call_count, (
+        assert len(gateway.explanation_calls) == expected.explanation_call_count, (
             case.id,
-            len(gateway.verification_calls),
-            expected.verification_call_count,
+            len(gateway.explanation_calls),
+            expected.explanation_call_count,
         )
         source_ids = tuple(candidate.source_id for candidate in candidates)
         assert len(source_ids) == len(set(source_ids)), (case.id, source_ids)
         assert response.citations == (), (case.id, response.citations)
+        assert response.rejections == (), (case.id, response.rejections)
         if case.budget is not None:
             maximum = case.budget.to_domain().monthly_budget_usd
             assert all(

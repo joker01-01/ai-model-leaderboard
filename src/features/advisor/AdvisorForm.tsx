@@ -33,9 +33,9 @@ type FieldName =
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 const VERIFICATION_LABELS: Record<AdvisorVerificationStatus, string> = {
-  verified: "已完成实时核验",
-  partial: "部分来源未核验",
-  aa_only: "实时资料未完成核验",
+  verified: "旧版响应：已核验",
+  partial: "旧版响应：部分核验",
+  aa_only: "未联网核验",
 };
 
 const REQUIREMENT_LABELS: Record<AdvisorCheckRequirement, string> = {
@@ -317,14 +317,14 @@ export default function AdvisorForm({ apiOrigin, displayNames, fetchImpl }: Advi
       <section className="advisor-result" aria-live="polite" aria-busy={isRunning} aria-label="模型推荐结果">
         {phase === "idle" && (
           <div className="advisor-result-empty">
-            <span aria-hidden="true">AA → 05 → 03</span>
-            <p>先按 AA 指标确定五个候选，再用受控官方来源核验；联网失败时仍返回确定性的 AA 结果。</p>
+            <span aria-hidden="true">AA → 03</span>
+            <p>排序与数值来自 AA 已提交快照。DeepSeek 仅用已有知识补充说明，不进行联网搜索；模型知识可能过时。硬性要求和部署地区未核验且不参与筛选。</p>
           </div>
         )}
         {isRunning && (
           <div className="advisor-result-pending" role="status">
             <i aria-hidden="true" />
-            <div><strong>正在筛选候选</strong><p>核验只覆盖 AA 排序产生的五个模型。</p></div>
+            <div><strong>正在按 AA 快照筛选</strong><p>DeepSeek 仅补充说明，不参与候选排序。</p></div>
           </div>
         )}
         {(phase === "cancelled" || phase === "error") && (
@@ -378,6 +378,7 @@ function AdvisorResult({ result, displayNames }: {
   readonly result: AdvisorRecommendationResponse;
   readonly displayNames: ReadonlyMap<string, string>;
 }) {
+  const isAaOnly = result.verification_status === "aa_only";
   const statusLabel = VERIFICATION_LABELS[result.verification_status];
   const intent: string[] = result.parsed_need.ability_purposes.map((purpose) => PURPOSE_LABELS[purpose]);
   if (result.parsed_need.promoted_objective !== null) {
@@ -388,10 +389,10 @@ function AdvisorResult({ result, displayNames }: {
     <div className="advisor-result-content">
       <header className="advisor-result-head">
         <div>
-          <p>{result.recommendation === null ? "结果核验状态" : "首选核验状态"}</p>
+          <p>{isAaOnly ? (result.recommendation === null ? "结果依据" : "推荐依据") : "兼容响应状态"}</p>
           <strong className={`advisor-verification is-${result.verification_status}`}>{statusLabel}</strong>
-          {result.verification_status === "aa_only" && (
-            <span>{result.recommendation === null ? "仅依据 AA" : "首选仅依据 AA"}</span>
+          {isAaOnly && (
+            <span>排序与数值来自 AA 已提交快照</span>
           )}
         </div>
         <p>识别重点：{intent.join(" · ")}</p>
@@ -401,13 +402,13 @@ function AdvisorResult({ result, displayNames }: {
         <div className="advisor-no-candidate">
           {result.rejections.length > 0 ? (
             <>
-              <h2>进入核验的 AA 候选均有官方证据与硬性条件冲突</h2>
-              <p>这些模型先按 AA 指标进入核验范围，但官方资料明确反证了你的硬性条件。展开依据可逐项查看。</p>
+              <h2>兼容响应：候选存在已记录的条件冲突</h2>
+              <p>以下内容来自旧版响应，可在依据中逐项查看。</p>
             </>
           ) : (
             <>
               <h2>没有模型满足当前条件</h2>
-              <p>当前 AA 数据中没有同时满足明确能力、价格和预算约束的候选。调整条件后可以重新提交。</p>
+              <p>当前 AA 快照中没有同时满足能力、价格和预算筛选条件的候选。硬性要求和部署地区未核验，也未参与筛选。</p>
             </>
           )}
         </div>
@@ -506,6 +507,7 @@ function EvidenceDetails({ result, displayNames }: {
   readonly result: AdvisorRecommendationResponse;
   readonly displayNames: ReadonlyMap<string, string>;
 }) {
+  const isAaOnly = result.verification_status === "aa_only";
   const citationById = new Map(result.citations.map((citation) => [citation.citation_id, citation]));
   const candidates = [
     ...(result.recommendation === null
@@ -526,6 +528,9 @@ function EvidenceDetails({ result, displayNames }: {
             Artificial Analysis · {result.aa_source.observed_at} ↗
           </a>
         </div>
+        {isAaOnly && (
+          <p className="advisor-evidence-empty">DeepSeek 的补充说明基于已有知识，可能过时；本次不进行联网搜索。硬性要求和部署地区未核验且不参与筛选。</p>
+        )}
         {result.rejections.length > 0 ? (
           <RejectionEvidence
             rejections={result.rejections}
@@ -544,7 +549,7 @@ function EvidenceDetails({ result, displayNames }: {
                 <section
                   key={candidate.source_id}
                   className="advisor-evidence-group"
-                  aria-label={`${position} ${name} 的核验依据`}
+                  aria-label={`${position} ${name} 的${candidate.verification_status === "aa_only" ? "推荐依据" : "兼容核验依据"}`}
                 >
                   <header className="advisor-evidence-group-head">
                     <div><span>{position}</span><h3>{name}</h3></div>
@@ -562,7 +567,11 @@ function EvidenceDetails({ result, displayNames }: {
                       ))}
                     </ul>
                   ) : (
-                    <p className="advisor-evidence-empty">本候选没有单独的实时核验项。</p>
+                    <p className="advisor-evidence-empty">
+                      {candidate.verification_status === "aa_only"
+                        ? "排序与数值来自 AA 已提交快照。"
+                        : "兼容响应未提供逐项核验记录。"}
+                    </p>
                   )}
                   {citations.length > 0 ? (
                     <ol className="advisor-citations">
@@ -572,15 +581,15 @@ function EvidenceDetails({ result, displayNames }: {
                         </li>
                       ))}
                     </ol>
-                  ) : (
-                    <p className="advisor-evidence-empty">本候选未使用实时官方资料。</p>
+                  ) : candidate.verification_status === "aa_only" ? null : (
+                    <p className="advisor-evidence-empty">兼容响应未附引用。</p>
                   )}
                 </section>
               );
             })}
           </div>
-        ) : (
-          <p className="advisor-evidence-empty">本次没有使用实时官方资料。</p>
+        ) : isAaOnly ? null : (
+          <p className="advisor-evidence-empty">兼容响应未提供候选核验记录。</p>
         )}
       </div>
     </details>
