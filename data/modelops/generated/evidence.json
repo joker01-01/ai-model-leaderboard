@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "benchmarkDate": "2026-09-06",
+  "benchmarkDate": "2026-09-11",
   "benchmarkDefinitions": [
     {
       "id": "aa-coding",
@@ -93,7 +93,7 @@
       "benchmarkId": "aa-coding",
       "value": 76.5,
       "modelVersion": "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -112,9 +112,9 @@
     {
       "modelId": "claude-fable-5",
       "benchmarkId": "aa-intelligence",
-      "value": 53.2,
+      "value": 49.7,
       "modelVersion": "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -198,7 +198,7 @@
       "benchmarkId": "aa-coding",
       "value": 74.3,
       "modelVersion": "Claude Opus 4.8 (Adaptive Reasoning, Max Effort)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -217,9 +217,9 @@
     {
       "modelId": "claude-opus-4-8",
       "benchmarkId": "aa-intelligence",
-      "value": 46.4,
+      "value": 42,
       "modelVersion": "Claude Opus 4.8 (Adaptive Reasoning, Max Effort)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -343,9 +343,9 @@
     {
       "modelId": "claude-sonnet-4-6",
       "benchmarkId": "aa-intelligence",
-      "value": 29,
+      "value": 24.7,
       "modelVersion": "Claude Sonnet 4.6 (Non-reasoning, High Effort)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -597,7 +597,7 @@
       "benchmarkId": "aa-coding",
       "value": 68.8,
       "modelVersion": "Gemini 3.1 Pro Preview",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -616,9 +616,9 @@
     {
       "modelId": "gemini-3-1-pro",
       "benchmarkId": "aa-intelligence",
-      "value": 36.7,
+      "value": 30.4,
       "modelVersion": "Gemini 3.1 Pro Preview",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -681,7 +681,7 @@
       "benchmarkId": "aa-coding",
       "value": 76.1,
       "modelVersion": "Gemini 3.7 Flash (high)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -700,9 +700,9 @@
     {
       "modelId": "gemini-3-7-flash",
       "benchmarkId": "aa-intelligence",
-      "value": 45.2,
+      "value": 39.4,
       "modelVersion": "Gemini 3.7 Flash (high)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -744,7 +744,7 @@
       "benchmarkId": "aa-coding",
       "value": 74.8,
       "modelVersion": "GLM-5.3 (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -763,9 +763,9 @@
     {
       "modelId": "glm-5-3",
       "benchmarkId": "aa-intelligence",
-      "value": 48.6,
+      "value": 44.9,
       "modelVersion": "GLM-5.3 (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -786,7 +786,7 @@
       "benchmarkId": "aa-coding",
       "value": 71.4,
       "modelVersion": "GPT-5.6 Luna (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -805,9 +805,9 @@
     {
       "modelId": "gpt-56-luna",
       "benchmarkId": "aa-intelligence",
-      "value": 43.4,
+      "value": 37.5,
       "modelVersion": "GPT-5.6 Luna (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -891,7 +891,7 @@
       "benchmarkId": "aa-coding",
       "value": 77.4,
       "modelVersion": "GPT-5.6 Sol (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -910,9 +910,9 @@
     {
       "modelId": "gpt-56-sol",
       "benchmarkId": "aa-intelligence",
-      "value": 51.3,
+      "value": 47.1,
       "modelVersion": "GPT-5.6 Sol (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -994,9 +994,9 @@
     {
       "modelId": "grok-4-20",
       "benchmarkId": "aa-intelligence",
-      "value": 30,
+      "value": 25.7,
       "modelVersion": "Grok 4.20 0309 v2 (Reasoning)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -1017,7 +1017,7 @@
       "benchmarkId": "aa-coding",
       "value": 76.8,
       "modelVersion": "Grok 4.6 (high)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -1036,9 +1036,9 @@
     {
       "modelId": "grok-4-6",
       "benchmarkId": "aa-intelligence",
-      "value": 50.6,
+      "value": 44.4,
       "modelVersion": "Grok 4.6 (high)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -1080,7 +1080,7 @@
       "benchmarkId": "aa-coding",
       "value": 76.2,
       "modelVersion": "Kimi K3 (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -1099,9 +1099,9 @@
     {
       "modelId": "kimi-k3",
       "benchmarkId": "aa-intelligence",
-      "value": 50.2,
+      "value": 43.8,
       "modelVersion": "Kimi K3 (max)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -1164,7 +1164,7 @@
       "benchmarkId": "aa-coding",
       "value": 58.6,
       "modelVersion": "MiniMax-M3",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -1183,9 +1183,9 @@
     {
       "modelId": "minimax-m3",
       "benchmarkId": "aa-intelligence",
-      "value": 35.7,
+      "value": 29.6,
       "modelVersion": "MiniMax-M3",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -1269,7 +1269,7 @@
       "benchmarkId": "aa-coding",
       "value": 20.1,
       "modelVersion": "Mistral Large 3",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -1288,9 +1288,9 @@
     {
       "modelId": "mistral-large-3",
       "benchmarkId": "aa-intelligence",
-      "value": 11.1,
+      "value": 9.7,
       "modelVersion": "Mistral Large 3",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -1311,7 +1311,7 @@
       "benchmarkId": "aa-coding",
       "value": 63.5,
       "modelVersion": "Motif 3",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -1330,9 +1330,9 @@
     {
       "modelId": "motif-3",
       "benchmarkId": "aa-intelligence",
-      "value": 38,
+      "value": 33.6,
       "modelVersion": "Motif 3",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -1353,7 +1353,7 @@
       "benchmarkId": "aa-coding",
       "value": 48.2,
       "modelVersion": "Qwen3.5 397B A17B (Reasoning)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-coding",
         "dim": "coding",
@@ -1372,9 +1372,9 @@
     {
       "modelId": "qwen-3-5",
       "benchmarkId": "aa-intelligence",
-      "value": 26.1,
+      "value": 19.1,
       "modelVersion": "Qwen3.5 397B A17B (Reasoning)",
-      "observedAt": "2026-09-06",
+      "observedAt": "2026-09-11",
       "definition": {
         "id": "aa-intelligence",
         "dim": "intelligence",
@@ -1434,7 +1434,7 @@
     }
   ],
   "arena": {
-    "generatedAt": "2026-09-06T19:15:22.563Z",
+    "generatedAt": "2026-09-11T10:55:02.685Z",
     "sourceUrl": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
     "observations": [
       {
@@ -1452,26 +1452,14 @@
       {
         "modelId": "claude-fable-5",
         "dimension": "webdev",
-        "value": 1629.0458934793564,
+        "value": 1628.2738774974382,
         "rank": null,
-        "lower": 1621.2206695752652,
-        "upper": 1636.8711173834477,
+        "lower": 1620.570349028876,
+        "upper": 1635.9774059660003,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "claude-fable-5"
-      },
-      {
-        "modelId": "claude-opus-4-8",
-        "dimension": "agent",
-        "value": 0.018481196815080807,
-        "rank": null,
-        "lower": -0.009629596004809896,
-        "upper": 0.046591989634971506,
-        "observations": 1438529,
-        "category": "overall",
-        "observedAt": "2026-09-05",
-        "modelVersion": "Claude Opus 4.8"
       },
       {
         "modelId": "claude-opus-4-8",
@@ -1488,25 +1476,25 @@
       {
         "modelId": "claude-opus-4-8",
         "dimension": "webdev",
-        "value": 1540.134716201152,
+        "value": 1539.7220867088777,
         "rank": null,
-        "lower": 1533.4491462431097,
-        "upper": 1546.820286159194,
+        "lower": 1533.1232080865723,
+        "upper": 1546.3209653311828,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "claude-opus-4-8"
       },
       {
         "modelId": "claude-sonnet-4-6",
         "dimension": "agent",
-        "value": 0.004965836629023421,
+        "value": -0.010492040299401342,
         "rank": null,
-        "lower": -0.0078610501572942,
-        "upper": 0.017792723415341043,
-        "observations": 1445308,
+        "lower": -0.023599040110840803,
+        "upper": 0.0026149595120381203,
+        "observations": 1444598,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "Claude Sonnet 4.6"
       },
       {
@@ -1524,25 +1512,25 @@
       {
         "modelId": "claude-sonnet-4-6",
         "dimension": "webdev",
-        "value": 1521.4895156151356,
+        "value": 1521.0491590062888,
         "rank": null,
-        "lower": 1516.1927675906704,
-        "upper": 1526.7862636396003,
+        "lower": 1515.789683922701,
+        "upper": 1526.308634089877,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "claude-sonnet-4-6"
       },
       {
         "modelId": "deepseek-v4-pro",
         "dimension": "agent",
-        "value": 0.0057508007722761115,
+        "value": -0.004243429492245743,
         "rank": null,
-        "lower": -0.005094973341455493,
-        "upper": 0.016596574886007714,
-        "observations": 1570167,
+        "lower": -0.01564838070595315,
+        "upper": 0.007161521721461664,
+        "observations": 1638264,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "DeepSeek V4 Pro"
       },
       {
@@ -1560,13 +1548,13 @@
       {
         "modelId": "gemini-3-1-pro",
         "dimension": "webdev",
-        "value": 1445.521203913088,
+        "value": 1446.4886756546064,
         "rank": null,
-        "lower": 1440.3291720667844,
-        "upper": 1450.7132357593919,
+        "lower": 1441.3269376483117,
+        "upper": 1451.6504136609012,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "gemini-3.1-pro-preview"
       },
       {
@@ -1584,13 +1572,13 @@
       {
         "modelId": "minimax-m3",
         "dimension": "webdev",
-        "value": 1487.300425499026,
+        "value": 1486.2607982066777,
         "rank": null,
-        "lower": 1480.631500019464,
-        "upper": 1493.969350978588,
+        "lower": 1479.6718105576838,
+        "upper": 1492.8497858556716,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "minimax-m3"
       },
       {
@@ -1608,13 +1596,13 @@
       {
         "modelId": "mistral-large-3",
         "dimension": "webdev",
-        "value": 1229.2302833091712,
+        "value": 1229.558958324096,
         "rank": null,
-        "lower": 1203.283856157013,
-        "upper": 1255.176710461329,
+        "lower": 1203.6131181281914,
+        "upper": 1255.5047985200006,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "mistral-large-3"
       },
       {
@@ -1632,13 +1620,13 @@
       {
         "modelId": "qwen-3-5",
         "dimension": "webdev",
-        "value": 1398.55126177761,
+        "value": 1398.8562338683407,
         "rank": null,
-        "lower": 1393.2616103897167,
-        "upper": 1403.8409131655035,
+        "lower": 1393.595949509646,
+        "upper": 1404.1165182270356,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "qwen3.5-397b-a17b"
       }
     ]
