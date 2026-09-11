@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-06T19:15:22.563Z",
+  "generatedAt": "2026-09-11T10:55:02.685Z",
   "policy": "仅精确版本映射；匹配歧义和缺失不改榜单。Arena 仅作详情参考，不参与主榜。",
   "artificialAnalysis": {
     "status": "updated",
@@ -28,7 +28,7 @@
       "doubao-2-1-pro"
     ],
     "ambiguous": [],
-    "rows": 643
+    "rows": 646
   },
   "arena": {
     "status": "updated",
@@ -60,7 +60,7 @@
     "rows": {
       "text": 7,
       "webdev": 7,
-      "agent": 3
+      "agent": 2
     }
   }
 }

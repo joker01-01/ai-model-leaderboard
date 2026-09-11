@@ -17,18 +17,18 @@ export interface ArenaSnapshot {
 }
 
 export const ARENA_SNAPSHOT: ArenaSnapshot = {
-  "generatedAt": "2026-09-06T19:15:22.563Z",
+  "generatedAt": "2026-09-11T10:55:02.685Z",
   "sourceUrl": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
   "models": {
     "deepseek-v4-pro": {
       "agent": {
-        "value": 0.0057508007722761115,
+        "value": -0.004243429492245743,
         "rank": null,
-        "lower": -0.005094973341455493,
-        "upper": 0.016596574886007714,
-        "observations": 1570167,
+        "lower": -0.01564838070595315,
+        "upper": 0.007161521721461664,
+        "observations": 1638264,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "DeepSeek V4 Pro"
       }
     },
@@ -44,24 +44,14 @@ export const ARENA_SNAPSHOT: ArenaSnapshot = {
         "modelVersion": "claude-opus-4-8"
       },
       "webdev": {
-        "value": 1540.134716201152,
+        "value": 1539.7220867088777,
         "rank": null,
-        "lower": 1533.4491462431097,
-        "upper": 1546.820286159194,
+        "lower": 1533.1232080865723,
+        "upper": 1546.3209653311828,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "claude-opus-4-8"
-      },
-      "agent": {
-        "value": 0.018481196815080807,
-        "rank": null,
-        "lower": -0.009629596004809896,
-        "upper": 0.046591989634971506,
-        "observations": 1438529,
-        "category": "overall",
-        "observedAt": "2026-09-05",
-        "modelVersion": "Claude Opus 4.8"
       }
     },
     "qwen-3-5": {
@@ -76,13 +66,13 @@ export const ARENA_SNAPSHOT: ArenaSnapshot = {
         "modelVersion": "qwen3.5-397b-a17b"
       },
       "webdev": {
-        "value": 1398.55126177761,
+        "value": 1398.8562338683407,
         "rank": null,
-        "lower": 1393.2616103897167,
-        "upper": 1403.8409131655035,
+        "lower": 1393.595949509646,
+        "upper": 1404.1165182270356,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "qwen3.5-397b-a17b"
       }
     },
@@ -98,23 +88,23 @@ export const ARENA_SNAPSHOT: ArenaSnapshot = {
         "modelVersion": "claude-sonnet-4-6"
       },
       "webdev": {
-        "value": 1521.4895156151356,
+        "value": 1521.0491590062888,
         "rank": null,
-        "lower": 1516.1927675906704,
-        "upper": 1526.7862636396003,
+        "lower": 1515.789683922701,
+        "upper": 1526.308634089877,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "claude-sonnet-4-6"
       },
       "agent": {
-        "value": 0.004965836629023421,
+        "value": -0.010492040299401342,
         "rank": null,
-        "lower": -0.0078610501572942,
-        "upper": 0.017792723415341043,
-        "observations": 1445308,
+        "lower": -0.023599040110840803,
+        "upper": 0.0026149595120381203,
+        "observations": 1444598,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "Claude Sonnet 4.6"
       }
     },
@@ -130,13 +120,13 @@ export const ARENA_SNAPSHOT: ArenaSnapshot = {
         "modelVersion": "gemini-3.1-pro-preview"
       },
       "webdev": {
-        "value": 1445.521203913088,
+        "value": 1446.4886756546064,
         "rank": null,
-        "lower": 1440.3291720667844,
-        "upper": 1450.7132357593919,
+        "lower": 1441.3269376483117,
+        "upper": 1451.6504136609012,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "gemini-3.1-pro-preview"
       }
     },
@@ -152,13 +142,13 @@ export const ARENA_SNAPSHOT: ArenaSnapshot = {
         "modelVersion": "minimax-m3"
       },
       "webdev": {
-        "value": 1487.300425499026,
+        "value": 1486.2607982066777,
         "rank": null,
-        "lower": 1480.631500019464,
-        "upper": 1493.969350978588,
+        "lower": 1479.6718105576838,
+        "upper": 1492.8497858556716,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "minimax-m3"
       }
     },
@@ -174,13 +164,13 @@ export const ARENA_SNAPSHOT: ArenaSnapshot = {
         "modelVersion": "claude-fable-5"
       },
       "webdev": {
-        "value": 1629.0458934793564,
+        "value": 1628.2738774974382,
         "rank": null,
-        "lower": 1621.2206695752652,
-        "upper": 1636.8711173834477,
+        "lower": 1620.570349028876,
+        "upper": 1635.9774059660003,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "claude-fable-5"
       }
     },
@@ -196,13 +186,13 @@ export const ARENA_SNAPSHOT: ArenaSnapshot = {
         "modelVersion": "mistral-large-3"
       },
       "webdev": {
-        "value": 1229.2302833091712,
+        "value": 1229.558958324096,
         "rank": null,
-        "lower": 1203.283856157013,
-        "upper": 1255.176710461329,
+        "lower": 1203.6131181281914,
+        "upper": 1255.5047985200006,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-05",
+        "observedAt": "2026-09-08",
         "modelVersion": "mistral-large-3"
       }
     }
