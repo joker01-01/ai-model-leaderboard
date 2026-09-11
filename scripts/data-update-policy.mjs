@@ -521,12 +521,6 @@ function checkAaPublicArtifacts(base, head, reasons) {
   if (baseSummary.snapshot.source.schemaFingerprint !== headSummary.snapshot.source.schemaFingerprint) {
     addReason(reasons, "public AA schema fingerprint changed; human review required");
   }
-  if (
-    baseSummary.snapshot.source.intelligenceIndexVersion
-    !== headSummary.snapshot.source.intelligenceIndexVersion
-  ) {
-    addReason(reasons, "public AA Intelligence Index version changed; human review required");
-  }
   if (baseSummary.pagination.pageSize !== headSummary.pagination.pageSize) {
     addReason(reasons, "public AA pagination pageSize changed; human review required");
   }
@@ -840,9 +834,6 @@ function checkAaSnapshot(baseSnapshot, headSnapshot, reasons) {
 
   if (baseSnapshot.source !== headSnapshot.source) addReason(reasons, "AA snapshot source changed");
   if (baseSnapshot.sourceUrl !== headSnapshot.sourceUrl) addReason(reasons, "AA snapshot sourceUrl changed");
-  if (baseSnapshot.intelligenceIndexVersion !== headSnapshot.intelligenceIndexVersion) {
-    addReason(reasons, "AA Intelligence Index version changed");
-  }
   compareIdentityMaps(baseIdentities, headIdentities, "AA snapshot", reasons);
   compareIdentityMaps(baseLeaderboardIdentities, headLeaderboardIdentities, "AA leaderboard", reasons);
 
@@ -853,6 +844,9 @@ function checkAaSnapshot(baseSnapshot, headSnapshot, reasons) {
       addReason(reasons, `${path}.generatedAt must be a non-empty string`);
     }
     result.generatedAt = "<generated-at>";
+    if (Array.isArray(result.intelligenceLeaderboard)) {
+      result.intelligenceIndexVersion = "<source-index-version>";
+    }
     if (isObject(result.models)) {
       for (const [modelId, profile] of Object.entries(result.models)) {
         if (!isObject(profile)) continue;

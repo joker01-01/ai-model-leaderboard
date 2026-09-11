@@ -354,7 +354,7 @@ test("rejects the first public AA baseline instead of treating added artifacts a
   assert.equal(result.reasons.some((reason) => reason.includes("must be modified")), false);
 });
 
-test("rejects public AA schema, wire-contract, index-version, and identity metadata changes", () => {
+test("rejects public AA schema, wire-contract, and identity metadata changes", () => {
   const schema = withPublicAa();
   const schemaSnapshot = structuredClone(schema.head.aaPublicJson);
   schemaSnapshot.schemaVersion = 2;
@@ -369,14 +369,6 @@ test("rejects public AA schema, wire-contract, index-version, and identity metad
   replaceHeadPublicAa(fingerprint, fingerprintSnapshot);
   assert.ok(evaluateDataUpdatePolicy(fingerprint).reasons.includes(
     "public AA schema fingerprint changed; human review required",
-  ));
-
-  const indexVersion = withPublicAa();
-  const versionSnapshot = structuredClone(indexVersion.head.aaPublicJson);
-  versionSnapshot.source.intelligenceIndexVersion = 4.2;
-  replaceHeadPublicAa(indexVersion, versionSnapshot);
-  assert.ok(evaluateDataUpdatePolicy(indexVersion).reasons.includes(
-    "public AA Intelligence Index version changed; human review required",
   ));
 
   const pageSize = withPublicAa();
@@ -629,7 +621,7 @@ test("accepts AA leaderboard score reordering when its source identities remain 
   assert.deepEqual(evaluateDataUpdatePolicy(input), { eligible: true, reasons: [] });
 });
 
-test("rejects AA leaderboard membership, metadata, and index-version changes", () => {
+test("rejects AA leaderboard membership and metadata changes", () => {
   const membership = eligibleInput();
   membership.head.aaSnapshot.intelligenceLeaderboard[19].sourceId = "replacement-source";
   const membershipResult = evaluateDataUpdatePolicy(membership);
@@ -641,12 +633,6 @@ test("rejects AA leaderboard membership, metadata, and index-version changes", (
   const metadataResult = evaluateDataUpdatePolicy(metadata);
   assert.equal(metadataResult.eligible, false);
   assert.ok(metadataResult.reasons.includes("AA leaderboard observation identity changed: leader-00"));
-
-  const version = eligibleInput();
-  version.head.aaSnapshot.intelligenceIndexVersion = 4.2;
-  const versionResult = evaluateDataUpdatePolicy(version);
-  assert.equal(versionResult.eligible, false);
-  assert.ok(versionResult.reasons.includes("AA Intelligence Index version changed"));
 });
 
 test("rejects mixed AA leaderboard observation dates and invalid calendar dates", () => {
@@ -784,5 +770,36 @@ test("CLI reads a JSON file, emits JSON, and uses eligibility as its exit status
     assert.ok(JSON.parse(ineligibleRun.stdout).reasons.includes("arena.ambiguous must be empty in base and head"));
   } finally {
     await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+});
+
+
+test("accepts source-supplied AA index versions without a fixed version baseline", () => {
+  for (const nextVersion of [4.3, 5, 12.7]) {
+    const input = withPublicAa();
+    const snapshot = structuredClone(input.head.aaPublicJson);
+    snapshot.source.intelligenceIndexVersion = nextVersion;
+    replaceHeadPublicAa(input, snapshot);
+    input.head.aaSnapshot.intelligenceIndexVersion = nextVersion;
+    const result = evaluateDataUpdatePolicy(input);
+    assert.equal(result.eligible, true, JSON.stringify(result.reasons));
+
+    const legacy = eligibleInput();
+    legacy.head.aaSnapshot.intelligenceIndexVersion = nextVersion;
+    assert.equal(evaluateDataUpdatePolicy(legacy).eligible, true);
+  }
+});
+
+test("still rejects invalid source-supplied AA index versions", () => {
+  for (const invalidVersion of [0, -1, "5", null]) {
+    const input = withPublicAa();
+    const snapshot = structuredClone(input.head.aaPublicJson);
+    snapshot.source.intelligenceIndexVersion = invalidVersion;
+    replaceHeadPublicAa(input, snapshot);
+    assert.equal(evaluateDataUpdatePolicy(input).eligible, false);
+
+    const legacy = eligibleInput();
+    legacy.head.aaSnapshot.intelligenceIndexVersion = invalidVersion;
+    assert.equal(evaluateDataUpdatePolicy(legacy).eligible, false);
   }
 });

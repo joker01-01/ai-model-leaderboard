@@ -159,11 +159,13 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-config logging
 
 ## Data publication boundary
 
+- AA Intelligence Index versions are source data, not a pinned baseline. Accept any positive finite upstream index version, require consistency across fetched pages and generated public artifacts, and do not reject a refresh solely because the version changed. Schema/fingerprint, identity, completeness, coverage, and curated-evidence checks still apply.
+
 - Scheduled refreshes prepare or update a pull request; they never push generated changes directly to `main`.
 - The first full source-native AA snapshot is human reviewed.
 - After that baseline, ordinary model additions/removals and metric value/date/order changes may auto-merge only when changed paths are generated-data/report allowlisted, pagination and contracts are complete, IDs are unique, structural/index assumptions are stable, curated exact matches/evidence do not regress, and every required check passes.
 - Percentage gates run only against current `main` with the same public schema. Compare fetched total rows and each of the seven finite-value row counts independently. The current Free v2 API has no declared total-row field; schema version 1 keeps that value null and proves completeness from pagination. Any future upstream total-row field requires a reviewed schema change before use. For a nonzero base, `headCount < baseCount * 0.8` requires human review; a zero base skips only that comparison.
-- Duplicate IDs, incomplete pagination, schema/index/methodology changes, a greater-than-20% gated drop, new malformed/conflicting evidence, generated-policy failure, or non-generated changes require human review.
+- Duplicate IDs, incomplete pagination, schema/contract changes, a greater-than-20% gated drop, new malformed/conflicting evidence, generated-policy failure, or non-generated changes require human review.
 - Code, workflow, dependency, documentation, source-mapping, and reviewed-input changes never use the routine data auto-merge path.
 - Trusted auto-merge parsing must compare every allowlisted generated TypeScript module against its canonical full-file renderer after CRLF-to-LF normalization; parsing only the exported JSON initializer is insufficient because executable prefix/suffix code must be rejected.
 - Preserve protected `main`, required checks, immutable head/base/current-main SHA validation, App author/signature validation, and least-privilege App permissions. The App stays outside bypass lists.
