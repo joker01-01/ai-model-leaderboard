@@ -10,17 +10,17 @@
     "pageSize": 200,
     "totalPages": 4,
     "declaredTotalRows": null,
-    "fetchedRowCount": 646
+    "fetchedRowCount": 647
   },
-  "rowCount": 646,
+  "rowCount": 647,
   "finiteMetricCounts": {
-    "intelligence": 636,
+    "intelligence": 638,
     "coding": 257,
     "agentic": 154,
-    "inputPricePerMillion": 437,
-    "outputPricePerMillion": 437,
-    "timeToFirstAnswerSeconds": 330,
-    "outputTokensPerSecond": 330
+    "inputPricePerMillion": 438,
+    "outputPricePerMillion": 438,
+    "timeToFirstAnswerSeconds": 331,
+    "outputTokensPerSecond": 331
   },
   "missingIdentity": {
     "sourceSlug": {

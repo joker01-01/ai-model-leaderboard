@@ -48,7 +48,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "pageSize": 200,
       "totalPages": 4,
       "declaredTotalRows": null,
-      "fetchedRowCount": 646
+      "fetchedRowCount": 647
     }
   },
   "models": [
@@ -65,8 +65,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 1.8,
-      "timeToFirstAnswerSeconds": 2.8,
-      "outputTokensPerSecond": 32.28
+      "timeToFirstAnswerSeconds": 2.91,
+      "outputTokensPerSecond": 32.89
     },
     {
       "sourceId": "0097ebf5-124f-42f6-9463-33b00e711f03",
@@ -81,8 +81,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 27.3,
       "inputPricePerMillion": 1.5,
       "outputPricePerMillion": 9,
-      "timeToFirstAnswerSeconds": 17.45,
-      "outputTokensPerSecond": 209.56
+      "timeToFirstAnswerSeconds": 15.54,
+      "outputTokensPerSecond": 213.87
     },
     {
       "sourceId": "00f1248e-78e3-4230-8dc8-5e13ba8645e2",
@@ -97,8 +97,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 22.7,
       "inputPricePerMillion": 0.43,
       "outputPricePerMillion": 0.87,
-      "timeToFirstAnswerSeconds": 58.71,
-      "outputTokensPerSecond": 37.34
+      "timeToFirstAnswerSeconds": 53.58,
+      "outputTokensPerSecond": 42.43
     },
     {
       "sourceId": "0121d27b-5b8a-4901-8684-80589cc6d40d",
@@ -129,7 +129,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 4,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 0.75,
-      "timeToFirstAnswerSeconds": 3.66,
+      "timeToFirstAnswerSeconds": 3.6,
       "outputTokensPerSecond": 734.04
     },
     {
@@ -145,8 +145,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 4.8,
-      "timeToFirstAnswerSeconds": 2.2,
-      "outputTokensPerSecond": 86.2
+      "timeToFirstAnswerSeconds": 2.23,
+      "outputTokensPerSecond": 85.26
     },
     {
       "sourceId": "018c60e8-e908-431a-ba57-c840b1df3987",
@@ -194,7 +194,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 3.2,
       "timeToFirstAnswerSeconds": 2.3,
-      "outputTokensPerSecond": 138.58
+      "outputTokensPerSecond": 140.4
     },
     {
       "sourceId": "025ec6b6-df4a-449f-9a03-24e4388d6863",
@@ -209,7 +209,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.3,
-      "timeToFirstAnswerSeconds": 2.43,
+      "timeToFirstAnswerSeconds": 2.42,
       "outputTokensPerSecond": 100.02
     },
     {
@@ -225,8 +225,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.5,
       "outputPricePerMillion": 9,
-      "timeToFirstAnswerSeconds": 0.9,
-      "outputTokensPerSecond": 198.56
+      "timeToFirstAnswerSeconds": 0.89,
+      "outputTokensPerSecond": 199.42
     },
     {
       "sourceId": "033e4aa9-a556-4224-87b0-341ed1070257",
@@ -369,8 +369,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 44,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 4.25,
-      "timeToFirstAnswerSeconds": 24.89,
-      "outputTokensPerSecond": 192.91
+      "timeToFirstAnswerSeconds": 24.72,
+      "outputTokensPerSecond": 186.69
     },
     {
       "sourceId": "050c61cd-cddc-463a-a30a-a82aaa37be59",
@@ -380,13 +380,13 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "creatorName": "OpenAI",
       "releaseDate": "2026-07-09",
       "observedAt": "2026-09-11",
-      "intelligence": 21.8,
+      "intelligence": 21.5,
       "coding": 44.2,
       "agentic": 17.9,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 1.72,
-      "outputTokensPerSecond": 102.37
+      "timeToFirstAnswerSeconds": 1.5,
+      "outputTokensPerSecond": 104.61
     },
     {
       "sourceId": "05776db7-f5c0-40f7-b824-079160f8cfa8",
@@ -401,8 +401,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 47.8,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 7.32,
-      "outputTokensPerSecond": 46.54
+      "timeToFirstAnswerSeconds": 6.15,
+      "outputTokensPerSecond": 46.62
     },
     {
       "sourceId": "05a32e26-e609-4377-951b-8fa23d329926",
@@ -417,8 +417,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 3.1,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 2.23,
-      "outputTokensPerSecond": 127.15
+      "timeToFirstAnswerSeconds": 2.22,
+      "outputTokensPerSecond": 130.59
     },
     {
       "sourceId": "05e45a36-b5c6-47a1-8adb-9ddc19add5b3",
@@ -433,7 +433,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 0.97,
+      "timeToFirstAnswerSeconds": 0.95,
       "outputTokensPerSecond": 150.42
     },
     {
@@ -465,8 +465,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.9,
       "inputPricePerMillion": 1.1,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 22.06,
-      "outputTokensPerSecond": 220.48
+      "timeToFirstAnswerSeconds": 17.76,
+      "outputTokensPerSecond": 217.71
     },
     {
       "sourceId": "078f4dc8-5350-40a2-a5ea-e8359f795b70",
@@ -529,8 +529,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 32.6,
       "inputPricePerMillion": 4,
       "outputPricePerMillion": 20,
-      "timeToFirstAnswerSeconds": 3.04,
-      "outputTokensPerSecond": 56.1
+      "timeToFirstAnswerSeconds": 3.24,
+      "outputTokensPerSecond": 52.9
     },
     {
       "sourceId": "093883ed-f5fc-443b-8e18-afbfb166699e",
@@ -545,8 +545,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.5,
       "outputPricePerMillion": 7.5,
-      "timeToFirstAnswerSeconds": 2.98,
-      "outputTokensPerSecond": 51.83
+      "timeToFirstAnswerSeconds": 2.96,
+      "outputTokensPerSecond": 51.78
     },
     {
       "sourceId": "093b9df2-ebee-4309-943f-5a7e88360adf",
@@ -561,8 +561,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 15.9,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 8.01,
-      "outputTokensPerSecond": 347.66
+      "timeToFirstAnswerSeconds": 7.45,
+      "outputTokensPerSecond": 372.37
     },
     {
       "sourceId": "0985ada8-2ed8-404d-bd8b-7357666ce40f",
@@ -593,8 +593,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 4.9,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 2.32,
-      "outputTokensPerSecond": 130.96
+      "timeToFirstAnswerSeconds": 2.42,
+      "outputTokensPerSecond": 136.5
     },
     {
       "sourceId": "0a603978-03b9-4f47-a273-2f7fd969be85",
@@ -641,8 +641,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 0.97,
-      "timeToFirstAnswerSeconds": 1.86,
-      "outputTokensPerSecond": 95.71
+      "timeToFirstAnswerSeconds": 1.87,
+      "outputTokensPerSecond": 96.83
     },
     {
       "sourceId": "0b7efa66-2115-49e0-a1b7-a2ba225fe9f6",
@@ -657,8 +657,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 32.21,
-      "outputTokensPerSecond": 63.13
+      "timeToFirstAnswerSeconds": 31.19,
+      "outputTokensPerSecond": 65.25
     },
     {
       "sourceId": "0c64b008-20c3-408d-bd68-15136df8cd2c",
@@ -689,8 +689,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 29.72,
-      "outputTokensPerSecond": 118.35
+      "timeToFirstAnswerSeconds": 31.26,
+      "outputTokensPerSecond": 117.2
     },
     {
       "sourceId": "0de09623-2b1a-4c8d-86ef-7f5245d4e24b",
@@ -705,8 +705,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 24.3,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 4.05,
-      "timeToFirstAnswerSeconds": 29.14,
-      "outputTokensPerSecond": 75.62
+      "timeToFirstAnswerSeconds": 28.94,
+      "outputTokensPerSecond": 76.18
     },
     {
       "sourceId": "0de67206-4d36-4d10-b8f6-cf37fa747a03",
@@ -721,8 +721,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 22.1,
       "inputPricePerMillion": 0.95,
       "outputPricePerMillion": 4,
-      "timeToFirstAnswerSeconds": 103.26,
-      "outputTokensPerSecond": 44.39
+      "timeToFirstAnswerSeconds": 108.05,
+      "outputTokensPerSecond": 42.34
     },
     {
       "sourceId": "0e34f05c-387e-4968-be15-ccec4a55d8c1",
@@ -785,8 +785,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 10.6,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 3.6,
-      "timeToFirstAnswerSeconds": 42.7,
-      "outputTokensPerSecond": 78.47
+      "timeToFirstAnswerSeconds": 42.46,
+      "outputTokensPerSecond": 78.98
     },
     {
       "sourceId": "0faadeeb-320c-45cf-9c76-5f8768f342e6",
@@ -817,8 +817,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.95,
       "outputPricePerMillion": 4,
-      "timeToFirstAnswerSeconds": 2.87,
-      "outputTokensPerSecond": 43.97
+      "timeToFirstAnswerSeconds": 2.92,
+      "outputTokensPerSecond": 38.83
     },
     {
       "sourceId": "0fec07d5-a9b2-407a-b5f8-5bf10bd86b59",
@@ -849,8 +849,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.16,
       "outputPricePerMillion": 0.65,
-      "timeToFirstAnswerSeconds": 27,
-      "outputTokensPerSecond": 76.48
+      "timeToFirstAnswerSeconds": 26.93,
+      "outputTokensPerSecond": 76.69
     },
     {
       "sourceId": "1299b9a8-af50-4742-a58b-24ff7eb48f9f",
@@ -881,7 +881,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 26.37,
+      "timeToFirstAnswerSeconds": 26.33,
       "outputTokensPerSecond": 81.18
     },
     {
@@ -898,7 +898,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.6,
       "timeToFirstAnswerSeconds": 0.75,
-      "outputTokensPerSecond": 146.73
+      "outputTokensPerSecond": 149.04
     },
     {
       "sourceId": "1305c921-7aaa-4d6d-99b5-99b3acf15e19",
@@ -913,8 +913,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 55.5,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 30.58,
-      "outputTokensPerSecond": 48.56
+      "timeToFirstAnswerSeconds": 25.66,
+      "outputTokensPerSecond": 50.56
     },
     {
       "sourceId": "13358187-4584-479c-ab43-5bcdf8f297a4",
@@ -945,8 +945,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 1.85,
-      "outputTokensPerSecond": 56.09
+      "timeToFirstAnswerSeconds": 1.82,
+      "outputTokensPerSecond": 56.19
     },
     {
       "sourceId": "1479f50b-d37f-4b55-bb8b-4212a15042eb",
@@ -1009,8 +1009,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.07,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 9.68,
-      "outputTokensPerSecond": 226.7
+      "timeToFirstAnswerSeconds": 9.76,
+      "outputTokensPerSecond": 224.56
     },
     {
       "sourceId": "169e47f5-3d4d-4ad4-8f8b-ab46f0c73f67",
@@ -1025,8 +1025,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.4,
-      "timeToFirstAnswerSeconds": 32.41,
-      "outputTokensPerSecond": 74.67
+      "timeToFirstAnswerSeconds": 32.21,
+      "outputTokensPerSecond": 75.23
     },
     {
       "sourceId": "16c5b637-8bce-4252-81f2-1b87a36a4e4c",
@@ -1041,8 +1041,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 8,
-      "timeToFirstAnswerSeconds": 8.25,
-      "outputTokensPerSecond": 101.2
+      "timeToFirstAnswerSeconds": 6.34,
+      "outputTokensPerSecond": 107.06
     },
     {
       "sourceId": "16f2578b-1b28-4be3-b371-700c2677bcd6",
@@ -1105,8 +1105,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 51.2,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.5,
-      "timeToFirstAnswerSeconds": 24.91,
-      "outputTokensPerSecond": 89.6
+      "timeToFirstAnswerSeconds": 23.56,
+      "outputTokensPerSecond": 94.93
     },
     {
       "sourceId": "198b717f-42c8-4ab7-a699-ae9373d669d3",
@@ -1153,8 +1153,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.3,
-      "timeToFirstAnswerSeconds": 10.46,
-      "outputTokensPerSecond": 213.14
+      "timeToFirstAnswerSeconds": 11.06,
+      "outputTokensPerSecond": 210.74
     },
     {
       "sourceId": "1b05e346-e86a-4a20-8feb-7da8c65a99aa",
@@ -1185,8 +1185,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 31.36,
-      "outputTokensPerSecond": 68.14
+      "timeToFirstAnswerSeconds": 31.43,
+      "outputTokensPerSecond": 68.09
     },
     {
       "sourceId": "1cb96708-f6c1-4668-9804-5db6ecac01ed",
@@ -1250,7 +1250,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.4,
       "timeToFirstAnswerSeconds": 0.31,
-      "outputTokensPerSecond": 278.64
+      "outputTokensPerSecond": 279.74
     },
     {
       "sourceId": "1dcea4f7-7e8b-49f8-abe2-5860ff9f349e",
@@ -1265,8 +1265,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.7,
       "outputPricePerMillion": 0.7,
-      "timeToFirstAnswerSeconds": 2.29,
-      "outputTokensPerSecond": 29.46
+      "timeToFirstAnswerSeconds": 2.15,
+      "outputTokensPerSecond": 29.28
     },
     {
       "sourceId": "1e9907e0-ffac-4595-b006-962e4f1da7cf",
@@ -1281,8 +1281,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 1.1,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 31.16,
-      "outputTokensPerSecond": 64.99
+      "timeToFirstAnswerSeconds": 28.66,
+      "outputTokensPerSecond": 70.63
     },
     {
       "sourceId": "1edc272c-d799-44d6-909a-bf3c1909a3a0",
@@ -1313,8 +1313,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 37.3,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 30,
-      "timeToFirstAnswerSeconds": 62.26,
-      "outputTokensPerSecond": 84.54
+      "timeToFirstAnswerSeconds": 54.76,
+      "outputTokensPerSecond": 85.03
     },
     {
       "sourceId": "1f05af98-1ec6-4506-a0b8-57a8c9b63878",
@@ -1330,7 +1330,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 1.5,
       "outputPricePerMillion": 7.5,
       "timeToFirstAnswerSeconds": 2.31,
-      "outputTokensPerSecond": 133.26
+      "outputTokensPerSecond": 139.22
     },
     {
       "sourceId": "1f541ef3-913f-4eb2-9d07-0e93c7a9a5e3",
@@ -1345,8 +1345,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 50.6,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 220.63,
-      "outputTokensPerSecond": 53.39
+      "timeToFirstAnswerSeconds": 160.9,
+      "outputTokensPerSecond": 51.44
     },
     {
       "sourceId": "1f6478c9-3e22-4586-adbe-841782859677",
@@ -1410,7 +1410,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
       "timeToFirstAnswerSeconds": 3.03,
-      "outputTokensPerSecond": 46.88
+      "outputTokensPerSecond": 47.77
     },
     {
       "sourceId": "20da3b31-fc0a-4359-abec-d59367bf1d9f",
@@ -1426,7 +1426,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.17,
       "outputPricePerMillion": 0.25,
       "timeToFirstAnswerSeconds": 0.85,
-      "outputTokensPerSecond": 88.28
+      "outputTokensPerSecond": 96.99
     },
     {
       "sourceId": "217b34ec-5920-4fc1-8886-6a70a324837d",
@@ -1441,8 +1441,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 0.25,
-      "timeToFirstAnswerSeconds": 0.75,
-      "outputTokensPerSecond": 79.62
+      "timeToFirstAnswerSeconds": 0.76,
+      "outputTokensPerSecond": 86.66
     },
     {
       "sourceId": "219ed587-60c5-4a48-9517-8480e08d0ca1",
@@ -1457,8 +1457,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 16.23,
-      "outputTokensPerSecond": 206.96
+      "timeToFirstAnswerSeconds": 16.73,
+      "outputTokensPerSecond": 209.6
     },
     {
       "sourceId": "21a0a2f6-bc72-40d2-80db-ea4e66b02b90",
@@ -1505,8 +1505,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 9.6,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 3.2,
-      "timeToFirstAnswerSeconds": 18.1,
-      "outputTokensPerSecond": 126.41
+      "timeToFirstAnswerSeconds": 18.13,
+      "outputTokensPerSecond": 126.37
     },
     {
       "sourceId": "22d09131-343b-4adf-8760-533e20a2155f",
@@ -1521,8 +1521,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 17.4,
       "inputPricePerMillion": 0.14,
       "outputPricePerMillion": 0.28,
-      "timeToFirstAnswerSeconds": 45.64,
-      "outputTokensPerSecond": 51.8
+      "timeToFirstAnswerSeconds": 45.4,
+      "outputTokensPerSecond": 52.5
     },
     {
       "sourceId": "23149f9b-c904-43e2-9ec4-afa2bf843941",
@@ -1569,8 +1569,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 0.96,
-      "outputTokensPerSecond": 165.61
+      "timeToFirstAnswerSeconds": 0.97,
+      "outputTokensPerSecond": 151.25
     },
     {
       "sourceId": "23c86e4a-c769-43c0-a056-79e3cd15834f",
@@ -1585,8 +1585,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 44.3,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 212.72,
-      "outputTokensPerSecond": 73.17
+      "timeToFirstAnswerSeconds": 176.14,
+      "outputTokensPerSecond": 74.17
     },
     {
       "sourceId": "2443ac9e-a3db-423d-accb-8963f6fb0a53",
@@ -1633,8 +1633,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 2.1,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.3,
-      "timeToFirstAnswerSeconds": 0.72,
-      "outputTokensPerSecond": 147.06
+      "timeToFirstAnswerSeconds": 0.73,
+      "outputTokensPerSecond": 150.33
     },
     {
       "sourceId": "2660d74f-ce79-48a8-8b53-6e668e2071a2",
@@ -1649,7 +1649,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 17.27,
+      "timeToFirstAnswerSeconds": 16.36,
       "outputTokensPerSecond": 45.22
     },
     {
@@ -1665,8 +1665,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 51.2,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 33.39,
-      "outputTokensPerSecond": 52.95
+      "timeToFirstAnswerSeconds": 26.15,
+      "outputTokensPerSecond": 52.18
     },
     {
       "sourceId": "2698f6c6-e436-47ce-a583-dbc25596c571",
@@ -1681,8 +1681,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 2.13,
-      "outputTokensPerSecond": 176.65
+      "timeToFirstAnswerSeconds": 2.15,
+      "outputTokensPerSecond": 180.24
     },
     {
       "sourceId": "26c0b5df-efa7-470f-a65e-2d883329e493",
@@ -1697,8 +1697,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 8.25,
-      "outputTokensPerSecond": 44.93
+      "timeToFirstAnswerSeconds": 6.53,
+      "outputTokensPerSecond": 42.4
     },
     {
       "sourceId": "26e0f83a-ca98-4f34-94ac-7c5e251ee410",
@@ -1713,8 +1713,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 31.4,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 12,
-      "timeToFirstAnswerSeconds": 2.3,
-      "outputTokensPerSecond": 72.93
+      "timeToFirstAnswerSeconds": 2.17,
+      "outputTokensPerSecond": 76.41
     },
     {
       "sourceId": "27202e5f-c82d-4710-92e9-4317877d4883",
@@ -1729,8 +1729,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 3.5,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 22.84,
-      "outputTokensPerSecond": 121.65
+      "timeToFirstAnswerSeconds": 23.32,
+      "outputTokensPerSecond": 120.75
     },
     {
       "sourceId": "272ff333-442f-4169-a804-ac9177bc99d7",
@@ -1745,8 +1745,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 26.46,
-      "outputTokensPerSecond": 80.71
+      "timeToFirstAnswerSeconds": 25.66,
+      "outputTokensPerSecond": 83.31
     },
     {
       "sourceId": "277f939a-985b-4b37-859d-b3eabc7c0b26",
@@ -1761,8 +1761,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 30.8,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 24.76,
-      "outputTokensPerSecond": 88.46
+      "timeToFirstAnswerSeconds": 23.62,
+      "outputTokensPerSecond": 92.09
     },
     {
       "sourceId": "291a510a-dcc0-40df-8a80-b3aa31900a6c",
@@ -1809,8 +1809,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 8.9,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 77.21,
-      "outputTokensPerSecond": 101.33
+      "timeToFirstAnswerSeconds": 78.85,
+      "outputTokensPerSecond": 95.78
     },
     {
       "sourceId": "29976311-665a-4b2f-ac72-557c33e0758e",
@@ -1825,8 +1825,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 6.1,
       "inputPricePerMillion": 0.06,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 8.16,
-      "outputTokensPerSecond": 271.84
+      "timeToFirstAnswerSeconds": 8.01,
+      "outputTokensPerSecond": 283.4
     },
     {
       "sourceId": "2aacdc07-5f4e-4ab9-8ea5-5f7ab93f9eeb",
@@ -1921,8 +1921,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.07,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 21.84,
-      "outputTokensPerSecond": 96.09
+      "timeToFirstAnswerSeconds": 25.71,
+      "outputTokensPerSecond": 81.13
     },
     {
       "sourceId": "2cd04201-2b6e-47ef-853e-7601f705f2a8",
@@ -1937,8 +1937,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 0.86,
-      "outputTokensPerSecond": 17.02
+      "timeToFirstAnswerSeconds": 0.87,
+      "outputTokensPerSecond": 16.84
     },
     {
       "sourceId": "2cff73da-4855-403c-afc9-5540feadcc15",
@@ -1953,8 +1953,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.03,
       "outputPricePerMillion": 0.25,
-      "timeToFirstAnswerSeconds": 24.67,
-      "outputTokensPerSecond": 16.1
+      "timeToFirstAnswerSeconds": 10.07,
+      "outputTokensPerSecond": 39.26
     },
     {
       "sourceId": "2d19c2d1-062d-436e-b2c2-3d3ecad34acc",
@@ -1985,8 +1985,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.14,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 25.76,
-      "outputTokensPerSecond": 84.2
+      "timeToFirstAnswerSeconds": 24.78,
+      "outputTokensPerSecond": 87.33
     },
     {
       "sourceId": "2dad8957-4c16-4e74-bf2d-8b21514e0ae9",
@@ -2001,8 +2001,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.1,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 6.07,
-      "outputTokensPerSecond": 223.49
+      "timeToFirstAnswerSeconds": 5.73,
+      "outputTokensPerSecond": 219.12
     },
     {
       "sourceId": "2dbb6dc7-8c40-4b6d-af9c-cf805f83b79a",
@@ -2033,8 +2033,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 3,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 2.47,
-      "outputTokensPerSecond": 42.4
+      "timeToFirstAnswerSeconds": 2.14,
+      "outputTokensPerSecond": 42.38
     },
     {
       "sourceId": "2e46d2fd-eb2b-42b9-9fe4-be50630fe870",
@@ -2081,8 +2081,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 2.23,
-      "outputTokensPerSecond": 149.95
+      "timeToFirstAnswerSeconds": 2.08,
+      "outputTokensPerSecond": 147.42
     },
     {
       "sourceId": "2e9ff877-fd2c-4ce7-b631-7ca1bdb6d13e",
@@ -2097,8 +2097,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 3.6,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 8.89,
-      "outputTokensPerSecond": 235.91
+      "timeToFirstAnswerSeconds": 8.68,
+      "outputTokensPerSecond": 241.48
     },
     {
       "sourceId": "2f339a97-9a0d-499a-9cb5-e0db665bfa25",
@@ -2113,7 +2113,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 51.5,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 339.78,
+      "timeToFirstAnswerSeconds": 323.31,
       "outputTokensPerSecond": 54.41
     },
     {
@@ -2145,8 +2145,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 1.5,
-      "outputTokensPerSecond": 42.59
+      "timeToFirstAnswerSeconds": 1.44,
+      "outputTokensPerSecond": 43.22
     },
     {
       "sourceId": "2ffa7571-fa78-453a-b589-9aa3fac702d2",
@@ -2177,8 +2177,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 1.8,
-      "timeToFirstAnswerSeconds": 62.9,
-      "outputTokensPerSecond": 33.32
+      "timeToFirstAnswerSeconds": 60.13,
+      "outputTokensPerSecond": 34.84
     },
     {
       "sourceId": "30c9ba61-d0a1-4794-938e-35865f379d15",
@@ -2193,8 +2193,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.03,
       "outputPricePerMillion": 0.15,
-      "timeToFirstAnswerSeconds": 0.85,
-      "outputTokensPerSecond": 17.55
+      "timeToFirstAnswerSeconds": 0.8,
+      "outputTokensPerSecond": 19.18
     },
     {
       "sourceId": "30ef2a79-e800-4165-9f13-2a338f120db7",
@@ -2209,8 +2209,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 3.6,
-      "timeToFirstAnswerSeconds": 2.01,
-      "outputTokensPerSecond": 78.35
+      "timeToFirstAnswerSeconds": 2.14,
+      "outputTokensPerSecond": 79
     },
     {
       "sourceId": "3373245b-e6dc-4b66-a7b0-3f06f9b7bd46",
@@ -2225,8 +2225,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.23,
       "outputPricePerMillion": 0.92,
-      "timeToFirstAnswerSeconds": 2.38,
-      "outputTokensPerSecond": 58.23
+      "timeToFirstAnswerSeconds": 2.39,
+      "outputTokensPerSecond": 58.74
     },
     {
       "sourceId": "338216fb-62c2-48f1-898a-9166d12fb35e",
@@ -2273,8 +2273,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 2.7,
       "inputPricePerMillion": 0.04,
       "outputPricePerMillion": 0.14,
-      "timeToFirstAnswerSeconds": 6.33,
-      "outputTokensPerSecond": 349.05
+      "timeToFirstAnswerSeconds": 6.14,
+      "outputTokensPerSecond": 360.6
     },
     {
       "sourceId": "3435db18-9227-45a5-8e79-9546b14b5aaa",
@@ -2305,7 +2305,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.04,
       "outputPricePerMillion": 0.14,
-      "timeToFirstAnswerSeconds": 0.84,
+      "timeToFirstAnswerSeconds": 0.85,
       "outputTokensPerSecond": 260.96
     },
     {
@@ -2337,8 +2337,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 2.25,
-      "outputTokensPerSecond": 104.51
+      "timeToFirstAnswerSeconds": 2.24,
+      "outputTokensPerSecond": 107.71
     },
     {
       "sourceId": "3538d399-1b3f-455d-9b13-1d8f9fee26c8",
@@ -2369,8 +2369,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 3.94,
-      "outputTokensPerSecond": 45.87
+      "timeToFirstAnswerSeconds": 3.95,
+      "outputTokensPerSecond": 44
     },
     {
       "sourceId": "35d602fc-b8b8-4698-9f4d-f2ce11ca50e4",
@@ -2385,8 +2385,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.6,
-      "timeToFirstAnswerSeconds": 0.76,
-      "outputTokensPerSecond": 143.42
+      "timeToFirstAnswerSeconds": 0.79,
+      "outputTokensPerSecond": 148.81
     },
     {
       "sourceId": "369329e4-629f-425d-975a-e8980aec2965",
@@ -2417,8 +2417,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 1.4,
       "inputPricePerMillion": 0.06,
       "outputPricePerMillion": 0.19,
-      "timeToFirstAnswerSeconds": 12.02,
-      "outputTokensPerSecond": 178.25
+      "timeToFirstAnswerSeconds": 11.95,
+      "outputTokensPerSecond": 179.38
     },
     {
       "sourceId": "385376b1-9815-47dd-83cc-85aac34f247d",
@@ -2449,8 +2449,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 4.5,
-      "timeToFirstAnswerSeconds": 6.2,
-      "outputTokensPerSecond": 173.22
+      "timeToFirstAnswerSeconds": 3.98,
+      "outputTokensPerSecond": 179.09
     },
     {
       "sourceId": "39b64e04-7a69-4aa2-9e2e-fe38c24681ec",
@@ -2481,8 +2481,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 3.6,
-      "timeToFirstAnswerSeconds": 3.62,
-      "outputTokensPerSecond": 54.44
+      "timeToFirstAnswerSeconds": 3.67,
+      "outputTokensPerSecond": 54.89
     },
     {
       "sourceId": "3b5ba264-ad25-429b-a460-4d8698205f0d",
@@ -2497,8 +2497,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 19.04,
-      "outputTokensPerSecond": 115.81
+      "timeToFirstAnswerSeconds": 17.68,
+      "outputTokensPerSecond": 125.59
     },
     {
       "sourceId": "3b608b70-6434-4baa-99ad-45d499703c67",
@@ -2513,8 +2513,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 8,
-      "timeToFirstAnswerSeconds": 1.03,
-      "outputTokensPerSecond": 170.77
+      "timeToFirstAnswerSeconds": 0.97,
+      "outputTokensPerSecond": 162.59
     },
     {
       "sourceId": "3b7de71c-e034-4591-8ca6-6b6be2fa471f",
@@ -2529,8 +2529,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 50.6,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 17.28,
-      "outputTokensPerSecond": 47
+      "timeToFirstAnswerSeconds": 7.28,
+      "outputTokensPerSecond": 49.63
     },
     {
       "sourceId": "3bc32f13-5afa-4e28-bce1-10e57376686b",
@@ -2545,8 +2545,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2.5,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 1.63,
-      "outputTokensPerSecond": 67.08
+      "timeToFirstAnswerSeconds": 1.64,
+      "outputTokensPerSecond": 65.93
     },
     {
       "sourceId": "3c5289e5-1c62-434c-bc44-c51c39f640a1",
@@ -2577,8 +2577,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.18,
       "outputPricePerMillion": 0.7,
-      "timeToFirstAnswerSeconds": 2.22,
-      "outputTokensPerSecond": 115.25
+      "timeToFirstAnswerSeconds": 2.23,
+      "outputTokensPerSecond": 116.69
     },
     {
       "sourceId": "3d4e7366-928c-4eff-a8b0-2919c7d334c9",
@@ -2641,8 +2641,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 2.4,
-      "timeToFirstAnswerSeconds": 20.91,
-      "outputTokensPerSecond": 106.75
+      "timeToFirstAnswerSeconds": 20.89,
+      "outputTokensPerSecond": 107.04
     },
     {
       "sourceId": "3e87c73e-a257-495e-9730-367a66229811",
@@ -2657,8 +2657,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 58,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 304.16,
-      "outputTokensPerSecond": 66.26
+      "timeToFirstAnswerSeconds": 278.2,
+      "outputTokensPerSecond": 66.72
     },
     {
       "sourceId": "3edcb2ed-6981-4f88-a556-563f7f8f00aa",
@@ -2737,8 +2737,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 3.2,
-      "timeToFirstAnswerSeconds": 48.44,
-      "outputTokensPerSecond": 66.09
+      "timeToFirstAnswerSeconds": 48.9,
+      "outputTokensPerSecond": 65.38
     },
     {
       "sourceId": "4077490a-bbfb-404e-979a-a97a20e3b5de",
@@ -2753,8 +2753,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 1.33,
-      "outputTokensPerSecond": 44.33
+      "timeToFirstAnswerSeconds": 1.31,
+      "outputTokensPerSecond": 45.49
     },
     {
       "sourceId": "41f73c27-880c-4f30-8b07-9999ce89a4ae",
@@ -2801,8 +2801,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 42.7,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 149.64,
-      "outputTokensPerSecond": 109.56
+      "timeToFirstAnswerSeconds": 135.05,
+      "outputTokensPerSecond": 111.93
     },
     {
       "sourceId": "43098bd0-77ca-408b-b698-9d60b1d1c3b8",
@@ -2817,8 +2817,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 0.9,
-      "timeToFirstAnswerSeconds": 3.32,
-      "outputTokensPerSecond": 56.51
+      "timeToFirstAnswerSeconds": 3.52,
+      "outputTokensPerSecond": 53.91
     },
     {
       "sourceId": "432d6c36-8825-47f3-b4eb-58529cea346b",
@@ -2849,8 +2849,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 30,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 16,
-      "outputTokensPerSecond": 140.65
+      "timeToFirstAnswerSeconds": 16.18,
+      "outputTokensPerSecond": 142.92
     },
     {
       "sourceId": "433e410e-5170-4f03-b92f-7927c220b2fe",
@@ -2897,8 +2897,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.7,
       "outputPricePerMillion": 2.8,
-      "timeToFirstAnswerSeconds": 2.7,
-      "outputTokensPerSecond": 59.98
+      "timeToFirstAnswerSeconds": 2.73,
+      "outputTokensPerSecond": 61.9
     },
     {
       "sourceId": "4386585e-71b4-4a0c-8a63-afb333419cd6",
@@ -2913,7 +2913,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 2.34,
+      "timeToFirstAnswerSeconds": 2.39,
       "outputTokensPerSecond": 36.56
     },
     {
@@ -2930,7 +2930,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.3,
       "timeToFirstAnswerSeconds": 0.72,
-      "outputTokensPerSecond": 143.95
+      "outputTokensPerSecond": 147.23
     },
     {
       "sourceId": "43fc5506-c5ed-4dee-9b85-962bf7ae3986",
@@ -2962,7 +2962,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.57,
       "outputPricePerMillion": 2.3,
       "timeToFirstAnswerSeconds": 1.67,
-      "outputTokensPerSecond": 40.18
+      "outputTokensPerSecond": 40
     },
     {
       "sourceId": "444cdb1e-bab8-42cd-938c-b2d7a93e2da1",
@@ -3025,8 +3025,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.9,
       "inputPricePerMillion": 0.35,
       "outputPricePerMillion": 4.2,
-      "timeToFirstAnswerSeconds": 36.11,
-      "outputTokensPerSecond": 59.97
+      "timeToFirstAnswerSeconds": 35.06,
+      "outputTokensPerSecond": 61.82
     },
     {
       "sourceId": "45790612-02e3-4c42-b5bd-cd7ed2ea1f2f",
@@ -3073,8 +3073,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.56,
       "outputPricePerMillion": 0.56,
-      "timeToFirstAnswerSeconds": 1.42,
-      "outputTokensPerSecond": 58.06
+      "timeToFirstAnswerSeconds": 1.44,
+      "outputTokensPerSecond": 63.47
     },
     {
       "sourceId": "46d8315e-1630-463f-ab62-84185fa0faab",
@@ -3089,8 +3089,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 16.09,
-      "outputTokensPerSecond": 142.72
+      "timeToFirstAnswerSeconds": 15.8,
+      "outputTokensPerSecond": 145.66
     },
     {
       "sourceId": "4764d31d-f4af-4297-8bd1-e993f26bcb64",
@@ -3105,8 +3105,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.43,
       "outputPricePerMillion": 0.87,
-      "timeToFirstAnswerSeconds": 5.12,
-      "outputTokensPerSecond": 32.95
+      "timeToFirstAnswerSeconds": 6.59,
+      "outputTokensPerSecond": 36.43
     },
     {
       "sourceId": "47b7df55-5804-40de-ba11-317de786710a",
@@ -3153,8 +3153,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 79.98,
-      "outputTokensPerSecond": 69.86
+      "timeToFirstAnswerSeconds": 67.81,
+      "outputTokensPerSecond": 75.68
     },
     {
       "sourceId": "4928e950-7f37-4475-b0dc-c5bad781a321",
@@ -3170,7 +3170,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 1.5,
       "timeToFirstAnswerSeconds": 1.04,
-      "outputTokensPerSecond": 74.72
+      "outputTokensPerSecond": 76.4
     },
     {
       "sourceId": "493f6a1e-7717-4e98-9d6f-548b92c4702d",
@@ -3201,8 +3201,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.75,
       "outputPricePerMillion": 14,
-      "timeToFirstAnswerSeconds": 137.88,
-      "outputTokensPerSecond": 68.47
+      "timeToFirstAnswerSeconds": 129.36,
+      "outputTokensPerSecond": 70.17
     },
     {
       "sourceId": "49e70a38-4ac1-4659-b490-09b2c7ff21d6",
@@ -3249,8 +3249,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.7,
       "outputPricePerMillion": 1.1,
-      "timeToFirstAnswerSeconds": 96.97,
-      "outputTokensPerSecond": 20.84
+      "timeToFirstAnswerSeconds": 91.86,
+      "outputTokensPerSecond": 22.01
     },
     {
       "sourceId": "4ae6c88d-9e4a-4850-89fe-18a1c04a66cc",
@@ -3281,8 +3281,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 16.8,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 44.78,
-      "outputTokensPerSecond": 57.05
+      "timeToFirstAnswerSeconds": 45.22,
+      "outputTokensPerSecond": 56.5
     },
     {
       "sourceId": "4c111fbc-d13a-42b4-858c-1dc17fe3c1d1",
@@ -3329,8 +3329,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 46.57,
-      "outputTokensPerSecond": 91
+      "timeToFirstAnswerSeconds": 33.77,
+      "outputTokensPerSecond": 99.46
     },
     {
       "sourceId": "5016ea75-7b0e-4737-a7e6-1062c6d90fd4",
@@ -3345,8 +3345,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.5,
       "outputPricePerMillion": 9,
-      "timeToFirstAnswerSeconds": 15.49,
-      "outputTokensPerSecond": 217.25
+      "timeToFirstAnswerSeconds": 12.97,
+      "outputTokensPerSecond": 223.96
     },
     {
       "sourceId": "504412c2-2ada-499b-aebf-7e0a35c9d286",
@@ -3393,8 +3393,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.4,
-      "timeToFirstAnswerSeconds": 5.64,
-      "outputTokensPerSecond": 79.84
+      "timeToFirstAnswerSeconds": 5.61,
+      "outputTokensPerSecond": 80.09
     },
     {
       "sourceId": "50f92d5f-f413-4c97-8dab-331101622a28",
@@ -3425,8 +3425,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 30.7,
       "inputPricePerMillion": 3,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 56,
-      "outputTokensPerSecond": 38.1
+      "timeToFirstAnswerSeconds": 56.2,
+      "outputTokensPerSecond": 38.16
     },
     {
       "sourceId": "515852e7-ba9c-4571-8cf9-82ad6b45f22f",
@@ -3458,7 +3458,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.8,
       "timeToFirstAnswerSeconds": 2.19,
-      "outputTokensPerSecond": 109.73
+      "outputTokensPerSecond": 111.29
     },
     {
       "sourceId": "523125f4-a1da-4990-9abd-dd08a069100e",
@@ -3505,7 +3505,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.02,
       "outputPricePerMillion": 0.1,
-      "timeToFirstAnswerSeconds": 0.77,
+      "timeToFirstAnswerSeconds": 0.79,
       "outputTokensPerSecond": 42.55
     },
     {
@@ -3522,7 +3522,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 2.5,
       "outputPricePerMillion": 15,
       "timeToFirstAnswerSeconds": 1.73,
-      "outputTokensPerSecond": 89.76
+      "outputTokensPerSecond": 90.64
     },
     {
       "sourceId": "53c98840-47af-49aa-94e6-469fb17e9a1b",
@@ -3537,8 +3537,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 26.31,
-      "outputTokensPerSecond": 38.31
+      "timeToFirstAnswerSeconds": 23.97,
+      "outputTokensPerSecond": 39.11
     },
     {
       "sourceId": "540ebc58-a2d8-4dc9-ba6b-973efa52fab1",
@@ -3665,8 +3665,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 10.5,
       "inputPricePerMillion": 0.35,
       "outputPricePerMillion": 1.5,
-      "timeToFirstAnswerSeconds": 21.47,
-      "outputTokensPerSecond": 97.71
+      "timeToFirstAnswerSeconds": 22.63,
+      "outputTokensPerSecond": 92.48
     },
     {
       "sourceId": "58b812bf-8498-46db-b834-f43ccc614b61",
@@ -3676,13 +3676,13 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "creatorName": "OpenAI",
       "releaseDate": "2026-07-09",
       "observedAt": "2026-09-11",
-      "intelligence": 25.8,
+      "intelligence": 25.5,
       "coding": 50.7,
       "agentic": 25.4,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 3.55,
-      "outputTokensPerSecond": 105.71
+      "timeToFirstAnswerSeconds": 2.95,
+      "outputTokensPerSecond": 104.37
     },
     {
       "sourceId": "5962d643-0a6f-4630-bb08-ab5720d80056",
@@ -3713,7 +3713,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 3.2,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 1.5,
-      "timeToFirstAnswerSeconds": 5.9,
+      "timeToFirstAnswerSeconds": 6.04,
       "outputTokensPerSecond": 287.6
     },
     {
@@ -3777,7 +3777,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.75,
       "outputPricePerMillion": 14,
-      "timeToFirstAnswerSeconds": 62.04,
+      "timeToFirstAnswerSeconds": 50.5,
       "outputTokensPerSecond": 127.21
     },
     {
@@ -3793,8 +3793,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 2.25,
-      "outputTokensPerSecond": 136.71
+      "timeToFirstAnswerSeconds": 2.26,
+      "outputTokensPerSecond": 146.45
     },
     {
       "sourceId": "5a088cde-18e2-4dfa-98dd-d283e1c19654",
@@ -3841,8 +3841,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 25.2,
       "inputPricePerMillion": 1.2,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 60.12,
-      "outputTokensPerSecond": 65.02
+      "timeToFirstAnswerSeconds": 54.93,
+      "outputTokensPerSecond": 71.21
     },
     {
       "sourceId": "5ad2f60f-ee05-49fd-85a0-cef69aa7cb7b",
@@ -3874,7 +3874,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 1.2,
       "outputPricePerMillion": 6,
       "timeToFirstAnswerSeconds": 4.12,
-      "outputTokensPerSecond": 57.93
+      "outputTokensPerSecond": 58.29
     },
     {
       "sourceId": "5b52def2-ac9b-4465-ad80-91ea8079e253",
@@ -3889,8 +3889,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 21.7,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 2.6,
-      "timeToFirstAnswerSeconds": 16.84,
-      "outputTokensPerSecond": 156.43
+      "timeToFirstAnswerSeconds": 16.48,
+      "outputTokensPerSecond": 160.4
     },
     {
       "sourceId": "5bb1f426-2d64-4d03-99fb-8041ee85c33b",
@@ -3938,7 +3938,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.06,
       "outputPricePerMillion": 0.24,
       "timeToFirstAnswerSeconds": 0.94,
-      "outputTokensPerSecond": 169.77
+      "outputTokensPerSecond": 169.08
     },
     {
       "sourceId": "5c6533f3-75a2-4109-b9a9-3623afc6b86a",
@@ -3953,8 +3953,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.21,
       "outputPricePerMillion": 0.57,
-      "timeToFirstAnswerSeconds": 62.89,
-      "outputTokensPerSecond": 33.25
+      "timeToFirstAnswerSeconds": 57.76,
+      "outputTokensPerSecond": 36.35
     },
     {
       "sourceId": "5ce30d25-5353-45bb-bef9-6b87480ba3a2",
@@ -4001,8 +4001,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.17,
       "outputPricePerMillion": 0.98,
-      "timeToFirstAnswerSeconds": 41.38,
-      "outputTokensPerSecond": 51.54
+      "timeToFirstAnswerSeconds": 36.3,
+      "outputTokensPerSecond": 59.22
     },
     {
       "sourceId": "5d4acc80-7a88-4e84-bfe7-99071b84e6a4",
@@ -4065,8 +4065,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.43,
       "outputPricePerMillion": 0.87,
-      "timeToFirstAnswerSeconds": 32.27,
-      "outputTokensPerSecond": 64.85
+      "timeToFirstAnswerSeconds": 32.21,
+      "outputTokensPerSecond": 65.04
     },
     {
       "sourceId": "5dba8d07-9992-483c-81db-dac97cb15ba8",
@@ -4097,8 +4097,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.9,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 2.4,
-      "timeToFirstAnswerSeconds": 15.47,
-      "outputTokensPerSecond": 152.62
+      "timeToFirstAnswerSeconds": 15.11,
+      "outputTokensPerSecond": 156.78
     },
     {
       "sourceId": "5e4e4590-a77e-4b66-95f8-f3960a1a7c68",
@@ -4129,8 +4129,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 49.6,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 55.38,
-      "outputTokensPerSecond": 37.81
+      "timeToFirstAnswerSeconds": 55.44,
+      "outputTokensPerSecond": 37.83
     },
     {
       "sourceId": "5e8b0d98-a3b4-42b5-93d8-ecb748788754",
@@ -4146,7 +4146,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 2.5,
       "timeToFirstAnswerSeconds": 12.17,
-      "outputTokensPerSecond": 112.08
+      "outputTokensPerSecond": 120.21
     },
     {
       "sourceId": "5e965af0-ca5c-4f47-9ba9-06000508b84a",
@@ -4162,7 +4162,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
       "timeToFirstAnswerSeconds": 43.23,
-      "outputTokensPerSecond": 77.81
+      "outputTokensPerSecond": 68.92
     },
     {
       "sourceId": "5ea94a4a-55ac-4ea1-8898-2b3971e94af6",
@@ -4209,8 +4209,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.34,
       "outputPricePerMillion": 0.34,
-      "timeToFirstAnswerSeconds": 1.29,
-      "outputTokensPerSecond": 13.5
+      "timeToFirstAnswerSeconds": 1.33,
+      "outputTokensPerSecond": 16.27
     },
     {
       "sourceId": "6000145b-0e3d-4fef-a55f-bcaac84803b2",
@@ -4241,8 +4241,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.3,
       "outputPricePerMillion": 7.8,
-      "timeToFirstAnswerSeconds": 38.63,
-      "outputTokensPerSecond": 58.83
+      "timeToFirstAnswerSeconds": 36.55,
+      "outputTokensPerSecond": 60.56
     },
     {
       "sourceId": "6056731b-c705-455b-aa0d-43cbf29b1054",
@@ -4289,8 +4289,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 31.34,
-      "outputTokensPerSecond": 150.33
+      "timeToFirstAnswerSeconds": 30.48,
+      "outputTokensPerSecond": 144.68
     },
     {
       "sourceId": "62de31e8-a1a3-429c-b634-a2afccfd9363",
@@ -4321,8 +4321,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 4.1,
       "inputPricePerMillion": 0.19,
       "outputPricePerMillion": 0.65,
-      "timeToFirstAnswerSeconds": 18.03,
-      "outputTokensPerSecond": 132.27
+      "timeToFirstAnswerSeconds": 15.68,
+      "outputTokensPerSecond": 154.74
     },
     {
       "sourceId": "641a073a-41c9-4773-9b02-d965c16607c5",
@@ -4353,7 +4353,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 0.6,
+      "timeToFirstAnswerSeconds": 0.62,
       "outputTokensPerSecond": 94.29
     },
     {
@@ -4369,8 +4369,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.03,
       "outputPricePerMillion": 0.15,
-      "timeToFirstAnswerSeconds": 75.22,
-      "outputTokensPerSecond": 26.87
+      "timeToFirstAnswerSeconds": 76.74,
+      "outputTokensPerSecond": 26.34
     },
     {
       "sourceId": "660965b2-66d2-49ee-a6b9-79a6ac47d3c0",
@@ -4417,8 +4417,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 45.3,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 44.52,
-      "outputTokensPerSecond": 49.3
+      "timeToFirstAnswerSeconds": 46.84,
+      "outputTokensPerSecond": 46.61
     },
     {
       "sourceId": "666eb13f-0d22-4438-8eb0-01876e1a8604",
@@ -4449,8 +4449,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.38,
       "outputPricePerMillion": 2.25,
-      "timeToFirstAnswerSeconds": 1.99,
-      "outputTokensPerSecond": 133.56
+      "timeToFirstAnswerSeconds": 2.06,
+      "outputTokensPerSecond": 139.25
     },
     {
       "sourceId": "66f4ce73-9a9b-4b49-9c6e-bedb9bfdc720",
@@ -4466,7 +4466,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.1,
       "timeToFirstAnswerSeconds": 0.65,
-      "outputTokensPerSecond": 170.56
+      "outputTokensPerSecond": 177.71
     },
     {
       "sourceId": "686ab020-ee58-4a70-a9ac-24d675a73506",
@@ -4513,8 +4513,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 23.9,
       "inputPricePerMillion": 2.5,
       "outputPricePerMillion": 7.5,
-      "timeToFirstAnswerSeconds": 16.58,
-      "outputTokensPerSecond": 168.1
+      "timeToFirstAnswerSeconds": 19.45,
+      "outputTokensPerSecond": 141.7
     },
     {
       "sourceId": "6a5d56e1-bb68-4205-8d9b-26b97888bc84",
@@ -4529,8 +4529,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.55,
       "outputPricePerMillion": 2.2,
-      "timeToFirstAnswerSeconds": 74.6,
-      "outputTokensPerSecond": 27.92
+      "timeToFirstAnswerSeconds": 77.57,
+      "outputTokensPerSecond": 27.05
     },
     {
       "sourceId": "6a7c0e25-1dcb-4b15-8495-a8536a9da051",
@@ -4549,6 +4549,22 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "outputTokensPerSecond": null
     },
     {
+      "sourceId": "6ace0ead-584f-4ce6-a9b7-6c3f9cc91c3c",
+      "sourceSlug": "agnes-3-0-flash",
+      "rawName": "Agnes 3.0 Flash",
+      "creatorId": "5db3af1a-e372-4c62-98bd-f6027eeaf990",
+      "creatorName": "Sapiens AI",
+      "releaseDate": "2026-09-11",
+      "observedAt": "2026-09-11",
+      "intelligence": 35.5,
+      "coding": null,
+      "agentic": null,
+      "inputPricePerMillion": 0.05,
+      "outputPricePerMillion": 0.15,
+      "timeToFirstAnswerSeconds": 9.84,
+      "outputTokensPerSecond": 252.72
+    },
+    {
       "sourceId": "6afbfb62-27e4-435e-9c85-d9fe1b92519e",
       "sourceSlug": "gemini-2-5-flash",
       "rawName": "Gemini 2.5 Flash (Non-reasoning)",
@@ -4561,8 +4577,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 0.45,
-      "outputTokensPerSecond": 186.81
+      "timeToFirstAnswerSeconds": 0.46,
+      "outputTokensPerSecond": 188.43
     },
     {
       "sourceId": "6b08a75a-19ee-40b4-be33-133b8ef42f92",
@@ -4593,7 +4609,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 30.6,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 30,
-      "timeToFirstAnswerSeconds": 8.87,
+      "timeToFirstAnswerSeconds": 6.18,
       "outputTokensPerSecond": 73.12
     },
     {
@@ -4625,8 +4641,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.15,
-      "timeToFirstAnswerSeconds": 25.4,
-      "outputTokensPerSecond": 88.81
+      "timeToFirstAnswerSeconds": 23.57,
+      "outputTokensPerSecond": 96.03
     },
     {
       "sourceId": "6d9a176d-feb8-4dac-8872-afe32b31897f",
@@ -4657,8 +4673,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.16,
       "outputPricePerMillion": 0.64,
-      "timeToFirstAnswerSeconds": 2.66,
-      "outputTokensPerSecond": 65.3
+      "timeToFirstAnswerSeconds": 2.7,
+      "outputTokensPerSecond": 64.33
     },
     {
       "sourceId": "6dd8ba55-5680-44a9-b309-82928165d5f0",
@@ -4673,8 +4689,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.75,
       "outputPricePerMillion": 14,
-      "timeToFirstAnswerSeconds": 0.98,
-      "outputTokensPerSecond": 61.41
+      "timeToFirstAnswerSeconds": 1.01,
+      "outputTokensPerSecond": 61.25
     },
     {
       "sourceId": "6e1b44ff-c227-496b-aef4-19b70cd18c76",
@@ -4705,8 +4721,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.43,
       "outputPricePerMillion": 0.87,
-      "timeToFirstAnswerSeconds": 1.74,
-      "outputTokensPerSecond": 64.5
+      "timeToFirstAnswerSeconds": 1.61,
+      "outputTokensPerSecond": 66.88
     },
     {
       "sourceId": "6e6e02fd-9cbd-417f-9bfc-673df89c313d",
@@ -4721,8 +4737,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.6,
-      "timeToFirstAnswerSeconds": 50.97,
-      "outputTokensPerSecond": 49.05
+      "timeToFirstAnswerSeconds": 43.95,
+      "outputTokensPerSecond": 53.39
     },
     {
       "sourceId": "6f174934-5b7d-4333-86cb-f5ebf4a862e3",
@@ -4737,8 +4753,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 40.5,
       "inputPricePerMillion": 4,
       "outputPricePerMillion": 20,
-      "timeToFirstAnswerSeconds": 9.16,
-      "outputTokensPerSecond": 57.47
+      "timeToFirstAnswerSeconds": 5.06,
+      "outputTokensPerSecond": 56.62
     },
     {
       "sourceId": "6f1a7562-6e96-46ac-af4f-6ba5a7a3da96",
@@ -4753,8 +4769,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 30,
-      "timeToFirstAnswerSeconds": 1,
-      "outputTokensPerSecond": 76.88
+      "timeToFirstAnswerSeconds": 0.99,
+      "outputTokensPerSecond": 77.88
     },
     {
       "sourceId": "6f3534b1-1168-472e-b3e3-23ab521504f5",
@@ -4769,7 +4785,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.8,
-      "timeToFirstAnswerSeconds": 1.84,
+      "timeToFirstAnswerSeconds": 1.85,
       "outputTokensPerSecond": 219.21
     },
     {
@@ -4785,8 +4801,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 2.2,
-      "timeToFirstAnswerSeconds": 28.72,
-      "outputTokensPerSecond": 73.14
+      "timeToFirstAnswerSeconds": 24.96,
+      "outputTokensPerSecond": 84.63
     },
     {
       "sourceId": "6fd796d3-f346-4f66-97df-5da81714fc73",
@@ -4801,8 +4817,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 23.2,
-      "outputTokensPerSecond": 159.46
+      "timeToFirstAnswerSeconds": 23.79,
+      "outputTokensPerSecond": 152.29
     },
     {
       "sourceId": "70152cb0-fb36-4732-a925-89ef40994be1",
@@ -4833,8 +4849,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.13,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 1.45,
-      "outputTokensPerSecond": 80.07
+      "timeToFirstAnswerSeconds": 1.36,
+      "outputTokensPerSecond": 75.43
     },
     {
       "sourceId": "712be54a-77ae-41b2-9a58-21181479d6ee",
@@ -4849,8 +4865,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 52.7,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 24.66,
-      "outputTokensPerSecond": 49.94
+      "timeToFirstAnswerSeconds": 16.94,
+      "outputTokensPerSecond": 50.34
     },
     {
       "sourceId": "713fae11-c75c-4f10-ae2c-8e4074cd58af",
@@ -4865,8 +4881,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 1.1,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 0.84,
-      "outputTokensPerSecond": 84.92
+      "timeToFirstAnswerSeconds": 0.83,
+      "outputTokensPerSecond": 90.08
     },
     {
       "sourceId": "715e05fb-1313-441c-bf1d-8651c752a841",
@@ -4929,8 +4945,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 25,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 16.47,
-      "outputTokensPerSecond": 141.77
+      "timeToFirstAnswerSeconds": 15.59,
+      "outputTokensPerSecond": 150.81
     },
     {
       "sourceId": "72c358fd-7d45-4d68-89aa-699743710924",
@@ -4946,7 +4962,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.4,
       "timeToFirstAnswerSeconds": 0.81,
-      "outputTokensPerSecond": 107.65
+      "outputTokensPerSecond": 116.69
     },
     {
       "sourceId": "7393c56a-ec31-48e9-b804-c04f2d2cb641",
@@ -4961,8 +4977,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.2,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 8.75,
-      "outputTokensPerSecond": 61.73
+      "timeToFirstAnswerSeconds": 8.69,
+      "outputTokensPerSecond": 56.78
     },
     {
       "sourceId": "739684ba-0f63-4e2a-b4ee-30741c9e9320",
@@ -4977,8 +4993,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.02,
       "outputPricePerMillion": 0.05,
-      "timeToFirstAnswerSeconds": 0.88,
-      "outputTokensPerSecond": 142.91
+      "timeToFirstAnswerSeconds": 0.85,
+      "outputTokensPerSecond": 143.17
     },
     {
       "sourceId": "739e531a-eb0a-478f-bb67-5845b79ce65d",
@@ -5105,8 +5121,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 30,
-      "timeToFirstAnswerSeconds": 3.46,
-      "outputTokensPerSecond": 31.05
+      "timeToFirstAnswerSeconds": 3.45,
+      "outputTokensPerSecond": 31.1
     },
     {
       "sourceId": "76bce7fb-3a3f-4b66-a78d-35ccf3edf5d2",
@@ -5122,7 +5138,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
       "timeToFirstAnswerSeconds": 1.03,
-      "outputTokensPerSecond": 154.99
+      "outputTokensPerSecond": 156.58
     },
     {
       "sourceId": "76dcf6ef-39ea-4be0-b693-b88da25b4caf",
@@ -5137,8 +5153,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 1,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.2,
-      "timeToFirstAnswerSeconds": 10.06,
-      "outputTokensPerSecond": 224.67
+      "timeToFirstAnswerSeconds": 9.55,
+      "outputTokensPerSecond": 239.5
     },
     {
       "sourceId": "7707a46f-895f-4247-b7a8-ddab87c9a11d",
@@ -5153,8 +5169,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 48.1,
       "inputPricePerMillion": 0.44,
       "outputPricePerMillion": 1.32,
-      "timeToFirstAnswerSeconds": 11.01,
-      "outputTokensPerSecond": 198.17
+      "timeToFirstAnswerSeconds": 10.28,
+      "outputTokensPerSecond": 217.08
     },
     {
       "sourceId": "7764d514-694f-444c-8d60-bdc6e24e223f",
@@ -5217,7 +5233,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 30.2,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 3.75,
-      "timeToFirstAnswerSeconds": 16.82,
+      "timeToFirstAnswerSeconds": 16.76,
       "outputTokensPerSecond": 195.28
     },
     {
@@ -5233,7 +5249,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 0.85,
+      "timeToFirstAnswerSeconds": 0.83,
       "outputTokensPerSecond": 193.01
     },
     {
@@ -5265,8 +5281,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 42.1,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 15.1,
-      "outputTokensPerSecond": 51.64
+      "timeToFirstAnswerSeconds": 11.11,
+      "outputTokensPerSecond": 54.84
     },
     {
       "sourceId": "7a7b52f6-fdef-4dae-9203-58c710ccc81d",
@@ -5297,8 +5313,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 2.42,
-      "outputTokensPerSecond": 45.96
+      "timeToFirstAnswerSeconds": 2.38,
+      "outputTokensPerSecond": 50.27
     },
     {
       "sourceId": "7b269763-ecc0-41ef-aa29-47ef632ac065",
@@ -5330,7 +5346,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.6,
       "timeToFirstAnswerSeconds": 0.77,
-      "outputTokensPerSecond": 137.12
+      "outputTokensPerSecond": 140.9
     },
     {
       "sourceId": "7c4d1e30-6ecb-46cf-880c-41446d7b51f1",
@@ -5346,7 +5362,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 4,
       "outputPricePerMillion": 20,
       "timeToFirstAnswerSeconds": 1.18,
-      "outputTokensPerSecond": 64.39
+      "outputTokensPerSecond": 61.66
     },
     {
       "sourceId": "7c73c3be-7f51-4d14-bec8-d5789488df25",
@@ -5361,8 +5377,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 6.07,
-      "outputTokensPerSecond": 180.18
+      "timeToFirstAnswerSeconds": 6.19,
+      "outputTokensPerSecond": 184.98
     },
     {
       "sourceId": "7d73161f-002f-4c9c-b4f8-6c4d91f2ba8e",
@@ -5393,8 +5409,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 39.9,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 47.74,
-      "outputTokensPerSecond": 45.71
+      "timeToFirstAnswerSeconds": 49.09,
+      "outputTokensPerSecond": 44.31
     },
     {
       "sourceId": "7eabd8ca-bf43-4d56-b3df-efd1c4eebfb0",
@@ -5425,8 +5441,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 7.1,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 15.59,
-      "outputTokensPerSecond": 158.47
+      "timeToFirstAnswerSeconds": 15.27,
+      "outputTokensPerSecond": 161.46
     },
     {
       "sourceId": "7ec1065a-c90e-41e4-bd17-abb7042eed76",
@@ -5441,8 +5457,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.8,
-      "timeToFirstAnswerSeconds": 1.88,
-      "outputTokensPerSecond": 138.1
+      "timeToFirstAnswerSeconds": 1.89,
+      "outputTokensPerSecond": 138.65
     },
     {
       "sourceId": "7f3c9423-3ee3-4369-a6d9-3f2a40aff00e",
@@ -5457,8 +5473,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 9.91,
-      "outputTokensPerSecond": 71.02
+      "timeToFirstAnswerSeconds": 7.62,
+      "outputTokensPerSecond": 74.57
     },
     {
       "sourceId": "8014c311-fa23-4a4b-8485-8a864db8a113",
@@ -5473,8 +5489,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.7,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.7,
-      "timeToFirstAnswerSeconds": 0.61,
-      "outputTokensPerSecond": 1382.39
+      "timeToFirstAnswerSeconds": 0.62,
+      "outputTokensPerSecond": 1411.93
     },
     {
       "sourceId": "806032ff-6252-4c22-ba99-a126e411b7a4",
@@ -5537,8 +5553,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 37.6,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 12,
-      "timeToFirstAnswerSeconds": 5.54,
-      "outputTokensPerSecond": 78.37
+      "timeToFirstAnswerSeconds": 3.19,
+      "outputTokensPerSecond": 79.06
     },
     {
       "sourceId": "81b6ddfc-111e-4422-bd44-42ee6165b699",
@@ -5553,8 +5569,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 2.2,
-      "timeToFirstAnswerSeconds": 1.39,
-      "outputTokensPerSecond": 84.18
+      "timeToFirstAnswerSeconds": 1.36,
+      "outputTokensPerSecond": 84.78
     },
     {
       "sourceId": "8215372b-66ff-457b-855e-e8abeafc9571",
@@ -5617,8 +5633,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 49.31,
-      "outputTokensPerSecond": 42.71
+      "timeToFirstAnswerSeconds": 48.86,
+      "outputTokensPerSecond": 43.09
     },
     {
       "sourceId": "82b36b4d-84dd-4bc0-ad32-e3aee9442789",
@@ -5649,8 +5665,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.1,
-      "timeToFirstAnswerSeconds": 0.81,
-      "outputTokensPerSecond": 93.08
+      "timeToFirstAnswerSeconds": 0.79,
+      "outputTokensPerSecond": 115.15
     },
     {
       "sourceId": "83173329-c09a-41f1-a028-a282a5f908d7",
@@ -5665,8 +5681,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 42.3,
       "inputPricePerMillion": 1.32,
       "outputPricePerMillion": 3.96,
-      "timeToFirstAnswerSeconds": 30.68,
-      "outputTokensPerSecond": 68.77
+      "timeToFirstAnswerSeconds": 29.43,
+      "outputTokensPerSecond": 72.31
     },
     {
       "sourceId": "83cb898e-05d9-4e4b-9de3-2d305014d923",
@@ -5713,7 +5729,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.1,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 23.39,
+      "timeToFirstAnswerSeconds": 21.7,
       "outputTokensPerSecond": 135.62
     },
     {
@@ -5761,7 +5777,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 15,
       "inputPricePerMillion": 0.38,
       "outputPricePerMillion": 2.25,
-      "timeToFirstAnswerSeconds": 43.9,
+      "timeToFirstAnswerSeconds": 43.91,
       "outputTokensPerSecond": 128.84
     },
     {
@@ -5777,8 +5793,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 39.5,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 58.58,
-      "outputTokensPerSecond": 107.05
+      "timeToFirstAnswerSeconds": 47.13,
+      "outputTokensPerSecond": 108.33
     },
     {
       "sourceId": "877fdfc9-2026-477a-af96-e4fd602c0131",
@@ -5825,8 +5841,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.14,
       "outputPricePerMillion": 0.57,
-      "timeToFirstAnswerSeconds": 2.71,
-      "outputTokensPerSecond": 4.56
+      "timeToFirstAnswerSeconds": 2.73,
+      "outputTokensPerSecond": 3.05
     },
     {
       "sourceId": "8869f28a-a6ff-487f-8d32-93fe335fdda5",
@@ -5841,8 +5857,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.25,
-      "timeToFirstAnswerSeconds": 6.34,
-      "outputTokensPerSecond": 167.56
+      "timeToFirstAnswerSeconds": 5.94,
+      "outputTokensPerSecond": 161.52
     },
     {
       "sourceId": "891bcdf2-8dd2-4dc3-829b-d963fde25876",
@@ -5921,8 +5937,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 41.1,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 3.75,
-      "timeToFirstAnswerSeconds": 11.74,
-      "outputTokensPerSecond": 262.06
+      "timeToFirstAnswerSeconds": 12.14,
+      "outputTokensPerSecond": 261.3
     },
     {
       "sourceId": "8afc250d-b538-45a2-812a-4605f4ffd87e",
@@ -5937,8 +5953,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 44.7,
       "inputPricePerMillion": 4,
       "outputPricePerMillion": 20,
-      "timeToFirstAnswerSeconds": 41.69,
-      "outputTokensPerSecond": 59.29
+      "timeToFirstAnswerSeconds": 15.49,
+      "outputTokensPerSecond": 60.67
     },
     {
       "sourceId": "8b1a70d1-e05f-426b-9122-023d4629ab47",
@@ -5969,8 +5985,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2.5,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 1.38,
-      "outputTokensPerSecond": 91.2
+      "timeToFirstAnswerSeconds": 1.36,
+      "outputTokensPerSecond": 88.48
     },
     {
       "sourceId": "8c29d66d-bf98-4ea3-8572-5409353ecc66",
@@ -5985,8 +6001,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 20.1,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 3.6,
-      "timeToFirstAnswerSeconds": 105.5,
-      "outputTokensPerSecond": 55.73
+      "timeToFirstAnswerSeconds": 104.58,
+      "outputTokensPerSecond": 56.25
     },
     {
       "sourceId": "8c748e53-61ae-48b8-af8d-eb8298b1e9db",
@@ -6033,8 +6049,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 22.5,
       "inputPricePerMillion": 0.95,
       "outputPricePerMillion": 4,
-      "timeToFirstAnswerSeconds": 47.89,
-      "outputTokensPerSecond": 49.78
+      "timeToFirstAnswerSeconds": 49.6,
+      "outputTokensPerSecond": 47.71
     },
     {
       "sourceId": "8ddacd41-bf43-411b-aa30-43ebf0567dd8",
@@ -6060,13 +6076,13 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "creatorName": "Sapiens AI",
       "releaseDate": "2026-07-24",
       "observedAt": "2026-09-11",
-      "intelligence": 26.8,
+      "intelligence": 27.8,
       "coding": 58.8,
       "agentic": 29.4,
       "inputPricePerMillion": 0.45,
       "outputPricePerMillion": 0.9,
-      "timeToFirstAnswerSeconds": 14.65,
-      "outputTokensPerSecond": 170.19
+      "timeToFirstAnswerSeconds": 15.51,
+      "outputTokensPerSecond": 169.31
     },
     {
       "sourceId": "8df710d3-9dae-4498-9b4e-9818238e6f31",
@@ -6081,8 +6097,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 50.4,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 55.16,
-      "outputTokensPerSecond": 38.22
+      "timeToFirstAnswerSeconds": 54.93,
+      "outputTokensPerSecond": 38.4
     },
     {
       "sourceId": "8e78cf7a-5b76-4beb-beba-b99c6233b208",
@@ -6113,8 +6129,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 41.55,
-      "outputTokensPerSecond": 152.77
+      "timeToFirstAnswerSeconds": 38.8,
+      "outputTokensPerSecond": 130.94
     },
     {
       "sourceId": "8f0a75d6-8d00-4c2e-bcd4-8e88a570a93c",
@@ -6177,8 +6193,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 15.8,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 0.7,
-      "outputTokensPerSecond": 109.78
+      "timeToFirstAnswerSeconds": 0.75,
+      "outputTokensPerSecond": 113.3
     },
     {
       "sourceId": "90e078f2-051b-4c63-8919-76618971cb3f",
@@ -6193,7 +6209,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 17.5,
       "inputPricePerMillion": 3,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 17.26,
+      "timeToFirstAnswerSeconds": 14.89,
       "outputTokensPerSecond": 41.73
     },
     {
@@ -6210,7 +6226,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 3,
       "outputPricePerMillion": 15,
       "timeToFirstAnswerSeconds": 1.49,
-      "outputTokensPerSecond": 38.94
+      "outputTokensPerSecond": 37.99
     },
     {
       "sourceId": "91e3b45f-3f52-4511-8c15-8948854bebc5",
@@ -6257,8 +6273,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.6,
       "inputPricePerMillion": 0.26,
       "outputPricePerMillion": 0.91,
-      "timeToFirstAnswerSeconds": 0.85,
-      "outputTokensPerSecond": 88.32
+      "timeToFirstAnswerSeconds": 0.88,
+      "outputTokensPerSecond": 89.86
     },
     {
       "sourceId": "92b19c88-fa87-4595-957e-fe9aa5fa5ad4",
@@ -6289,8 +6305,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.38,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 1.95,
-      "outputTokensPerSecond": 39.56
+      "timeToFirstAnswerSeconds": 1.91,
+      "outputTokensPerSecond": 49.63
     },
     {
       "sourceId": "94229066-9381-4ee1-bf70-a16d63756a6e",
@@ -6321,8 +6337,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.57,
       "outputPricePerMillion": 2.2,
-      "timeToFirstAnswerSeconds": 3.57,
-      "outputTokensPerSecond": 41.41
+      "timeToFirstAnswerSeconds": 3.75,
+      "outputTokensPerSecond": 36.87
     },
     {
       "sourceId": "948892b5-db03-4118-a4a8-ccd51ed871ea",
@@ -6337,8 +6353,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 17.2,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 20.43,
-      "outputTokensPerSecond": 120.96
+      "timeToFirstAnswerSeconds": 21.05,
+      "outputTokensPerSecond": 119.35
     },
     {
       "sourceId": "94a6d26e-a903-47f3-8323-ae422d237bb9",
@@ -6385,8 +6401,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.6,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.15,
-      "timeToFirstAnswerSeconds": 0.76,
-      "outputTokensPerSecond": 87.12
+      "timeToFirstAnswerSeconds": 0.77,
+      "outputTokensPerSecond": 85.74
     },
     {
       "sourceId": "976cc8ad-7904-4056-83c5-960181f47d5f",
@@ -6401,8 +6417,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.66,
       "outputPricePerMillion": 0.72,
-      "timeToFirstAnswerSeconds": 1.67,
-      "outputTokensPerSecond": 84.53
+      "timeToFirstAnswerSeconds": 1.66,
+      "outputTokensPerSecond": 85.81
     },
     {
       "sourceId": "9815da7d-70f4-44d6-b539-9ffef0faa152",
@@ -6449,7 +6465,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 42.6,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 33.49,
+      "timeToFirstAnswerSeconds": 29.32,
       "outputTokensPerSecond": 57.66
     },
     {
@@ -6465,8 +6481,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 55.7,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 4.25,
-      "timeToFirstAnswerSeconds": 36.28,
-      "outputTokensPerSecond": 196.91
+      "timeToFirstAnswerSeconds": 35.84,
+      "outputTokensPerSecond": 205.89
     },
     {
       "sourceId": "99f376bf-cbcb-4124-bf3e-6b0a4e6e9bea",
@@ -6476,13 +6492,13 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "creatorName": "Anthropic",
       "releaseDate": "2026-06-30",
       "observedAt": "2026-09-11",
-      "intelligence": null,
+      "intelligence": 34.7,
       "coding": null,
       "agentic": null,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 31.34,
-      "outputTokensPerSecond": 64.77
+      "timeToFirstAnswerSeconds": 29.89,
+      "outputTokensPerSecond": 64.98
     },
     {
       "sourceId": "9ac3908c-9eb2-44db-8c01-3ec7da6fc2ae",
@@ -6513,8 +6529,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 57.1,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 131.97,
-      "outputTokensPerSecond": 57.29
+      "timeToFirstAnswerSeconds": 102.8,
+      "outputTokensPerSecond": 59.54
     },
     {
       "sourceId": "9b97a35e-6ac7-44d9-91c6-422fa678963e",
@@ -6529,8 +6545,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 24.9,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 12,
-      "timeToFirstAnswerSeconds": 1,
-      "outputTokensPerSecond": 73.85
+      "timeToFirstAnswerSeconds": 0.96,
+      "outputTokensPerSecond": 74.84
     },
     {
       "sourceId": "9ca246a7-cf13-42c9-9182-5b5ad6b79026",
@@ -6593,8 +6609,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 53.3,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 22.79,
-      "outputTokensPerSecond": 48.68
+      "timeToFirstAnswerSeconds": 20.67,
+      "outputTokensPerSecond": 49.2
     },
     {
       "sourceId": "9dba61f5-78ee-4190-8d1d-8e7063ffd386",
@@ -6609,8 +6625,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.8,
       "inputPricePerMillion": 0.18,
       "outputPricePerMillion": 2.1,
-      "timeToFirstAnswerSeconds": 58.23,
-      "outputTokensPerSecond": 36.7
+      "timeToFirstAnswerSeconds": 58.31,
+      "outputTokensPerSecond": 36.67
     },
     {
       "sourceId": "9e141c0d-fc82-4e07-bb2e-fe0003bc030b",
@@ -6641,8 +6657,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 42.2,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 12,
-      "timeToFirstAnswerSeconds": 40.89,
-      "outputTokensPerSecond": 78.91
+      "timeToFirstAnswerSeconds": 30.94,
+      "outputTokensPerSecond": 76.14
     },
     {
       "sourceId": "9eae4ec4-61b8-48bc-9843-3edd506ae933",
@@ -6689,8 +6705,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 1.6,
-      "timeToFirstAnswerSeconds": 0.89,
-      "outputTokensPerSecond": 112.89
+      "timeToFirstAnswerSeconds": 0.9,
+      "outputTokensPerSecond": 107.07
     },
     {
       "sourceId": "9f873c2f-2c2d-4ccb-9e1b-71bf61b052be",
@@ -6705,8 +6721,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 0.86,
-      "outputTokensPerSecond": 44.63
+      "timeToFirstAnswerSeconds": 0.87,
+      "outputTokensPerSecond": 44.41
     },
     {
       "sourceId": "a04f5b78-f397-4fd8-a2b1-00dcab50324c",
@@ -6754,7 +6770,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
       "timeToFirstAnswerSeconds": 1.03,
-      "outputTokensPerSecond": 98.78
+      "outputTokensPerSecond": 103.79
     },
     {
       "sourceId": "a29e66d6-1c3c-456a-8770-59ee3845b35d",
@@ -6833,8 +6849,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 39.5,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 2.5,
-      "outputTokensPerSecond": 49.45
+      "timeToFirstAnswerSeconds": 2.44,
+      "outputTokensPerSecond": 51.23
     },
     {
       "sourceId": "a5092ece-d5a7-461f-b036-3faef262423f",
@@ -6897,8 +6913,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 10.3,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 5,
-      "timeToFirstAnswerSeconds": 18.1,
-      "outputTokensPerSecond": 81.75
+      "timeToFirstAnswerSeconds": 20.31,
+      "outputTokensPerSecond": 84.67
     },
     {
       "sourceId": "a68afa0b-7fe2-4e9d-bf3e-741cce3c6aeb",
@@ -6993,8 +7009,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 4,
-      "timeToFirstAnswerSeconds": 37.93,
-      "outputTokensPerSecond": 56.88
+      "timeToFirstAnswerSeconds": 37.57,
+      "outputTokensPerSecond": 57.52
     },
     {
       "sourceId": "a83f84b3-473a-4276-9ae1-8909da723159",
@@ -7025,8 +7041,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 19.7,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 1.6,
-      "timeToFirstAnswerSeconds": 36.9,
-      "outputTokensPerSecond": 57.77
+      "timeToFirstAnswerSeconds": 32.16,
+      "outputTokensPerSecond": 66.82
     },
     {
       "sourceId": "a89c4b28-2d8c-456e-88ea-255fb51fd2b6",
@@ -7041,8 +7057,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2.5,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 126.41,
-      "outputTokensPerSecond": 130.44
+      "timeToFirstAnswerSeconds": 102.04,
+      "outputTokensPerSecond": 132.23
     },
     {
       "sourceId": "a8c67863-9d66-44dd-8d27-f58654ecde03",
@@ -7105,8 +7121,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 35.6,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 18.57,
-      "outputTokensPerSecond": 111.67
+      "timeToFirstAnswerSeconds": 10.27,
+      "outputTokensPerSecond": 108.19
     },
     {
       "sourceId": "aa83359a-d804-4f0b-b5bf-dc637711c26f",
@@ -7137,8 +7153,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.6,
-      "timeToFirstAnswerSeconds": 2.1,
-      "outputTokensPerSecond": 59.09
+      "timeToFirstAnswerSeconds": 2.03,
+      "outputTokensPerSecond": 74.4
     },
     {
       "sourceId": "aba82268-2bb7-4a0f-80be-9b7722e2145b",
@@ -7266,7 +7282,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.19,
       "outputPricePerMillion": 0.68,
       "timeToFirstAnswerSeconds": 0.86,
-      "outputTokensPerSecond": 90.85
+      "outputTokensPerSecond": 92.37
     },
     {
       "sourceId": "adfae555-f489-4f3e-9064-c6b7fcdd0783",
@@ -7281,8 +7297,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 3.7,
       "inputPricePerMillion": 0.06,
       "outputPricePerMillion": 0.25,
-      "timeToFirstAnswerSeconds": 22.29,
-      "outputTokensPerSecond": 92.44
+      "timeToFirstAnswerSeconds": 24.82,
+      "outputTokensPerSecond": 82.72
     },
     {
       "sourceId": "ae447455-940d-4d30-9139-a664fa896eaf",
@@ -7297,8 +7313,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 4.5,
-      "timeToFirstAnswerSeconds": 0.77,
-      "outputTokensPerSecond": 138.78
+      "timeToFirstAnswerSeconds": 0.74,
+      "outputTokensPerSecond": 139.1
     },
     {
       "sourceId": "ae4fe623-80ab-4ea3-8921-70a18ea0fc7e",
@@ -7361,7 +7377,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 0.9,
       "inputPricePerMillion": 0.16,
       "outputPricePerMillion": 0.64,
-      "timeToFirstAnswerSeconds": 21.66,
+      "timeToFirstAnswerSeconds": 21.67,
       "outputTokensPerSecond": 104.67
     },
     {
@@ -7377,8 +7393,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 46.5,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 51.79,
-      "outputTokensPerSecond": 41.85
+      "timeToFirstAnswerSeconds": 55.39,
+      "outputTokensPerSecond": 38.98
     },
     {
       "sourceId": "b01eefb1-c9f8-412d-8353-571031a52f23",
@@ -7441,8 +7457,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 35.4,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 30,
-      "timeToFirstAnswerSeconds": 22.01,
-      "outputTokensPerSecond": 79.91
+      "timeToFirstAnswerSeconds": 10.65,
+      "outputTokensPerSecond": 80.46
     },
     {
       "sourceId": "b1fa84f8-1ed3-4124-b403-4655dafa4267",
@@ -7473,8 +7489,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 36.4,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 3.75,
-      "timeToFirstAnswerSeconds": 8.54,
-      "outputTokensPerSecond": 292.48
+      "timeToFirstAnswerSeconds": 8.49,
+      "outputTokensPerSecond": 294.7
     },
     {
       "sourceId": "b23e6c69-96e5-44c9-8f58-4b42e0c399d5",
@@ -7489,8 +7505,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 25.6,
       "inputPricePerMillion": 0.14,
       "outputPricePerMillion": 0.55,
-      "timeToFirstAnswerSeconds": 26.47,
-      "outputTokensPerSecond": 83.94
+      "timeToFirstAnswerSeconds": 27.03,
+      "outputTokensPerSecond": 82.33
     },
     {
       "sourceId": "b26ff709-1773-4595-ae44-78e0a5bac29c",
@@ -7697,8 +7713,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.6,
-      "timeToFirstAnswerSeconds": 0.91,
-      "outputTokensPerSecond": 153.54
+      "timeToFirstAnswerSeconds": 0.99,
+      "outputTokensPerSecond": 149.59
     },
     {
       "sourceId": "b6d2e43d-3082-43f5-9318-0f4dbcb54163",
@@ -7714,7 +7730,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 0.9,
       "timeToFirstAnswerSeconds": 7.45,
-      "outputTokensPerSecond": 321.98
+      "outputTokensPerSecond": 321.93
     },
     {
       "sourceId": "b7726745-9c77-40c3-8452-974cb53d6fbc",
@@ -7745,8 +7761,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 1.4,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.6,
-      "timeToFirstAnswerSeconds": 15.84,
-      "outputTokensPerSecond": 148.98
+      "timeToFirstAnswerSeconds": 15.67,
+      "outputTokensPerSecond": 150.44
     },
     {
       "sourceId": "b8fc61f7-5e9a-49e6-8547-6ac56db24627",
@@ -7761,8 +7777,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 56.2,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 107.85,
-      "outputTokensPerSecond": 51.7
+      "timeToFirstAnswerSeconds": 79.03,
+      "outputTokensPerSecond": 51.5
     },
     {
       "sourceId": "b97ef678-2d31-4375-9416-67ea97f87204",
@@ -7777,8 +7793,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 0.97,
-      "timeToFirstAnswerSeconds": 21.72,
-      "outputTokensPerSecond": 100.94
+      "timeToFirstAnswerSeconds": 21.63,
+      "outputTokensPerSecond": 101.37
     },
     {
       "sourceId": "b9dc72c6-7bea-4936-a55a-4b0c835fc755",
@@ -7809,8 +7825,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 13.58,
-      "outputTokensPerSecond": 59.52
+      "timeToFirstAnswerSeconds": 2.02,
+      "outputTokensPerSecond": 60.86
     },
     {
       "sourceId": "ba04694d-326a-4a6a-8f1b-46316f872a7f",
@@ -7841,8 +7857,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 19.7,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 4.5,
-      "timeToFirstAnswerSeconds": 151.36,
-      "outputTokensPerSecond": 192.32
+      "timeToFirstAnswerSeconds": 125.59,
+      "outputTokensPerSecond": 173.66
     },
     {
       "sourceId": "bb3d7e75-8e22-4082-b9d6-1db0803e042f",
@@ -7852,7 +7868,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "creatorName": "MBZUAI Institute of Foundation Models",
       "releaseDate": "2026-09-03",
       "observedAt": "2026-09-11",
-      "intelligence": 33.9,
+      "intelligence": 30.7,
       "coding": 61.5,
       "agentic": 40.9,
       "inputPricePerMillion": null,
@@ -7873,7 +7889,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 10.3,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 12,
-      "timeToFirstAnswerSeconds": 30.46,
+      "timeToFirstAnswerSeconds": 34.04,
       "outputTokensPerSecond": 107.99
     },
     {
@@ -7889,8 +7905,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.7,
       "outputPricePerMillion": 8.4,
-      "timeToFirstAnswerSeconds": 36.88,
-      "outputTokensPerSecond": 58.56
+      "timeToFirstAnswerSeconds": 36.36,
+      "outputTokensPerSecond": 59.47
     },
     {
       "sourceId": "bc26bfdb-4923-4442-a6ca-e77392923581",
@@ -7905,8 +7921,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 0.94,
-      "outputTokensPerSecond": 102.73
+      "timeToFirstAnswerSeconds": 1.03,
+      "outputTokensPerSecond": 97.75
     },
     {
       "sourceId": "bc4579d2-9c46-46c3-ace0-454039bf21bb",
@@ -7953,8 +7969,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 43.7,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 12,
-      "timeToFirstAnswerSeconds": 205.25,
-      "outputTokensPerSecond": 82
+      "timeToFirstAnswerSeconds": 190.9,
+      "outputTokensPerSecond": 87.05
     },
     {
       "sourceId": "bd2c3517-00d8-4ba5-a989-1f1e52f3ffab",
@@ -7985,8 +8001,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 18.51,
-      "outputTokensPerSecond": 116.96
+      "timeToFirstAnswerSeconds": 18.78,
+      "outputTokensPerSecond": 115.23
     },
     {
       "sourceId": "be185709-ddb4-4268-9597-856464359b25",
@@ -8017,8 +8033,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 27.7,
       "inputPricePerMillion": 0.43,
       "outputPricePerMillion": 0.87,
-      "timeToFirstAnswerSeconds": 70.83,
-      "outputTokensPerSecond": 62.89
+      "timeToFirstAnswerSeconds": 66.3,
+      "outputTokensPerSecond": 67.46
     },
     {
       "sourceId": "bf60740e-6aa5-422f-ba49-ef6e9d171205",
@@ -8034,7 +8050,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.16,
       "outputPricePerMillion": 0.64,
       "timeToFirstAnswerSeconds": 2.42,
-      "outputTokensPerSecond": 105.25
+      "outputTokensPerSecond": 106.12
     },
     {
       "sourceId": "c07e65e6-32fc-451e-938d-7477a1c3ffcc",
@@ -8049,8 +8065,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 42.2,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 7.02,
-      "outputTokensPerSecond": 49.81
+      "timeToFirstAnswerSeconds": 6.89,
+      "outputTokensPerSecond": 49.15
     },
     {
       "sourceId": "c1045dc0-4fd3-4adb-9548-18763e0d051f",
@@ -8065,8 +8081,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2.5,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 1.04,
-      "outputTokensPerSecond": 130.86
+      "timeToFirstAnswerSeconds": 1.02,
+      "outputTokensPerSecond": 123.83
     },
     {
       "sourceId": "c1c5db7c-968f-445a-a274-7b5689348bf8",
@@ -8097,8 +8113,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.25,
-      "timeToFirstAnswerSeconds": 0.87,
-      "outputTokensPerSecond": 156.37
+      "timeToFirstAnswerSeconds": 0.84,
+      "outputTokensPerSecond": 153.08
     },
     {
       "sourceId": "c2b1e769-7aee-4669-8076-73918bdebf6c",
@@ -8113,8 +8129,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 5,
-      "timeToFirstAnswerSeconds": 0.78,
-      "outputTokensPerSecond": 77.63
+      "timeToFirstAnswerSeconds": 0.74,
+      "outputTokensPerSecond": 78.32
     },
     {
       "sourceId": "c3274a19-6d3c-4d01-ab9b-5055a0a40429",
@@ -8129,8 +8145,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 13.99,
-      "outputTokensPerSecond": 106.64
+      "timeToFirstAnswerSeconds": 16.62,
+      "outputTokensPerSecond": 93.42
     },
     {
       "sourceId": "c3738fb0-3408-4430-a699-760ae4b70c93",
@@ -8145,8 +8161,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 1.44,
-      "outputTokensPerSecond": 68.3
+      "timeToFirstAnswerSeconds": 1.35,
+      "outputTokensPerSecond": 72.71
     },
     {
       "sourceId": "c3f12f61-9d57-4e2c-9106-5a82bb1cfee2",
@@ -8177,8 +8193,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 19.2,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 30,
-      "timeToFirstAnswerSeconds": 16.83,
-      "outputTokensPerSecond": 128.53
+      "timeToFirstAnswerSeconds": 17.39,
+      "outputTokensPerSecond": 123.88
     },
     {
       "sourceId": "c43aa1f9-31bd-4a99-be70-84c5e6bd2e75",
@@ -8241,8 +8257,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 25,
-      "outputTokensPerSecond": 103.22
+      "timeToFirstAnswerSeconds": 19.38,
+      "outputTokensPerSecond": 101.08
     },
     {
       "sourceId": "c7327e6e-b27f-4b1b-859d-159a34e0ba1c",
@@ -8305,8 +8321,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 30,
-      "timeToFirstAnswerSeconds": 1.67,
-      "outputTokensPerSecond": 71.87
+      "timeToFirstAnswerSeconds": 1.61,
+      "outputTokensPerSecond": 75.57
     },
     {
       "sourceId": "c8158c23-6fff-4c31-911d-954c32d80c28",
@@ -8321,8 +8337,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.3,
-      "timeToFirstAnswerSeconds": 11.18,
-      "outputTokensPerSecond": 211.15
+      "timeToFirstAnswerSeconds": 12.16,
+      "outputTokensPerSecond": 208.74
     },
     {
       "sourceId": "c8673741-5e1a-46a1-9e4f-710a5c920982",
@@ -8338,7 +8354,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.07,
       "outputPricePerMillion": 0.4,
       "timeToFirstAnswerSeconds": 1.76,
-      "outputTokensPerSecond": 97.25
+      "outputTokensPerSecond": 101.24
     },
     {
       "sourceId": "c8a3fa87-735e-49a9-afb1-270c5e9f53f7",
@@ -8370,7 +8386,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 1.2,
       "timeToFirstAnswerSeconds": 12.63,
-      "outputTokensPerSecond": 194.47
+      "outputTokensPerSecond": 194.41
     },
     {
       "sourceId": "c8adc5cf-fd5a-407b-af51-dc3bede3e49c",
@@ -8385,8 +8401,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 53.4,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 41.39,
-      "outputTokensPerSecond": 53.28
+      "timeToFirstAnswerSeconds": 31.28,
+      "outputTokensPerSecond": 55.41
     },
     {
       "sourceId": "c99f3bde-7c08-4de8-bd5c-8ee9123ebffa",
@@ -8401,8 +8417,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.54,
-      "timeToFirstAnswerSeconds": 10.9,
-      "outputTokensPerSecond": 198.93
+      "timeToFirstAnswerSeconds": 10.68,
+      "outputTokensPerSecond": 203.4
     },
     {
       "sourceId": "ca04852c-eaae-4881-a208-f9b2ca3b7cd6",
@@ -8449,8 +8465,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.2,
       "outputPricePerMillion": 6,
-      "timeToFirstAnswerSeconds": 40.12,
-      "outputTokensPerSecond": 55.33
+      "timeToFirstAnswerSeconds": 39.4,
+      "outputTokensPerSecond": 56.48
     },
     {
       "sourceId": "cc1fa238-1a76-486d-a997-22309275eadd",
@@ -8481,8 +8497,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 27.3,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 12,
-      "timeToFirstAnswerSeconds": 1.98,
-      "outputTokensPerSecond": 72.03
+      "timeToFirstAnswerSeconds": 1.86,
+      "outputTokensPerSecond": 75.27
     },
     {
       "sourceId": "ccbfa8c3-a762-480b-aade-34fb9697f98c",
@@ -8513,8 +8529,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 6.7,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 50.33,
-      "outputTokensPerSecond": 35.27
+      "timeToFirstAnswerSeconds": 50.28,
+      "outputTokensPerSecond": 35.28
     },
     {
       "sourceId": "cd55210d-358e-4df1-ba9c-9acb5f186cc9",
@@ -8529,8 +8545,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 51,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 112.23,
-      "outputTokensPerSecond": 63.97
+      "timeToFirstAnswerSeconds": 99.67,
+      "outputTokensPerSecond": 66.38
     },
     {
       "sourceId": "cd684ea4-b475-4269-b001-d469d06d8a7a",
@@ -8545,8 +8561,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 53.4,
       "inputPricePerMillion": 1.4,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 36.57,
-      "outputTokensPerSecond": 59.43
+      "timeToFirstAnswerSeconds": 35.24,
+      "outputTokensPerSecond": 62.35
     },
     {
       "sourceId": "ce3d286e-093d-413d-a81a-0270309f039e",
@@ -8561,8 +8577,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 2.4,
-      "timeToFirstAnswerSeconds": 20.46,
-      "outputTokensPerSecond": 109.37
+      "timeToFirstAnswerSeconds": 19.87,
+      "outputTokensPerSecond": 113.09
     },
     {
       "sourceId": "ce819310-af7c-49d3-9a02-6845111e1788",
@@ -8577,8 +8593,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 4.8,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 2.37,
-      "outputTokensPerSecond": 111.15
+      "timeToFirstAnswerSeconds": 2.31,
+      "outputTokensPerSecond": 132.5
     },
     {
       "sourceId": "ceb4d610-d0a4-48c1-bea0-80ed76f1e5ca",
@@ -8641,8 +8657,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.14,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 1.56,
-      "outputTokensPerSecond": 51.44
+      "timeToFirstAnswerSeconds": 1.6,
+      "outputTokensPerSecond": 52.4
     },
     {
       "sourceId": "d0b3d47e-aec6-425e-9de7-168dcc6d1e28",
@@ -8657,8 +8673,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 1.25,
-      "outputTokensPerSecond": 89.16
+      "timeToFirstAnswerSeconds": 1.17,
+      "outputTokensPerSecond": 100.2
     },
     {
       "sourceId": "d1122eff-ee85-4fdc-8a9f-23bee6590667",
@@ -8753,8 +8769,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.16,
       "outputPricePerMillion": 0.64,
-      "timeToFirstAnswerSeconds": 24.87,
-      "outputTokensPerSecond": 89.63
+      "timeToFirstAnswerSeconds": 24.83,
+      "outputTokensPerSecond": 89.74
     },
     {
       "sourceId": "d3968fd3-97d8-4693-8d26-19cefc6f5d5f",
@@ -8769,8 +8785,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 2.36,
-      "outputTokensPerSecond": 44.17
+      "timeToFirstAnswerSeconds": 2.34,
+      "outputTokensPerSecond": 43.41
     },
     {
       "sourceId": "d4be6393-8915-436c-a3a8-4e59bd5c89a9",
@@ -8801,8 +8817,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 17.7,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.25,
-      "timeToFirstAnswerSeconds": 84.64,
-      "outputTokensPerSecond": 162.62
+      "timeToFirstAnswerSeconds": 68.3,
+      "outputTokensPerSecond": 153.71
     },
     {
       "sourceId": "d5170215-69be-4129-849b-26d8d8825bfc",
@@ -8817,8 +8833,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 51.8,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 4.25,
-      "timeToFirstAnswerSeconds": 35.06,
-      "outputTokensPerSecond": 202.79
+      "timeToFirstAnswerSeconds": 31.07,
+      "outputTokensPerSecond": 206.39
     },
     {
       "sourceId": "d58b9ada-fd9d-4fff-a086-242034657963",
@@ -8834,7 +8850,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 10,
       "timeToFirstAnswerSeconds": 1.25,
-      "outputTokensPerSecond": 56.32
+      "outputTokensPerSecond": 56.43
     },
     {
       "sourceId": "d58cf573-1bd3-4d1f-9182-5482a460f570",
@@ -8849,8 +8865,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 1.6,
-      "timeToFirstAnswerSeconds": 2.64,
-      "outputTokensPerSecond": 50.99
+      "timeToFirstAnswerSeconds": 2.62,
+      "outputTokensPerSecond": 52.56
     },
     {
       "sourceId": "d61493e2-43ff-460c-9054-eaf6ba317360",
@@ -8898,7 +8914,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 6,
       "timeToFirstAnswerSeconds": 47.26,
-      "outputTokensPerSecond": 51.33
+      "outputTokensPerSecond": 52.58
     },
     {
       "sourceId": "d734e2ce-5cf8-467f-8148-586d02671333",
@@ -8929,8 +8945,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.02,
       "outputPricePerMillion": 0.1,
-      "timeToFirstAnswerSeconds": 48.45,
-      "outputTokensPerSecond": 42.14
+      "timeToFirstAnswerSeconds": 49.14,
+      "outputTokensPerSecond": 41.66
     },
     {
       "sourceId": "d8ddb241-b3e4-4c25-a6a3-72eb1b30c541",
@@ -8977,7 +8993,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 50.5,
       "inputPricePerMillion": 4,
       "outputPricePerMillion": 20,
-      "timeToFirstAnswerSeconds": 163.5,
+      "timeToFirstAnswerSeconds": 132.21,
       "outputTokensPerSecond": 59.58
     },
     {
@@ -9009,8 +9025,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 47.8,
       "inputPricePerMillion": 4,
       "outputPricePerMillion": 20,
-      "timeToFirstAnswerSeconds": 75.67,
-      "outputTokensPerSecond": 61
+      "timeToFirstAnswerSeconds": 47.33,
+      "outputTokensPerSecond": 61.12
     },
     {
       "sourceId": "da9fe224-8af3-46d7-a8c4-6220779c3f35",
@@ -9026,7 +9042,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "inputPricePerMillion": 0.45,
       "outputPricePerMillion": 2.25,
       "timeToFirstAnswerSeconds": 2.65,
-      "outputTokensPerSecond": 85.7
+      "outputTokensPerSecond": 92.02
     },
     {
       "sourceId": "dae31abc-0587-44d0-ba53-f78e96b6e486",
@@ -9089,8 +9105,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 11.25,
-      "outputTokensPerSecond": 194.33
+      "timeToFirstAnswerSeconds": 11.2,
+      "outputTokensPerSecond": 198.57
     },
     {
       "sourceId": "dc64f856-3ded-497d-9527-d41d31267ed5",
@@ -9105,8 +9121,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 15.2,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 0.9,
-      "outputTokensPerSecond": 114.03
+      "timeToFirstAnswerSeconds": 0.91,
+      "outputTokensPerSecond": 109.79
     },
     {
       "sourceId": "dd059b25-d82a-4ead-82a4-4adceaaec48b",
@@ -9121,8 +9137,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 9.4,
       "inputPricePerMillion": 1.5,
       "outputPricePerMillion": 7.5,
-      "timeToFirstAnswerSeconds": 16.98,
-      "outputTokensPerSecond": 136.55
+      "timeToFirstAnswerSeconds": 16.1,
+      "outputTokensPerSecond": 145.2
     },
     {
       "sourceId": "dd738be7-2b69-4775-91a5-8851d3341c2d",
@@ -9169,7 +9185,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 3.75,
-      "timeToFirstAnswerSeconds": 0.63,
+      "timeToFirstAnswerSeconds": 0.68,
       "outputTokensPerSecond": 287.13
     },
     {
@@ -9201,8 +9217,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.18,
       "outputPricePerMillion": 2.1,
-      "timeToFirstAnswerSeconds": 19.99,
-      "outputTokensPerSecond": 113.31
+      "timeToFirstAnswerSeconds": 19.9,
+      "outputTokensPerSecond": 113.89
     },
     {
       "sourceId": "ded8d96e-835f-4359-947a-a4c3bb78e983",
@@ -9249,8 +9265,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 33.1,
       "inputPricePerMillion": 3,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 128.17,
-      "outputTokensPerSecond": 53.65
+      "timeToFirstAnswerSeconds": 107.79,
+      "outputTokensPerSecond": 55.74
     },
     {
       "sourceId": "df95f83f-5ebb-466a-9d2d-b95efc8c012c",
@@ -9329,8 +9345,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 48.7,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 89.78,
-      "outputTokensPerSecond": 49.64
+      "timeToFirstAnswerSeconds": 40.11,
+      "outputTokensPerSecond": 49.81
     },
     {
       "sourceId": "e18e5e6a-5a31-4c0b-b80b-ac401392f446",
@@ -9345,8 +9361,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.05,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 111.48,
-      "outputTokensPerSecond": 151.39
+      "timeToFirstAnswerSeconds": 106.1,
+      "outputTokensPerSecond": 143.09
     },
     {
       "sourceId": "e1bfc488-5f48-4d42-abf6-7f3c53d79f9c",
@@ -9361,8 +9377,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0,
       "outputPricePerMillion": 0,
-      "timeToFirstAnswerSeconds": 12.02,
-      "outputTokensPerSecond": 197.38
+      "timeToFirstAnswerSeconds": 13.07,
+      "outputTokensPerSecond": 198.19
     },
     {
       "sourceId": "e1cfa926-9e2b-4a0d-8c31-48366a5041c5",
@@ -9377,7 +9393,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.4,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 41.46,
+      "timeToFirstAnswerSeconds": 39.99,
       "outputTokensPerSecond": 60.2
     },
     {
@@ -9441,8 +9457,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 21,
       "inputPricePerMillion": 0.07,
       "outputPricePerMillion": 0.22,
-      "timeToFirstAnswerSeconds": 9.35,
-      "outputTokensPerSecond": 293.01
+      "timeToFirstAnswerSeconds": 8.8,
+      "outputTokensPerSecond": 315.11
     },
     {
       "sourceId": "e34ffffb-d8e1-4f5c-a2c7-3ca19c235eeb",
@@ -9505,8 +9521,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2.5,
       "outputPricePerMillion": 12.5,
-      "timeToFirstAnswerSeconds": 2.83,
-      "outputTokensPerSecond": 30.43
+      "timeToFirstAnswerSeconds": 2.85,
+      "outputTokensPerSecond": 31.77
     },
     {
       "sourceId": "e5dd499f-c330-45ec-9ff0-a99209c82af7",
@@ -9521,8 +9537,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.3,
-      "timeToFirstAnswerSeconds": 0.78,
-      "outputTokensPerSecond": 143.44
+      "timeToFirstAnswerSeconds": 0.77,
+      "outputTokensPerSecond": 143.8
     },
     {
       "sourceId": "e8aa417f-18fe-46b0-ba62-ef99785a9585",
@@ -9537,8 +9553,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.4,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 1.96,
-      "outputTokensPerSecond": 111.39
+      "timeToFirstAnswerSeconds": 1.95,
+      "outputTokensPerSecond": 119.56
     },
     {
       "sourceId": "e8d4100e-165b-4c5d-ac11-ac553590a334",
@@ -9585,8 +9601,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 46.3,
       "inputPricePerMillion": 10,
       "outputPricePerMillion": 50,
-      "timeToFirstAnswerSeconds": 6.2,
-      "outputTokensPerSecond": 47.8
+      "timeToFirstAnswerSeconds": 5.25,
+      "outputTokensPerSecond": 49.88
     },
     {
       "sourceId": "e98e911e-9fb2-4a9a-826e-3d681d0cdca8",
@@ -9601,8 +9617,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 1.28,
-      "outputTokensPerSecond": 79.1
+      "timeToFirstAnswerSeconds": 1.25,
+      "outputTokensPerSecond": 85.36
     },
     {
       "sourceId": "e9a09db3-8fd6-41dd-ba2f-20e0a2bff7f2",
@@ -9617,8 +9633,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 39.5,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 21.68,
-      "outputTokensPerSecond": 43.26
+      "timeToFirstAnswerSeconds": 21.61,
+      "outputTokensPerSecond": 43.55
     },
     {
       "sourceId": "ea5d2c10-1051-437d-95c2-18d5e4d14ff3",
@@ -9665,7 +9681,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.75,
       "outputPricePerMillion": 3.75,
-      "timeToFirstAnswerSeconds": 4.56,
+      "timeToFirstAnswerSeconds": 4.47,
       "outputTokensPerSecond": 277.16
     },
     {
@@ -9681,8 +9697,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 12.9,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 20.62,
-      "outputTokensPerSecond": 118.7
+      "timeToFirstAnswerSeconds": 20.19,
+      "outputTokensPerSecond": 121.44
     },
     {
       "sourceId": "eb689f7a-f210-4a87-b407-f249897f2764",
@@ -9761,8 +9777,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.35,
       "outputPricePerMillion": 1.4,
-      "timeToFirstAnswerSeconds": 2.68,
-      "outputTokensPerSecond": 60.65
+      "timeToFirstAnswerSeconds": 2.67,
+      "outputTokensPerSecond": 63.11
     },
     {
       "sourceId": "ee708f92-374e-4123-b900-e22d7b2afc19",
@@ -9777,8 +9793,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.13,
       "outputPricePerMillion": 0.5,
-      "timeToFirstAnswerSeconds": 2.5,
-      "outputTokensPerSecond": 40.77
+      "timeToFirstAnswerSeconds": 2.54,
+      "outputTokensPerSecond": 40.71
     },
     {
       "sourceId": "eebfef01-709e-4ffe-b72f-0db75ef2434b",
@@ -9793,7 +9809,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.25,
       "outputPricePerMillion": 2,
-      "timeToFirstAnswerSeconds": 2.12,
+      "timeToFirstAnswerSeconds": 2.11,
       "outputTokensPerSecond": 155.73
     },
     {
@@ -9809,8 +9825,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 2,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 1.9,
-      "outputTokensPerSecond": 56.87
+      "timeToFirstAnswerSeconds": 1.33,
+      "outputTokensPerSecond": 57.81
     },
     {
       "sourceId": "f0083258-8646-45b8-8082-7aaf6c2ea82a",
@@ -9825,8 +9841,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 6.2,
       "inputPricePerMillion": 0.15,
       "outputPricePerMillion": 0.59,
-      "timeToFirstAnswerSeconds": 11.8,
-      "outputTokensPerSecond": 181.83
+      "timeToFirstAnswerSeconds": 11.49,
+      "outputTokensPerSecond": 187.49
     },
     {
       "sourceId": "f164b41f-44c5-4675-bca3-fea1db4bd9ae",
@@ -9841,8 +9857,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1,
       "outputPricePerMillion": 3.2,
-      "timeToFirstAnswerSeconds": 1.46,
-      "outputTokensPerSecond": 57.63
+      "timeToFirstAnswerSeconds": 1.5,
+      "outputTokensPerSecond": 57.08
     },
     {
       "sourceId": "f1d52583-9d20-4099-99ac-b5df9430c3b6",
@@ -9857,8 +9873,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.04,
       "outputPricePerMillion": 0.16,
-      "timeToFirstAnswerSeconds": 25.77,
-      "outputTokensPerSecond": 107.56
+      "timeToFirstAnswerSeconds": 23.78,
+      "outputTokensPerSecond": 105.67
     },
     {
       "sourceId": "f2e21112-192e-4aed-ae82-68ca3b38e667",
@@ -9873,7 +9889,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 3,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 2.02,
+      "timeToFirstAnswerSeconds": 2.29,
       "outputTokensPerSecond": 42.24
     },
     {
@@ -9905,8 +9921,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.2,
       "outputPricePerMillion": 0.8,
-      "timeToFirstAnswerSeconds": 2.26,
-      "outputTokensPerSecond": 106.88
+      "timeToFirstAnswerSeconds": 2.27,
+      "outputTokensPerSecond": 108.66
     },
     {
       "sourceId": "f371ad68-6947-4767-a78f-1f6c81f96b93",
@@ -9921,8 +9937,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.5,
       "outputPricePerMillion": 3,
-      "timeToFirstAnswerSeconds": 101.16,
-      "outputTokensPerSecond": 56.11
+      "timeToFirstAnswerSeconds": 101.07,
+      "outputTokensPerSecond": 56.13
     },
     {
       "sourceId": "f3a0e101-086f-44b3-a1b2-d23498f9716b",
@@ -9953,8 +9969,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 10,
-      "timeToFirstAnswerSeconds": 27.11,
-      "outputTokensPerSecond": 120.59
+      "timeToFirstAnswerSeconds": 27.32,
+      "outputTokensPerSecond": 121.24
     },
     {
       "sourceId": "f4e8194a-d0e6-48eb-92be-4307de5aeeec",
@@ -9969,8 +9985,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.4,
-      "timeToFirstAnswerSeconds": 20.73,
-      "outputTokensPerSecond": 357.9
+      "timeToFirstAnswerSeconds": 18.68,
+      "outputTokensPerSecond": 354.12
     },
     {
       "sourceId": "f5d83128-047f-496d-ba49-8a428abe8345",
@@ -10001,8 +10017,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 1.3,
       "inputPricePerMillion": 0.23,
       "outputPricePerMillion": 2.3,
-      "timeToFirstAnswerSeconds": 35.68,
-      "outputTokensPerSecond": 60.73
+      "timeToFirstAnswerSeconds": 35.67,
+      "outputTokensPerSecond": 60.77
     },
     {
       "sourceId": "f6db039b-0f3b-485c-9d7f-982988e44f26",
@@ -10049,8 +10065,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 26.62,
-      "outputTokensPerSecond": 79.93
+      "timeToFirstAnswerSeconds": 26.43,
+      "outputTokensPerSecond": 80.67
     },
     {
       "sourceId": "f78138d6-2e04-4a84-919a-20d177cb6ff1",
@@ -10081,8 +10097,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 39.4,
       "inputPricePerMillion": 1.4,
       "outputPricePerMillion": 4.4,
-      "timeToFirstAnswerSeconds": 34.33,
-      "outputTokensPerSecond": 66.25
+      "timeToFirstAnswerSeconds": 34.03,
+      "outputTokensPerSecond": 66.67
     },
     {
       "sourceId": "f7d2fc3e-1f7b-405f-818c-07952a4af78f",
@@ -10097,8 +10113,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 50.6,
       "inputPricePerMillion": 3,
       "outputPricePerMillion": 15,
-      "timeToFirstAnswerSeconds": 56.57,
-      "outputTokensPerSecond": 37.9
+      "timeToFirstAnswerSeconds": 55.1,
+      "outputTokensPerSecond": 38.83
     },
     {
       "sourceId": "f818a7bb-6f23-4b24-8d52-6b9c1a5ca628",
@@ -10145,7 +10161,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 32.7,
       "inputPricePerMillion": 0.6,
       "outputPricePerMillion": 1.8,
-      "timeToFirstAnswerSeconds": 12.15,
+      "timeToFirstAnswerSeconds": 12.12,
       "outputTokensPerSecond": 179.65
     },
     {
@@ -10209,8 +10225,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 28.67,
-      "outputTokensPerSecond": 147.56
+      "timeToFirstAnswerSeconds": 27.83,
+      "outputTokensPerSecond": 142.69
     },
     {
       "sourceId": "fc4223e8-4586-4ca1-97ca-bb55ff586947",
@@ -10241,8 +10257,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 3.6,
       "inputPricePerMillion": 0.35,
       "outputPricePerMillion": 1.2,
-      "timeToFirstAnswerSeconds": 1.35,
-      "outputTokensPerSecond": 100.54
+      "timeToFirstAnswerSeconds": 1.33,
+      "outputTokensPerSecond": 110.36
     },
     {
       "sourceId": "fd4454ff-e703-46c0-a7f5-fa69af09486d",
@@ -10305,8 +10321,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 1.25,
       "outputPricePerMillion": 2.5,
-      "timeToFirstAnswerSeconds": 5.42,
-      "outputTokensPerSecond": 111.88
+      "timeToFirstAnswerSeconds": 5.06,
+      "outputTokensPerSecond": 107.62
     },
     {
       "sourceId": "fe4c0848-e284-4e52-a79d-cdc28392f1a9",
@@ -10321,8 +10337,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 41.7,
       "inputPricePerMillion": 0.44,
       "outputPricePerMillion": 1.32,
-      "timeToFirstAnswerSeconds": 11.08,
-      "outputTokensPerSecond": 200.54
+      "timeToFirstAnswerSeconds": 10.5,
+      "outputTokensPerSecond": 210.09
     },
     {
       "sourceId": "feb02d3b-ff8d-4ed4-b165-13f8d4a7192c",
@@ -10337,8 +10353,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.1,
       "outputPricePerMillion": 0.3,
-      "timeToFirstAnswerSeconds": 21.36,
-      "outputTokensPerSecond": 105.21
+      "timeToFirstAnswerSeconds": 21.08,
+      "outputTokensPerSecond": 106.86
     },
     {
       "sourceId": "ff51be8f-e362-4a7e-9043-687ba15de207",
@@ -10353,7 +10369,7 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": 47,
       "inputPricePerMillion": 5,
       "outputPricePerMillion": 25,
-      "timeToFirstAnswerSeconds": 11.42,
+      "timeToFirstAnswerSeconds": 5.38,
       "outputTokensPerSecond": 48.27
     },
     {
@@ -10369,8 +10385,8 @@ export const AA_PUBLIC_SNAPSHOT: AaPublicSnapshot = {
       "agentic": null,
       "inputPricePerMillion": 0.3,
       "outputPricePerMillion": 0.5,
-      "timeToFirstAnswerSeconds": 35.28,
-      "outputTokensPerSecond": 57.85
+      "timeToFirstAnswerSeconds": 32.45,
+      "outputTokensPerSecond": 62.95
     },
     {
       "sourceId": "ffd65ef7-fbdb-4145-98ae-b5d01cda770b",
