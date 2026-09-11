@@ -16,6 +16,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 
 ## Current Status
 
+- AA Intelligence Index versions follow the upstream positive finite value rather than a pinned or historical version. The auto-merge policy permits version-only changes in both public and legacy AA projections while retaining schema, identity, coverage, and evidence safeguards.
 - The AA repository completeness test compares loaded source IDs with the source snapshot instead of requiring exactly 643 rows. Regression coverage allows complete model additions/removals and rejects missing rows; production parsing and data publication safeguards are unchanged.
 - The public frontend, advisor form, brand assets, and home footer are published. Mobile presentation and animation fixes merged in PR #20 (`fd8771c`).
 - README is a concise product introduction with seven real page screenshots. PR #22 merged as `c869362`; its GitHub Pages deployment succeeded, checked on 2026-09-06.
@@ -44,7 +45,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 
 ## Known Problems
 
-- Data PR #47 is blocked by the old fixed-count test (latest failure: 645 versus 643). After this test repair merges, rerun the refresh workflow from updated main to regenerate and reverify the App-signed data PR before policy evaluation.
+- Fixed-count repair shipped in PR #48 (`1ca3fbf`), and refresh run `34591018658` passed. Data PR #47 now contains 646 rows observed on 2026-09-11; identity changes, legacy compatibility membership, and loss of one curated Arena observation remain review conditions independent of the index version.
 - Data-refresh PR #18 was regenerated from `a0f5e7b` as App-signed head `ee615ac`; all fetch, contract, frontend, backend, and policy checks passed. Auto-merge correctly stopped because AA Intelligence moved from 4.1 to 4.2, Agentic finite coverage fell from 197 to 100, and legacy AA compatibility membership changed. PR #18 remains open for explicit review of those upstream methodology and coverage changes.
 - The deployed service showed one healthy instance and the Docker command fixes Uvicorn at one worker. Exact Zeabur trusted-proxy CIDRs remain unverified, so forwarded client IP headers must stay disabled and `MODELOPS_TRUSTED_PROXY_CIDRS` empty.
 - Real high-DPR WeChat animation frame rate remains unmeasured. Browser layout checks used host DPR approximately 1 and reduced motion.
@@ -53,6 +54,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 
 ## Verification
 
+- Dynamic index policy: 40 policy/snapshot/public-only isolation tests and the production frontend build passed. Tests cover multiple future positive versions and reject invalid versions; existing identity, coverage, schema, and evidence gates remain tested.
 - Repository test repair: 15 focused tests passed on current main with the patch. Prior isolated verification of PR #47 at `9438fde` plus this same patch passed 340 backend tests, Ruff, mypy, and 29 deterministic evaluations. The current PR and refresh workflows remain the release gate for newer snapshots.
 - Mobile/animation release: 198 frontend tests across 25 files and TypeScript/production build passed locally. Protected PR checks and Pages deployment passed.
 - Layout checks covered 360–480 CSS-pixel phone widths and 1440px desktop, including all public ranking views. No stable-state horizontal page overflow, clipped values, or overlapping metric ticks were found.
