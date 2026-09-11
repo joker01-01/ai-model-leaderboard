@@ -17,7 +17,7 @@ export interface ArenaSnapshot {
 }
 
 export const ARENA_SNAPSHOT: ArenaSnapshot = {
-  "generatedAt": "2026-09-11T10:55:02.685Z",
+  "generatedAt": "2026-09-11T10:58:01.073Z",
   "sourceUrl": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
   "models": {
     "deepseek-v4-pro": {
