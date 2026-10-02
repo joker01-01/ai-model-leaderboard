@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T19:47:13.910Z",
+  "generatedAt": "2026-10-02T21:21:05.777Z",
   "policy": "仅精确版本映射；匹配歧义和缺失不改榜单。Arena 仅作详情参考，不参与主榜。",
   "artificialAnalysis": {
     "status": "updated",
@@ -28,21 +28,20 @@
       "doubao-2-1-pro"
     ],
     "ambiguous": [],
-    "rows": 647
+    "rows": 689
   },
   "arena": {
     "status": "updated",
     "matched": [
-      "deepseek-v4-pro",
       "claude-opus-4-8",
       "qwen-3-5",
       "claude-sonnet-4-6",
       "gemini-3-1-pro",
       "minimax-m3",
-      "claude-fable-5",
       "mistral-large-3"
     ],
     "unmatched": [
+      "deepseek-v4-pro",
       "gpt-56-sol",
       "gpt-56-luna",
       "gemini-3-7-flash",
@@ -52,15 +51,16 @@
       "kimi-k3",
       "llama-5",
       "deepseek-v4-flash",
+      "claude-fable-5",
       "grok-4-20",
       "motif-3",
       "doubao-2-1-pro"
     ],
     "ambiguous": [],
     "rows": {
-      "text": 7,
-      "webdev": 7,
-      "agent": 2
+      "text": 6,
+      "webdev": 6,
+      "agent": 0
     }
   }
 }
