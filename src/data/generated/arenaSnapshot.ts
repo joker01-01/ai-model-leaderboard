@@ -17,182 +17,138 @@ export interface ArenaSnapshot {
 }
 
 export const ARENA_SNAPSHOT: ArenaSnapshot = {
-  "generatedAt": "2026-09-11T19:47:13.910Z",
+  "generatedAt": "2026-10-02T21:21:05.777Z",
   "sourceUrl": "https://huggingface.co/datasets/lmarena-ai/leaderboard-dataset",
   "models": {
-    "deepseek-v4-pro": {
-      "agent": {
-        "value": -0.004243429492245743,
-        "rank": null,
-        "lower": -0.01564838070595315,
-        "upper": 0.007161521721461664,
-        "observations": 1638264,
-        "category": "overall",
-        "observedAt": "2026-09-08",
-        "modelVersion": "DeepSeek V4 Pro"
-      }
-    },
     "claude-opus-4-8": {
       "text": {
-        "value": 1472.8520033039752,
+        "value": 1474.5219547762822,
         "rank": null,
-        "lower": 1468.567434702214,
-        "upper": 1477.1365719057362,
-        "observations": 49404,
+        "lower": 1470.6686389844604,
+        "upper": 1478.3752705681036,
+        "observations": 64711,
         "category": "overall",
-        "observedAt": "2026-09-02",
+        "observedAt": "2026-09-30",
         "modelVersion": "claude-opus-4-8"
       },
       "webdev": {
-        "value": 1539.7220867088777,
+        "value": 1534.126493563194,
         "rank": null,
-        "lower": 1533.1232080865723,
-        "upper": 1546.3209653311828,
+        "lower": 1528.4897777656472,
+        "upper": 1539.7632093607406,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-08",
+        "observedAt": "2026-10-01",
         "modelVersion": "claude-opus-4-8"
       }
     },
     "qwen-3-5": {
       "text": {
-        "value": 1441.1051585312441,
+        "value": 1441.5698581632387,
         "rank": null,
-        "lower": 1437.7307491335641,
-        "upper": 1444.4795679289243,
-        "observations": 73640,
+        "lower": 1438.4154603347415,
+        "upper": 1444.7242559917358,
+        "observations": 88092,
         "category": "overall",
-        "observedAt": "2026-09-02",
+        "observedAt": "2026-09-30",
         "modelVersion": "qwen3.5-397b-a17b"
       },
       "webdev": {
-        "value": 1398.8562338683407,
+        "value": 1399.441650260092,
         "rank": null,
-        "lower": 1393.595949509646,
-        "upper": 1404.1165182270356,
+        "lower": 1394.338172635512,
+        "upper": 1404.5451278846726,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-08",
+        "observedAt": "2026-10-01",
         "modelVersion": "qwen3.5-397b-a17b"
       }
     },
     "claude-sonnet-4-6": {
       "text": {
-        "value": 1472.3891139817872,
+        "value": 1472.1313675940137,
         "rank": null,
-        "lower": 1468.7757148615722,
-        "upper": 1476.0025131020022,
-        "observations": 66316,
+        "lower": 1468.6109815855002,
+        "upper": 1475.6517536025276,
+        "observations": 70828,
         "category": "overall",
-        "observedAt": "2026-09-02",
+        "observedAt": "2026-09-30",
         "modelVersion": "claude-sonnet-4-6"
       },
       "webdev": {
-        "value": 1521.0491590062888,
+        "value": 1521.4337134729947,
         "rank": null,
-        "lower": 1515.789683922701,
-        "upper": 1526.308634089877,
+        "lower": 1516.301056779269,
+        "upper": 1526.5663701667204,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-08",
+        "observedAt": "2026-10-01",
         "modelVersion": "claude-sonnet-4-6"
-      },
-      "agent": {
-        "value": -0.010492040299401342,
-        "rank": null,
-        "lower": -0.023599040110840803,
-        "upper": 0.0026149595120381203,
-        "observations": 1444598,
-        "category": "overall",
-        "observedAt": "2026-09-08",
-        "modelVersion": "Claude Sonnet 4.6"
       }
     },
     "gemini-3-1-pro": {
       "text": {
-        "value": 1486.7298381462967,
+        "value": 1486.9640790545382,
         "rank": null,
-        "lower": 1483.516965794996,
-        "upper": 1489.9427104975975,
-        "observations": 102999,
+        "lower": 1483.9494759400204,
+        "upper": 1489.9786821690554,
+        "observations": 121225,
         "category": "overall",
-        "observedAt": "2026-09-02",
+        "observedAt": "2026-09-30",
         "modelVersion": "gemini-3.1-pro-preview"
       },
       "webdev": {
-        "value": 1446.4886756546064,
+        "value": 1446.2003008341799,
         "rank": null,
-        "lower": 1441.3269376483117,
-        "upper": 1451.6504136609012,
+        "lower": 1441.1608563399018,
+        "upper": 1451.239745328458,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-08",
+        "observedAt": "2026-10-01",
         "modelVersion": "gemini-3.1-pro-preview"
       }
     },
     "minimax-m3": {
       "text": {
-        "value": 1442.9482267954468,
+        "value": 1439.7383865722736,
         "rank": null,
-        "lower": 1438.5995446696998,
-        "upper": 1447.2969089211938,
-        "observations": 44829,
+        "lower": 1435.784625596188,
+        "upper": 1443.6921475483596,
+        "observations": 58171,
         "category": "overall",
-        "observedAt": "2026-09-02",
+        "observedAt": "2026-09-30",
         "modelVersion": "minimax-m3"
       },
       "webdev": {
-        "value": 1486.2607982066777,
+        "value": 1482.0361632685358,
         "rank": null,
-        "lower": 1479.6718105576838,
-        "upper": 1492.8497858556716,
+        "lower": 1476.3567507257194,
+        "upper": 1487.715575811352,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-08",
+        "observedAt": "2026-10-01",
         "modelVersion": "minimax-m3"
-      }
-    },
-    "claude-fable-5": {
-      "text": {
-        "value": 1507.164171675996,
-        "rank": null,
-        "lower": 1502.1991266186806,
-        "upper": 1512.129216733311,
-        "observations": 27189,
-        "category": "overall",
-        "observedAt": "2026-09-02",
-        "modelVersion": "claude-fable-5"
-      },
-      "webdev": {
-        "value": 1628.2738774974382,
-        "rank": null,
-        "lower": 1620.570349028876,
-        "upper": 1635.9774059660003,
-        "observations": null,
-        "category": "overall",
-        "observedAt": "2026-09-08",
-        "modelVersion": "claude-fable-5"
       }
     },
     "mistral-large-3": {
       "text": {
-        "value": 1413.6667924340622,
+        "value": 1413.7170268814298,
         "rank": null,
-        "lower": 1410.5889308514274,
-        "upper": 1416.7446540166968,
-        "observations": 65587,
+        "lower": 1410.814913463878,
+        "upper": 1416.6191402989816,
+        "observations": 78986,
         "category": "overall",
-        "observedAt": "2026-09-02",
+        "observedAt": "2026-09-30",
         "modelVersion": "mistral-large-3"
       },
       "webdev": {
-        "value": 1229.558958324096,
+        "value": 1229.7568442127579,
         "rank": null,
-        "lower": 1203.6131181281914,
-        "upper": 1255.5047985200006,
+        "lower": 1204.2941969591675,
+        "upper": 1255.2194914663482,
         "observations": null,
         "category": "overall",
-        "observedAt": "2026-09-08",
+        "observedAt": "2026-10-01",
         "modelVersion": "mistral-large-3"
       }
     }
