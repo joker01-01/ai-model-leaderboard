@@ -16,6 +16,7 @@ Maintain the published AI model leaderboard and one-shot model advisor. Product 
 
 ## Current Status
 
+- The ModelOps source-version tests validate real generated evidence as available, and use deterministic fixtures to verify rejection of unregistered AA, Arena, and static benchmark identities. A missing live score for a specific model no longer blocks sync at this test; production validation and publication gates are unchanged. Local ModelOps (13), data-policy (40), and frontend (200) tests, generated ModelOps consistency, and the production build passed. After protected review, verify a fresh scheduled run and its resulting data PR before calling the public data current.
 - AA Intelligence Index versions follow the upstream positive finite value rather than a pinned or historical version. The auto-merge policy permits version-only changes in both public and legacy AA projections while retaining schema, identity, coverage, and evidence safeguards.
 - The AA repository completeness test compares loaded source IDs with the source snapshot instead of requiring exactly 643 rows. Regression coverage allows complete model additions/removals and rejects missing rows; production parsing and data publication safeguards are unchanged.
 - The public frontend, advisor form, brand assets, and home footer are published. Mobile presentation and animation fixes merged in PR #20 (`fd8771c`).

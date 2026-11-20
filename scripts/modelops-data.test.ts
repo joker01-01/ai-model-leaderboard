@@ -26,8 +26,12 @@ import {
   parseProviderSourcesConfig,
   pricingEvidenceCutoff,
   sortPricingEntries,
+  type AaSnapshotSource,
+  type ArenaSnapshotSource,
+  type ModelAliasConfig,
   type ModelOpsCatalog,
   type ModelOpsEvidence,
+  type ObjectiveSnapshotSource,
   type PricingConfig,
   type ProviderSourcesConfig,
 } from "./modelops-data-schema";
@@ -187,7 +191,7 @@ test("provider document hosts are constrained by provider ID", async () => {
   assert.throws(() => parseProviderSourcesConfig(wrongHost, knownModelIds), /host is not allowlisted/);
 });
 
-test("benchmark, AA, and Arena rows require exact registered source versions", async () => {
+test("current benchmark, AA, and Arena evidence keeps exact registered source versions", async () => {
   const { aliases } = await loadReviewedInputs();
   assert.doesNotThrow(() => assertSourceVersionBindings(
     aliases,
@@ -195,31 +199,72 @@ test("benchmark, AA, and Arena rows require exact registered source versions", a
     AA_SNAPSHOT,
     ARENA_SNAPSHOT,
   ));
+});
 
-  const wrongAa = structuredClone(AA_SNAPSHOT);
-  const aaMetric = wrongAa.models["gpt-56-sol"]?.intelligence;
-  assert(aaMetric);
-  aaMetric.sourceSlug = "gpt-5-6-sol-unreviewed";
+test("source binding validation rejects unregistered versions without relying on live coverage", () => {
+  const modelId = "fixture-model";
+  const aliases: ModelAliasConfig = {
+    schemaVersion: 1,
+    models: [{
+      modelId,
+      aaSlugs: ["fixture-aa"],
+      arenaNames: ["Fixture Arena v1"],
+      benchmarkVersionIds: ["fixture-v1"],
+      providerModels: [],
+    }],
+  };
+  const observation = { value: 42, modelVersion: "fixture-v1", observedAt: "2026-01-01" };
+  const staticObservation = { ...observation, benchmarkId: "gpqa-diamond" };
+  const aaMetric = { ...observation, sourceSlug: "fixture-aa" };
+  const arenaMetric = { modelVersion: "Fixture Arena v1" };
+  const objective: ObjectiveSnapshotSource = {
+    [modelId]: {
+      modelId,
+      observations: {
+        "aa-intelligence": { ...observation, benchmarkId: "aa-intelligence" },
+        "gpqa-diamond": staticObservation,
+      },
+    },
+  };
+  const aa: AaSnapshotSource = { models: { [modelId]: { intelligence: aaMetric } } };
+  const arena: ArenaSnapshotSource = { models: { [modelId]: { text: arenaMetric } } };
+  const emptySource = { models: {} };
+
+  assert.doesNotThrow(() => assertSourceVersionBindings(aliases, objective, aa, arena));
+  assert.doesNotThrow(() => assertSourceVersionBindings(
+    aliases,
+    { [modelId]: { modelId, observations: { "gpqa-diamond": staticObservation } } },
+    emptySource,
+    emptySource,
+  ));
+
+  const wrongAa: AaSnapshotSource = {
+    models: { [modelId]: { intelligence: { ...aaMetric, sourceSlug: "fixture-aa-unregistered" } } },
+  };
   assert.throws(
-    () => assertSourceVersionBindings(aliases, OBJECTIVE_SNAPSHOT, wrongAa, ARENA_SNAPSHOT),
+    () => assertSourceVersionBindings(aliases, objective, wrongAa, arena),
     /AA sourceSlug .* is not registered/,
   );
 
-  const wrongStatic = structuredClone(OBJECTIVE_SNAPSHOT);
-  const staticObservation = wrongStatic["deepseek-v4-pro"]?.observations["gpqa-diamond"];
-  assert(staticObservation);
-  staticObservation.modelVersion = "deepseek-v4-family";
+  const wrongStatic: ObjectiveSnapshotSource = {
+    [modelId]: {
+      modelId,
+      observations: {
+        ...objective[modelId].observations,
+        "gpqa-diamond": { ...staticObservation, modelVersion: "fixture-family" },
+      },
+    },
+  };
   assert.throws(
-    () => assertSourceVersionBindings(aliases, wrongStatic, AA_SNAPSHOT, ARENA_SNAPSHOT),
+    () => assertSourceVersionBindings(aliases, wrongStatic, aa, arena),
     /benchmark modelVersion .* is not registered/,
   );
 
-  const wrongArena = structuredClone(ARENA_SNAPSHOT);
-  const arenaMetric = wrongArena.models["claude-opus-4-8"]?.text;
-  assert(arenaMetric);
-  arenaMetric.modelVersion = "Claude Opus family";
+  const wrongArena: ArenaSnapshotSource = {
+    models: { [modelId]: { text: { modelVersion: "Fixture Arena family" } } },
+  };
   assert.throws(
-    () => assertSourceVersionBindings(aliases, OBJECTIVE_SNAPSHOT, AA_SNAPSHOT, wrongArena),
+    () => assertSourceVersionBindings(aliases, objective, aa, wrongArena),
     /Arena modelVersion .* is not registered/,
   );
 });
